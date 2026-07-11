@@ -21,6 +21,7 @@ import {
   type MoveCard,
   type PlayerProfile,
   type ProofType,
+  type RunEnding,
   type RunStatus,
 } from "./edge";
 
@@ -70,6 +71,19 @@ const SEND_LINE =
   "The window is open. Conditions and commitment align — one clean, committed attempt is available. The mountain is lit for it.";
 const RECON_LINE = "You mapped the mountain. The next ascent starts with a clearer route.";
 const SIGNALS_COPY = "Run Signals can alert you when the route changes or a window opens.";
+
+const ENDING_LABEL: Record<RunEnding, string> = {
+  "summit-attempt": "Summit Attempt",
+  complete: "Ascent Complete",
+  recon: "Recon",
+};
+
+const NEXT_MAP_LINE = "The run produced signal. The next Ascent starts with a clearer map.";
+const ENDING_LINE: Record<RunEnding, string> = {
+  "summit-attempt": "The attempt is made. Whatever the mountain gives back becomes next week's signal.",
+  complete: NEXT_MAP_LINE,
+  recon: NEXT_MAP_LINE,
+};
 
 // ------------------------------------------------------------------ pure view helpers
 
@@ -131,6 +145,15 @@ interface RitualState {
   note: string;
 }
 
+interface RunSummaryState {
+  ending: RunEnding;
+  aim: string;
+  bossName: string;
+  cairns: number;
+  confidenceBank: number;
+  mastery: number;
+}
+
 // ------------------------------------------------------------------ root
 
 export default function EdgeGame() {
@@ -140,6 +163,7 @@ export default function EdgeGame() {
   const [signalsOn, setSignalsOn] = useState<boolean>(() => loadSignals());
   const [ritual, setRitual] = useState<RitualState | null>(null);
   const [settingStone, setSettingStone] = useState(false);
+  const [summary, setSummary] = useState<RunSummaryState | null>(null);
 
   function persist(next: MissionRunState) {
     saveRun(next);
@@ -163,13 +187,25 @@ export default function EdgeGame() {
     persist(advanceDay(run));
   }
 
-  function endRun(ending: "summit-attempt" | "recon") {
+  function endRun(ending: RunEnding) {
     if (!run) return;
     const nextProfile = completeMissionRun(run, ending);
+    setSummary({
+      ending,
+      aim: run.aim,
+      bossName: run.bossName,
+      cairns: run.cairns.length,
+      confidenceBank: run.confidenceBank,
+      mastery: run.mastery,
+    });
     clearRun();
     setRun(null);
     setProfile(nextProfile);
     setRitual(null);
+  }
+
+  function startNextAscent() {
+    setSummary(null);
   }
 
   function commitRitual(r: RitualState) {
@@ -205,6 +241,10 @@ export default function EdgeGame() {
     return () => window.removeEventListener("keydown", onKey);
   }, [ritual, settingStone]);
 
+  if (summary) {
+    return <RunSummary summary={summary} profile={profile} onStartNext={startNextAscent} />;
+  }
+
   if (!run) {
     return <AimEntry aim={aim} setAim={setAim} onStart={startAscent} profile={profile} />;
   }
@@ -219,12 +259,66 @@ export default function EdgeGame() {
       onOpenRitual={() => setRitual({ step: 1, tier: null, proof: null, felt: null, note: "" })}
       onBreakCamp={breakCamp}
       onAttempt={() => endRun("summit-attempt")}
+      onComplete={() => endRun("complete")}
       onRecon={() => endRun("recon")}
       onToggleSignals={toggleSignals}
       ritual={ritual}
       setRitual={setRitual}
       onCommitRitual={commitRitual}
     />
+  );
+}
+
+// ------------------------------------------------------------------ run summary
+
+function RunSummary({
+  summary,
+  profile,
+  onStartNext,
+}: {
+  summary: RunSummaryState;
+  profile: PlayerProfile;
+  onStartNext: () => void;
+}) {
+  const insights = getProfileInsights(profile);
+  return (
+    <main className="aim-entry">
+      <div className="aim-panel">
+        <p className="brand">EDGE</p>
+        <span className={summary.ending === "summit-attempt" ? "run-status" : "run-status route-shift"}>
+          {ENDING_LABEL[summary.ending]}
+        </span>
+        <h1>{summary.aim}</h1>
+        <p className="lede">{ENDING_LINE[summary.ending]}</p>
+
+        <div className="counters">
+          <span className="stat">
+            <b>{summary.cairns}</b>
+            <span>cairns built</span>
+          </span>
+          <span className="stat">
+            <b>+{summary.confidenceBank}</b>
+            <span>confidence gained</span>
+          </span>
+          <span className="stat">
+            <b>{summary.mastery}</b>
+            <span>mastery</span>
+          </span>
+        </div>
+
+        {insights.length > 0 && (
+          <div className="insights">
+            {insights.map((line) => (
+              <p key={line}>{line}</p>
+            ))}
+          </div>
+        )}
+
+        <button className="primary" type="button" onClick={onStartNext}>
+          Start the next Ascent
+        </button>
+      </div>
+    </main>
   );
 }
 
@@ -292,6 +386,7 @@ function Mountain({
   onOpenRitual,
   onBreakCamp,
   onAttempt,
+  onComplete,
   onRecon,
   onToggleSignals,
   ritual,
@@ -306,6 +401,7 @@ function Mountain({
   onOpenRitual: () => void;
   onBreakCamp: () => void;
   onAttempt: () => void;
+  onComplete: () => void;
   onRecon: () => void;
   onToggleSignals: () => void;
   ritual: RitualState | null;
@@ -394,9 +490,15 @@ function Mountain({
           </>
         )}
 
-        {world === "night" && (
+        {world === "night" && run.day >= 7 && (
+          <button className="primary cta" type="button" onClick={onComplete}>
+            Complete this Ascent
+          </button>
+        )}
+
+        {world === "night" && run.day < 7 && (
           <button className="primary cta" type="button" onClick={onBreakCamp}>
-            Break camp — start day {Math.min(7, run.day + 1)}
+            Break camp — start day {run.day + 1}
           </button>
         )}
 
