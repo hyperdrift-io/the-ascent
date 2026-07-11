@@ -1,0 +1,18 @@
+<svg width="320" height="320" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Citizen balance board mark</title>
+  <desc id="desc">A circular board with balanced paths around a central aim.</desc>
+  <rect width="320" height="320" rx="32" fill="#10130F"/>
+  <circle cx="160" cy="160" r="108" stroke="#E9D8B7" stroke-width="2" stroke-opacity=".36"/>
+  <circle cx="160" cy="160" r="74" stroke="#E9D8B7" stroke-width="2" stroke-opacity=".22"/>
+  <path d="M160 52v216M52 160h216M83.6 83.6l152.8 152.8M236.4 83.6 83.6 236.4" stroke="#E9D8B7" stroke-opacity=".12"/>
+  <circle cx="160" cy="160" r="24" fill="#E9D8B7"/>
+  <circle cx="160" cy="160" r="9" fill="#10130F"/>
+  <path d="M160 75c28 11 48 29 60 54" stroke="#86E2B5" stroke-width="8" stroke-linecap="round"/>
+  <path d="M235 165c-6 30-23 53-49 68" stroke="#7EB6FF" stroke-width="8" stroke-linecap="round"/>
+  <path d="M150 238c-31-4-56-19-73-44" stroke="#FFCA7A" stroke-width="8" stroke-linecap="round"/>
+  <path d="M73 146c4-28 18-50 42-66" stroke="#F08FA7" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="220" cy="129" r="8" fill="#86E2B5"/>
+  <circle cx="186" cy="233" r="8" fill="#7EB6FF"/>
+  <circle cx="77" cy="194" r="8" fill="#FFCA7A"/>
+  <circle cx="115" cy="80" r="8" fill="#F08FA7"/>
+</svg>

@@ -1,0 +1,106 @@
+<h2>First viewport — the Living Mountain, composited</h2>
+<p class="subtitle">The dawn state carries the active day. Use the state switcher to feel the run world move through <strong>night camp → dawn → Send Window</strong> — this cross-fade is the whole "meaningful reveal" engine.</p>
+
+<style>
+  .lm-viewport { position: relative; border-radius: 12px; overflow: hidden; min-height: 620px; font-family: ui-monospace, "SF Mono", Menlo, monospace; background: #0a0e14; }
+  .lm-bg { position: absolute; inset: 0; background-size: cover; background-position: center 32%; opacity: 0; transition: opacity 1.2s ease; }
+  .lm-bg.dawn { background-image: url('../public/art/ascent-dawn.png'); }
+  .lm-bg.night { background-image: url('../public/art/ascent-aurora.png'); background-position: center 40%; }
+  .lm-bg.send { background-image: url('../public/art/ascent-daybreak.png'); }
+  .lm-viewport[data-state="dawn"] .lm-bg.dawn, .lm-viewport[data-state="night"] .lm-bg.night, .lm-viewport[data-state="send"] .lm-bg.send { opacity: 1; }
+  .lm-scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(8, 12, 20, 0.72) 0%, transparent 22%, transparent 55%, rgba(8, 12, 20, 0.82) 88%); }
+  .lm-top { position: absolute; z-index: 3; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; padding: 16px 20px; font-size: 12px; letter-spacing: 0.16em; color: #e8ddc8; }
+  .lm-top b { color: #fff; font-weight: 600; }
+  .lm-lock { position: absolute; z-index: 3; display: flex; align-items: center; gap: 6px; font-size: 10px; letter-spacing: 0.08em; color: rgba(255, 240, 210, 0.92); background: rgba(10, 14, 20, 0.45); border: 1px solid rgba(255, 214, 140, 0.35); border-radius: 999px; padding: 4px 10px; backdrop-filter: blur(4px); }
+  .lm-lock.dim { color: rgba(220, 228, 240, 0.7); border-color: rgba(200, 214, 235, 0.25); }
+  .lm-lock .dot { width: 6px; height: 6px; border-radius: 50%; background: #ffd68c; box-shadow: 0 0 8px rgba(255, 214, 140, 0.9); animation: lockpulse 2.4s ease-in-out infinite; }
+  .lm-lock.dim .dot { background: rgba(200, 214, 235, 0.5); box-shadow: none; animation: none; }
+  @keyframes lockpulse { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
+  .lm-player { position: absolute; z-index: 3; left: 47.5%; top: 60%; width: 10px; height: 10px; border-radius: 50%; background: #fff6e0; box-shadow: 0 0 14px 5px rgba(255, 236, 190, 0.75); animation: playerbreathe 3.6s ease-in-out infinite; }
+  @keyframes playerbreathe { 0%, 100% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.25); opacity: 1; } }
+  .lm-bottom { position: absolute; z-index: 3; left: 0; right: 0; bottom: 0; padding: 14px 20px 18px; display: flex; flex-direction: column; gap: 12px; }
+  .lm-read { display: flex; align-items: center; gap: 12px; color: #f2e8d5; font-size: 12px; letter-spacing: 0.12em; }
+  .lm-read .bar { flex: 0 0 170px; height: 3px; background: rgba(242, 232, 213, 0.22); border-radius: 2px; overflow: hidden; }
+  .lm-read .bar i { display: block; height: 100%; width: 68%; background: linear-gradient(90deg, #d9a441, #ffe9b0); border-radius: 2px; }
+  .lm-hand { display: flex; gap: 12px; }
+  .lm-card { flex: 1; max-width: 170px; border-radius: 10px; padding: 11px 12px; color: #f4ecdd; background: rgba(12, 18, 28, 0.66); border: 1px solid rgba(255, 224, 160, 0.28); backdrop-filter: blur(6px); display: flex; flex-direction: column; gap: 6px; transition: transform 0.18s ease, border-color 0.18s ease; cursor: pointer; }
+  .lm-card:hover { transform: translateY(-5px); border-color: rgba(255, 224, 160, 0.65); }
+  .lm-card .tier { font-size: 9px; letter-spacing: 0.24em; color: #ffd68c; }
+  .lm-card.silver .tier { color: #cfdcec; }
+  .lm-card.spark .tier { color: #ffedd2; opacity: 0.8; }
+  .lm-card .name { font-size: 11.5px; line-height: 1.4; }
+  .lm-card .fx { font-size: 9px; color: rgba(244, 236, 221, 0.6); }
+  .lm-cta { align-self: flex-start; font-size: 11px; letter-spacing: 0.2em; color: #1a1206; background: linear-gradient(180deg, #ffe9b0, #d9a441); border-radius: 999px; padding: 9px 18px; font-weight: 700; box-shadow: 0 4px 18px rgba(217, 164, 65, 0.35); }
+  .lm-restline, .lm-sendline { display: none; color: #e6f0ea; font-size: 12.5px; letter-spacing: 0.06em; line-height: 1.7; }
+  .lm-viewport[data-state="night"] .lm-hand, .lm-viewport[data-state="night"] .lm-cta, .lm-viewport[data-state="night"] .lm-read,
+  .lm-viewport[data-state="send"] .lm-hand { display: none; }
+  .lm-viewport[data-state="night"] .lm-restline { display: block; }
+  .lm-viewport[data-state="send"] .lm-sendline { display: block; }
+  .lm-viewport[data-state="send"] .lm-cta { background: linear-gradient(180deg, #fff8e8, #ffd68c); }
+  .lm-viewport[data-state="night"] .lm-lock, .lm-viewport[data-state="send"] .lm-lock, .lm-viewport[data-state="night"] .lm-player, .lm-viewport[data-state="send"] .lm-player { display: none; }
+  .lm-states { display: flex; gap: 8px; margin: 14px 0 4px; }
+  .lm-states button { font-family: inherit; font-size: 11px; letter-spacing: 0.14em; padding: 8px 16px; border-radius: 999px; border: 1px solid rgba(140, 160, 190, 0.4); background: transparent; color: inherit; cursor: pointer; }
+  .lm-states button.active { background: rgba(255, 214, 140, 0.16); border-color: rgba(255, 214, 140, 0.6); }
+</style>
+
+<div class="section">
+  <div class="lm-states">
+    <button type="button" onclick="lmSet('night', this)">NIGHT · CAMP</button>
+    <button type="button" class="active" onclick="lmSet('dawn', this)">DAWN · DAY 3</button>
+    <button type="button" onclick="lmSet('send', this)">DAYBREAK · SEND WINDOW</button>
+  </div>
+
+  <div class="lm-viewport" id="lmvp" data-state="dawn">
+    <div class="lm-bg night"></div>
+    <div class="lm-bg dawn"></div>
+    <div class="lm-bg send"></div>
+    <div class="lm-scrim"></div>
+
+    <div class="lm-top"><span><b>EDGE</b></span><span class="lm-topline-copy">ASCENT · DAY 3 / 7 · BOSS WINDOW SAT</span></div>
+
+    <span class="lm-lock" style="left: 26%; top: 24%;"><span class="dot"></span>APPROACH TRUSTED</span>
+    <span class="lm-lock dim" style="left: 62%; top: 21%;"><span class="dot"></span>ANXIETY USABLE</span>
+    <span class="lm-lock dim" style="left: 56%; top: 44%;"><span class="dot"></span>CONDITIONS ALIGN</span>
+    <span class="lm-player"></span>
+
+    <div class="lm-bottom">
+      <div class="lm-read"><span>READINESS 68%</span><span class="bar"><i></i></span><span>WINDOW FORMING</span></div>
+
+      <div class="lm-restline">The camp is set. Recovery is converting yesterday's work into mastery —<br>the path behind you is hardening into stone. Nothing is asked of you tonight.</div>
+      <div class="lm-sendline">The window is open. Conditions and commitment align —<br>one clean, committed attempt is available. The mountain is lit for it.</div>
+
+      <div class="lm-hand">
+        <div class="lm-card"><span class="tier">GOLD</span><span class="name">3 committed edge-pop approaches</span><span class="fx">energy −8 · technique +10</span></div>
+        <div class="lm-card silver"><span class="tier">SILVER</span><span class="name">1 committed approach, mark the hesitation</span><span class="fx">energy −4 · technique +5</span></div>
+        <div class="lm-card spark"><span class="tier">SPARK</span><span class="name">watch one attempt, name the correction</span><span class="fx">focus −1 · confidence +2</span></div>
+      </div>
+      <span class="lm-cta">RESOLVE TODAY'S MOVE</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  function lmSet(state, btn) {
+    document.getElementById('lmvp').setAttribute('data-state', state);
+    document.querySelectorAll('.lm-states button').forEach(function (b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    var copy = document.querySelector('.lm-topline-copy');
+    if (state === 'night') copy.textContent = 'CAMP · RECOVERY CONVERTING';
+    if (state === 'dawn') copy.textContent = 'ASCENT · DAY 3 / 7 · BOSS WINDOW SAT';
+    if (state === 'send') copy.textContent = 'SEND WINDOW · OPEN';
+  }
+</script>
+
+<div class="section">
+  <h3>Lock this as the Edge art direction?</h3>
+  <div class="options">
+    <div class="option" data-choice="lock-living-mountain" onclick="toggleSelect(this)">
+      <div class="letter">A</div>
+      <div class="content"><h3>Lock it</h3><p>Living Mountain world · light = run state · warm gold = action, teal aurora = recovery · locks as glass chips on the arch · dawn-glass move cards · diegetic player light on the path. I'll write the visual spec into the design doc next.</p></div>
+    </div>
+    <div class="option" data-choice="adjust-composite" onclick="toggleSelect(this)">
+      <div class="letter">B</div>
+      <div class="content"><h3>Adjust first</h3><p>Right world, but something's off — tell me in the terminal (card chrome, lock treatment, scrim weight, type, palette balance).</p></div>
+    </div>
+  </div>
+</div>
