@@ -95,6 +95,9 @@ export interface MissionRunState {
   dormantXp: number;
   resolvedToday: boolean;
   scannedToday: boolean;
+  startedOn: string;
+  lastSyncedOn: string;
+  syncNote: string | null;
 }
 export interface PlayerProfile {
   completedRuns: number;
@@ -463,6 +466,12 @@ const FELT_RESOURCE_NUDGE: Record<FeltState, Partial<Record<HumanResource, numbe
   charged: { energy: 4 },
 };
 
+const WEEKDAY_LABELS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+
+// The mountain moves while the player is away — quiet (away) days are rest, never
+// failure, so the sync note only ever reports gentle, positive drift.
+const QUIET_SYNC_NOTE = "The mountain moved while you were away — recovery converted, and the route held.";
+
 // -----------------------------------------------------------------------------------------
 // Kernel helpers
 // -----------------------------------------------------------------------------------------
@@ -474,6 +483,30 @@ function clamp(value: number, min = 0, max = 100): number {
 function mean(values: number[]): number {
   if (values.length === 0) return 0;
   return values.reduce((total, value) => total + value, 0) / values.length;
+}
+
+// Date-only math on ISO (`YYYY-MM-DD`) strings, timezone-safe: every calendar day is
+// parsed/formatted against UTC midnight so local-timezone Date parsing never drifts
+// the day count. `now` never enters here — see `todayLocalISO` for the only real clock read.
+function isoToUTCTimestamp(iso: string): number {
+  const [year, month, day] = iso.split("-").map(Number);
+  return Date.UTC(year, month - 1, day);
+}
+
+function timestampToISO(timestamp: number): string {
+  const date = new Date(timestamp);
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function daysBetweenISO(fromISO: string, toISO: string): number {
+  return Math.round((isoToUTCTimestamp(toISO) - isoToUTCTimestamp(fromISO)) / 86_400_000);
+}
+
+function addDaysISO(iso: string, days: number): string {
+  return timestampToISO(isoToUTCTimestamp(iso) + days * 86_400_000);
 }
 
 function defaultResources(value: number): Record<HumanResource, number> {
@@ -568,6 +601,7 @@ export function createMissionRun(
   aim: string,
   previousProfile?: PlayerProfile,
   packId?: AimPack["id"],
+  todayISO: string = todayLocalISO(),
 ): MissionRunState {
   const pack = packId ? AIM_PACKS.find((candidate) => candidate.id === packId) ?? pickPack(aim) : pickPack(aim);
   const resources = previousProfile ? { ...previousProfile.baselines } : defaultResources(60);
@@ -596,6 +630,9 @@ export function createMissionRun(
     dormantXp: 0,
     resolvedToday: false,
     scannedToday: false,
+    startedOn: todayISO,
+    lastSyncedOn: todayISO,
+    syncNote: null,
   };
 }
 
@@ -644,6 +681,7 @@ export function resolveMove(state: MissionRunState, input: ResolveInput): Missio
     confidenceBank,
     cairns,
     resolvedToday: true,
+    syncNote: null,
   };
 }
 
@@ -676,6 +714,96 @@ export function advanceDay(state: MissionRunState): MissionRunState {
     coreMetrics,
     dormantXp,
     mastery,
+    syncNote: null,
+  };
+}
+
+// A quiet (away) day is rest, never failure: no cairn is set, but the mountain still
+// moves gently — recovery/energy/sleep drift up and dormant effort still converts once
+// recovery clears the same threshold `advanceDay` uses. Mirrors `advanceDay`'s camp
+// conversion but without the resolve-day resource/cairn changes.
+function applyQuietDay(state: MissionRunState): MissionRunState {
+  const resources = applyResourceDelta(state.resources, { recovery: 4, energy: 2 });
+  const coreMetrics = { ...state.coreMetrics, sleep: clamp(state.coreMetrics.sleep + 2) };
+
+  let dormantXp = state.dormantXp;
+  let mastery = state.mastery;
+  if (resources.recovery >= 55) {
+    mastery += Math.floor(dormantXp / 8);
+    dormantXp %= 8;
+  }
+
+  return {
+    ...state,
+    day: Math.min(7, state.day + 1),
+    resolvedToday: false,
+    resources,
+    coreMetrics,
+    dormantXp,
+    mastery,
+  };
+}
+
+// The only place `new Date()` (the current-clock read) is touched — every other kernel
+// function takes ISO `YYYY-MM-DD` strings so it stays pure and testable.
+export function todayLocalISO(now: Date = new Date()): string {
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+// Binds the ascent to real days: a player who steps away returns to a mountain that
+// moved without them, gently. Idempotent same-day; walks each elapsed calendar day,
+// applying `advanceDay`'s existing semantics for a pending resolve on the first elapsed
+// day (their resolve still counts) and quiet-day drift for every day after, up to the
+// day-7 cap — `isWeekOver` governs the ending, not this function.
+export function syncRunToToday(state: MissionRunState, todayISO: string): MissionRunState {
+  if (todayISO <= state.lastSyncedOn) return state;
+
+  const elapsedDays = daysBetweenISO(state.lastSyncedOn, todayISO);
+  let next = state;
+  let quietDays = 0;
+
+  for (let i = 0; i < elapsedDays; i++) {
+    if (next.day >= 7) break;
+    if (i === 0 && next.resolvedToday) {
+      next = advanceDay(next);
+    } else {
+      next = applyQuietDay(next);
+      quietDays += 1;
+    }
+  }
+
+  return {
+    ...next,
+    lastSyncedOn: todayISO,
+    syncNote: quietDays > 0 ? QUIET_SYNC_NOTE : null,
+  };
+}
+
+// True once a full week has elapsed since `startedOn` — the App calls
+// `completeMissionRun(run, "complete", profile)` when this flips; the kernel never
+// auto-ends a run on its own.
+export function isWeekOver(state: MissionRunState, todayISO: string): boolean {
+  return daysBetweenISO(state.startedOn, todayISO) >= 7;
+}
+
+// The summit-gate window closes on the 3-letter weekday six days after `startedOn`.
+export function getBossWindowLabel(state: MissionRunState): string {
+  const bossDayISO = addDaysISO(state.startedOn, 6);
+  const weekday = new Date(isoToUTCTimestamp(bossDayISO)).getUTCDay();
+  return WEEKDAY_LABELS[weekday];
+}
+
+// World tint: no CSS/presentation values here, just the two 0-100 readings the UI
+// (Task 10) maps onto color. Warmth reads energy/confidence/connection; clarity reads
+// recovery/composure/focus.
+export function getWorldTint(state: MissionRunState): { warmth: number; clarity: number } {
+  const { energy, confidence, connection, recovery, composure, focus } = state.resources;
+  return {
+    warmth: clamp(mean([energy, confidence, connection])),
+    clarity: clamp(mean([recovery, composure, focus])),
   };
 }
 
@@ -897,7 +1025,7 @@ const RUN_STORAGE_KEY = "edge.run.v1";
 const PROFILE_STORAGE_KEY = "edge.profile.v1";
 const SUMMARY_STORAGE_KEY = "edge.summary.v1";
 
-export function loadRun(): MissionRunState | null {
+export function loadRun(todayISO: string = todayLocalISO()): MissionRunState | null {
   try {
     const raw = localStorage.getItem(RUN_STORAGE_KEY);
     if (!raw) return null;
@@ -917,6 +1045,18 @@ export function loadRun(): MissionRunState | null {
     // missing means the player hasn't scanned yet today.
     if (typeof state.scannedToday !== "boolean") {
       state.scannedToday = false;
+    }
+    // Old saves (from before calendar binding) never wrote `startedOn`/`lastSyncedOn`/
+    // `syncNote` — back-fill a plausible start date from the in-run day counter so
+    // `isWeekOver`/`getBossWindowLabel` have something timezone-safe to work with.
+    if (typeof state.startedOn !== "string") {
+      state.startedOn = addDaysISO(todayISO, -(state.day - 1));
+    }
+    if (typeof state.lastSyncedOn !== "string") {
+      state.lastSyncedOn = todayISO;
+    }
+    if (state.syncNote === undefined) {
+      state.syncNote = null;
     }
     return state;
   } catch {
