@@ -2,7 +2,7 @@
 
 Edge is a weekly mission game. Each week is an Ascent toward a player-chosen aim: daily real-world moves, resolved as cairns on the path, carry you toward the summit gate — the week's meaningful attempt.
 
-Each day opens with a Morning Scan — a quick, skippable read on your seven resources (Energy, Focus, Composure, Confidence, Recovery, Connection, Time). Every answer is just information, not a verdict; it sets the day's conditions and feeds the mountain, which lives and breathes with you: fog when recovery runs low, headwind when time or composure is thin, and a golden dawn the morning after a strong day. Performance only ever brightens the world — a hard day is earlier light, never darkness.
+The Ascent follows your real week: each visit picks up wherever the calendar left off. Miss a day and the mountain rests with you — recovery converts while you're away, and the run is waiting when you return. The Edge Line, the run's signature instrument, always shows where you're living relative to the edge; your seven resources (Energy, Focus, Composure, Confidence, Recovery, Connection, Time) stay on screen throughout. Each dawn opens with a Morning Scan — a quick, skippable read that's how the mountain reads you. Every answer is just information, not a verdict; it sets the day's conditions and feeds the mountain, which lives and breathes with you: fog when recovery runs low, headwind when time or composure is thin, and a golden dawn the morning after a strong day. Performance only ever brightens the world — a hard day is earlier light, never darkness.
 
 ```bash
 pnpm install
