@@ -1,3 +1,7 @@
-# Citizen Game
+# Edge
 
-Citizen is an enlightening balance game about achieving potential. A user writes the aim they want to pursue, imports or sketches a real week, and sees which parts of life need more room before the aim can be carried well. The product should feel calm, honest, and enabling: progress is not framed as willpower alone, but as a rhythm of recovery, work, health, and meaningful support.
+Edge turns one real week into an Ascent toward a player-chosen aim. The player walks the edge — the crest between comfort and overload — and daily real-world moves, resolved as cairns on the path, carry them toward the summit gate: the week's meaningful attempt.
+
+Each Ascent teaches the player how their human resources behave: health, stamina, sleep, stress, nutrition, cardio, work, commute, routine, sport, rest, travel, social, entertainment, family, and support. The point is not a one-off productivity plan; it is a playable loop that teaches someone how to manage themselves toward aims they care about.
+
+Light carries the run state: aurora night for recovery, dawn for the active day, daybreak for the Send Window. A hard day is earlier light, never darkness.

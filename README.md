@@ -1,6 +1,6 @@
-# Citizen Game
+# Edge
 
-Local PoC for a life-balance strategy game.
+Ascent is a weekly mission game. The player sets a meaningful aim, the game turns it into a seven-day boss run across the Living Mountain, and each day's real-world moves light up the path toward the summit gate.
 
 ```bash
 pnpm install
