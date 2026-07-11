@@ -184,7 +184,7 @@ export default function EdgeGame() {
 
   function endRun(ending: RunEnding) {
     if (!run) return;
-    const nextProfile = completeMissionRun(run, ending);
+    const nextProfile = completeMissionRun(run, ending, profile);
     const nextSummary: RunSummary = {
       ending,
       aim: run.aim,
@@ -292,7 +292,7 @@ function RunSummary({
         <div className="counters">
           <span className="stat">
             <b>{summary.cairns}</b>
-            <span>cairns built</span>
+            <span>{summary.cairns === 1 ? "cairn" : "cairns"} built</span>
           </span>
           <span className="stat">
             <b>+{summary.confidenceBank}</b>
@@ -590,7 +590,7 @@ function Footer({
         <div className="counters">
           <span className="stat">
             <b>{profile.completedRuns}</b>
-            <span>ascents completed</span>
+            <span>{profile.completedRuns === 1 ? "ascent" : "ascents"} completed</span>
           </span>
           <span className="stat">
             <b>{run.confidenceBank}</b>

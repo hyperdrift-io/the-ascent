@@ -581,6 +581,7 @@ export function advanceDay(state: MissionRunState): MissionRunState {
     ...state,
     day: Math.min(7, state.day + 1),
     resolvedToday: false,
+    chosenCardId: null,
     resources,
     coreMetrics,
   };
@@ -711,8 +712,12 @@ export function getProfileInsights(profile: PlayerProfile): string[] {
 
 // `ending` is part of the contract — recon endings still update the profile the same way
 // as any other ending, so there is no branch on its value today.
-export function completeMissionRun(state: MissionRunState, ending: RunEnding): PlayerProfile {
-  const previous = loadProfile();
+export function completeMissionRun(
+  state: MissionRunState,
+  ending: RunEnding,
+  previousProfile?: PlayerProfile,
+): PlayerProfile {
+  const previous = previousProfile ?? loadProfile();
   const n = previous.completedRuns;
 
   const baselines = HUMAN_RESOURCES.reduce((acc, key) => {
@@ -751,6 +756,15 @@ export function loadRun(): MissionRunState | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== "object") return null;
+    if (
+      !Array.isArray(parsed.locks) ||
+      !Array.isArray(parsed.cairns) ||
+      !Array.isArray(parsed.hand) ||
+      typeof parsed.day !== "number" ||
+      typeof parsed.readiness !== "number"
+    ) {
+      return null;
+    }
     return parsed as MissionRunState;
   } catch {
     return null;
@@ -799,6 +813,7 @@ export function loadSummary(): RunSummary | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== "object") return null;
+    if (typeof parsed.ending !== "string") return null;
     return parsed as RunSummary;
   } catch {
     return null;

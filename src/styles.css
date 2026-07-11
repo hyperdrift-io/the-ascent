@@ -788,6 +788,7 @@ textarea:focus {
   .ritual .stone-preview,
   .ritual,
   .recon-confirm,
+  .readiness .bar i,
   .bg {
     animation: none !important;
     transition: none !important;
