@@ -737,10 +737,13 @@ function applyQuietDay(state: MissionRunState): MissionRunState {
     ...state,
     day: Math.min(7, state.day + 1),
     resolvedToday: false,
+    scannedToday: false,
+    chosenCardId: null,
     resources,
     coreMetrics,
     dormantXp,
     mastery,
+    syncNote: null,
   };
 }
 
