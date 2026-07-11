@@ -26,6 +26,9 @@ export type FeltState = "calmer" | "sharper" | "tired" | "charged";
 export type WorldState = "night" | "dawn" | "send";
 export type RunEnding = "summit-attempt" | "complete" | "recon";
 export type Zone = "idle" | "warmline" | "edge" | "redline" | "overclock";
+export type ScanReading = "low" | "steady" | "strong";
+export type MorningScanInput = Partial<Record<HumanResource, ScanReading>>;
+export type SceneKey = "night" | "send" | "dawn-clear" | "dawn-fog" | "dawn-wind" | "dawn-golden";
 
 export interface Condition {
   kind: "clear-air" | "fog" | "headwind" | "tailwind";
@@ -64,7 +67,7 @@ export interface ResolveInput {
   note?: string;
 }
 export interface AimPack {
-  id: "sport-skill" | "public-performance" | "career-interview";
+  id: "sport-skill" | "public-performance" | "career-interview" | "open-aim";
   label: string;
   bossName: string;
   suggestion: string;
@@ -92,6 +95,7 @@ export interface MissionRunState {
   mastery: number;
   dormantXp: number;
   resolvedToday: boolean;
+  scannedToday: boolean;
 }
 export interface PlayerProfile {
   completedRuns: number;
@@ -375,6 +379,87 @@ const CAREER_INTERVIEW_PACK: AimPack = {
   ],
 };
 
+export const OPEN_AIM_PACK: AimPack = {
+  id: "open-aim",
+  label: "Open Aim",
+  bossName: "The Gate",
+  suggestion: "Take the one committed step that matters most, on your terms, by the end of the week.",
+  locks: [
+    { id: "first-move-trusted", label: "The first move is trusted", crackAt: 40 },
+    { id: "hard-part-has-shape", label: "The hard part has a shape", crackAt: 60 },
+    { id: "conditions-commitment-align", label: "Conditions and commitment align", crackAt: 80 },
+  ],
+  skills: ["Contact", "Shape", "Commitment"],
+  cards: [
+    {
+      id: "contact",
+      title: "Contact",
+      gold: {
+        tier: "gold",
+        text: "One full committed attempt at the hardest part.",
+        effects: { energy: -8, confidence: 7 },
+        readinessGain: 9,
+      },
+      silver: {
+        tier: "silver",
+        text: "One focused rep with the friction named.",
+        effects: { energy: -6, confidence: 4 },
+        readinessGain: 6,
+      },
+      spark: {
+        tier: "spark",
+        text: "Ten minutes in contact with the work.",
+        effects: { energy: -3, confidence: 2 },
+        readinessGain: 3,
+      },
+    },
+    {
+      id: "shape",
+      title: "Shape",
+      gold: {
+        tier: "gold",
+        text: "One full committed attempt at the hardest part.",
+        effects: { energy: -8, confidence: 7 },
+        readinessGain: 9,
+      },
+      silver: {
+        tier: "silver",
+        text: "One focused rep with the friction named.",
+        effects: { energy: -6, confidence: 4 },
+        readinessGain: 6,
+      },
+      spark: {
+        tier: "spark",
+        text: "Ten minutes in contact with the work.",
+        effects: { energy: -3, confidence: 2 },
+        readinessGain: 3,
+      },
+    },
+    {
+      id: "commitment",
+      title: "Commitment",
+      gold: {
+        tier: "gold",
+        text: "One full committed attempt at the hardest part.",
+        effects: { energy: -8, confidence: 7 },
+        readinessGain: 9,
+      },
+      silver: {
+        tier: "silver",
+        text: "One focused rep with the friction named.",
+        effects: { energy: -6, confidence: 4 },
+        readinessGain: 6,
+      },
+      spark: {
+        tier: "spark",
+        text: "Ten minutes in contact with the work.",
+        effects: { energy: -3, confidence: 2 },
+        readinessGain: 3,
+      },
+    },
+  ],
+};
+
 export const AIM_PACKS: AimPack[] = [SPORT_SKILL_PACK, PUBLIC_PERFORMANCE_PACK, CAREER_INTERVIEW_PACK];
 
 // -----------------------------------------------------------------------------------------
@@ -382,10 +467,16 @@ export const AIM_PACKS: AimPack[] = [SPORT_SKILL_PACK, PUBLIC_PERFORMANCE_PACK, 
 // -----------------------------------------------------------------------------------------
 
 const TIER_READINESS_GAIN: Record<CompletionTier, number> = {
-  gold: 9,
-  silver: 6,
+  gold: 11,
+  silver: 7,
   spark: 3,
   "route-shift": 2,
+};
+
+const TIER_DORMANT_XP: Partial<Record<CompletionTier, number>> = {
+  gold: 6,
+  silver: 4,
+  spark: 2,
 };
 
 const PROOF_MULTIPLIER: Record<ProofType, number> = {
@@ -394,6 +485,12 @@ const PROOF_MULTIPLIER: Record<ProofType, number> = {
   "calendar-session": 1.25,
   "wearable-signal": 1.25,
   "honest-check-in": 1,
+};
+
+const SCAN_READING_DELTA: Record<ScanReading, number> = {
+  low: -10,
+  steady: 0,
+  strong: 8,
 };
 
 const FELT_RESOURCE_NUDGE: Record<FeltState, Partial<Record<HumanResource, number>>> = {
@@ -450,7 +547,10 @@ function pickPack(aim: string): AimPack {
   if (/(speech|talk|present|presentation|performance|stage|public speak|pitch|audience|the room)/.test(text)) {
     return PUBLIC_PERFORMANCE_PACK;
   }
-  return SPORT_SKILL_PACK;
+  if (/(backroll|kite|surf|skate|ski|climb|swim|sprint|run|lift|trick|jump|serve|race|board|goal)/.test(text)) {
+    return SPORT_SKILL_PACK;
+  }
+  return OPEN_AIM_PACK;
 }
 
 function deriveZone(edgeLoad: number, edgeControl: number): Zone {
@@ -472,6 +572,22 @@ function computeEdge(
   const edgeLoad = clamp(mean([coreMetrics.work, coreMetrics.commute, stressProxy]));
   const edgeControl = clamp(mean([resources.recovery, resources.composure, resources.confidence, resources.focus]));
   return { edgeLoad, edgeControl, zone: deriveZone(edgeLoad, edgeControl) };
+}
+
+function computeReadinessGain(
+  tier: CompletionTier,
+  proof: ProofType,
+  resources: Record<HumanResource, number>,
+): number {
+  let tierGain = TIER_READINESS_GAIN[tier];
+  if (resources.energy < 35) {
+    tierGain = Math.round(tierGain * 0.8);
+  }
+  let gain = tierGain * PROOF_MULTIPLIER[proof];
+  if (resources.energy >= 60 && resources.focus >= 55) {
+    gain += 2;
+  }
+  return gain;
 }
 
 function deriveStatus(tier: CompletionTier, readiness: number, day: number): RunStatus {
@@ -497,7 +613,7 @@ export function createMissionRun(aim: string, previousProfile?: PlayerProfile): 
     packId: pack.id,
     bossName: pack.bossName,
     day: 1,
-    readiness: 12,
+    readiness: 15,
     status: "on-target",
     zone,
     locks,
@@ -512,6 +628,7 @@ export function createMissionRun(aim: string, previousProfile?: PlayerProfile): 
     mastery: 0,
     dormantXp: 0,
     resolvedToday: false,
+    scannedToday: false,
   };
 }
 
@@ -519,7 +636,7 @@ export function resolveMove(state: MissionRunState, input: ResolveInput): Missio
   const card = state.hand.find((item) => item.id === state.chosenCardId) ?? state.hand[0];
   const moveTier = input.tier === "route-shift" ? null : card?.[input.tier];
 
-  const readiness = clamp(state.readiness + TIER_READINESS_GAIN[input.tier] * PROOF_MULTIPLIER[input.proof]);
+  const readiness = clamp(state.readiness + computeReadinessGain(input.tier, input.proof, state.resources));
 
   let resources = state.resources;
   if (moveTier) {
@@ -527,15 +644,11 @@ export function resolveMove(state: MissionRunState, input: ResolveInput): Missio
   }
   resources = applyResourceDelta(resources, FELT_RESOURCE_NUDGE[input.felt]);
 
-  let dormantXp = state.dormantXp;
-  let mastery = state.mastery;
-  if (input.felt === "tired") {
-    dormantXp += 4;
-  } else {
-    const converted = Math.floor(dormantXp / 8);
-    mastery += converted;
-    dormantXp -= converted * 8;
-  }
+  // Every resolve accrues dormant XP; it converts to mastery at camp (see `advanceDay`)
+  // once recovery is high enough to turn effort into skill.
+  const dormantXp =
+    state.dormantXp + (TIER_DORMANT_XP[input.tier] ?? 0) + (input.felt === "tired" ? 4 : 0);
+  const mastery = state.mastery;
 
   const confidenceBank = state.confidenceBank + 2 + (input.proof === "photo-video" ? 2 : 0);
 
@@ -577,13 +690,60 @@ export function advanceDay(state: MissionRunState): MissionRunState {
 
   const coreMetrics = { ...state.coreMetrics, sleep: clamp(state.coreMetrics.sleep + 4) };
 
+  // Recovery converts yesterday's dormant effort into mastery — the camp is where
+  // the work settles, per the product thesis (recovery ≥ 55 unlocks conversion).
+  let dormantXp = state.dormantXp;
+  let mastery = state.mastery;
+  if (resources.recovery >= 55) {
+    mastery += Math.floor(dormantXp / 8);
+    dormantXp %= 8;
+  }
+
   return {
     ...state,
     day: Math.min(7, state.day + 1),
     resolvedToday: false,
+    scannedToday: false,
     chosenCardId: null,
     resources,
     coreMetrics,
+    dormantXp,
+    mastery,
+  };
+}
+
+// Morning Scan makes the player the data source: three quick readings on the resources
+// that matter most (recovery, connection, composure, time, ...) update the state directly,
+// with sympathetic effects on sleep/rest/social, before the day's conditions are drawn.
+export function applyMorningScan(state: MissionRunState, input: MorningScanInput): MissionRunState {
+  let resources = state.resources;
+  for (const key of HUMAN_RESOURCES) {
+    const reading = input[key];
+    if (reading) {
+      resources = applyResourceDelta(resources, { [key]: SCAN_READING_DELTA[reading] });
+    }
+  }
+
+  const recoveryDelta = input.recovery ? SCAN_READING_DELTA[input.recovery] : 0;
+  const connectionDelta = input.connection ? SCAN_READING_DELTA[input.connection] : 0;
+
+  const coreMetrics = {
+    ...state.coreMetrics,
+    sleep: clamp(state.coreMetrics.sleep + Math.round(0.8 * recoveryDelta)),
+    rest: clamp(state.coreMetrics.rest + Math.round(0.5 * recoveryDelta)),
+    social: clamp(state.coreMetrics.social + Math.round(0.6 * connectionDelta)),
+  };
+
+  const { edgeLoad, edgeControl, zone } = computeEdge(resources, coreMetrics);
+
+  return {
+    ...state,
+    resources,
+    coreMetrics,
+    edgeLoad,
+    edgeControl,
+    zone,
+    scannedToday: true,
   };
 }
 
@@ -593,19 +753,37 @@ export function getWorldState(state: MissionRunState): WorldState {
   return "dawn";
 }
 
+// `getWorldScene` refines `getWorldState`'s dawn bucket into the four scene keys the UI
+// (Task 7) renders — driven by the same scan-adjusted resources that drive `getConditions`.
+export function getWorldScene(state: MissionRunState): SceneKey {
+  const world = getWorldState(state);
+  if (world === "night") return "night";
+  if (world === "send") return "send";
+
+  const conditions = getConditions(state);
+  if (conditions.some((condition) => condition.kind === "fog")) return "dawn-fog";
+  if (conditions.some((condition) => condition.kind === "headwind")) return "dawn-wind";
+
+  const lastCairn = state.cairns[state.cairns.length - 1];
+  if (lastCairn && (lastCairn.tier === "gold" || lastCairn.tier === "silver")) return "dawn-golden";
+
+  return "dawn-clear";
+}
+
 export function getConditions(state: MissionRunState): Condition[] {
   const conditions: Condition[] = [];
+  const { recovery, composure, connection, time } = state.resources;
 
-  if (state.coreMetrics.sleep < 50) {
+  if (recovery < 45) {
     conditions.push({ kind: "fog", line: "Fog on the crest — short nights compressed recovery." });
   }
-  if (state.coreMetrics.work + state.coreMetrics.commute > 120) {
+  if (time < 40 || composure < 40) {
     conditions.push({ kind: "headwind", line: "Headwind today — work pressure is leaning on the route." });
   }
-  if (state.resources.recovery >= 65) {
+  if (recovery >= 60 && composure >= 55) {
     conditions.push({ kind: "clear-air", line: "Clear air — a protected morning is holding." });
   }
-  if (state.resources.connection >= 65) {
+  if (connection >= 60) {
     conditions.push({ kind: "tailwind", line: "Tailwind — support is buffering the pressure." });
   }
 
@@ -765,7 +943,13 @@ export function loadRun(): MissionRunState | null {
     ) {
       return null;
     }
-    return parsed as MissionRunState;
+    const state = parsed as MissionRunState;
+    // Old saves (`edge.run.v1` from before Morning Scan) never wrote `scannedToday` —
+    // missing means the player hasn't scanned yet today.
+    if (typeof state.scannedToday !== "boolean") {
+      state.scannedToday = false;
+    }
+    return state;
   } catch {
     return null;
   }
