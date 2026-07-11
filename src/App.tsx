@@ -7,17 +7,22 @@ import {
   clearSummary,
   completeMissionRun,
   createMissionRun,
+  getBossWindowLabel,
   getConditions,
   getProfileInsights,
   getTrailNote,
   getWorldScene,
   getWorldState,
+  getWorldTint,
+  isWeekOver,
   loadProfile,
   loadRun,
   loadSummary,
   resolveMove,
   saveRun,
   saveSummary,
+  syncRunToToday,
+  todayLocalISO,
   type AimPack,
   type CompletionTier,
   type FeltState,
@@ -32,6 +37,7 @@ import {
   type RunStatus,
   type RunSummary,
   type ScanReading,
+  type Zone,
 } from "./edge";
 
 // ------------------------------------------------------------------ constants
@@ -57,6 +63,28 @@ const RESOURCE_LABEL: Record<HumanResource, string> = {
   recovery: "Recovery",
   connection: "Connection",
   time: "Time",
+};
+
+// the five edge zones, surfaced as the label under the marker on the Edge Line
+const ZONE_LABEL: Record<Zone, string> = {
+  idle: "IDLE",
+  warmline: "WARMLINE",
+  edge: "EDGE",
+  redline: "REDLINE",
+  overclock: "OVERCLOCK",
+};
+
+// quiet threshold ticks — the exact points where a condition changes the weather, so the
+// meters read as the cause of what the mountain shows. Values mirror getConditions in the
+// kernel (recovery 45/60, composure 55, connection 60); the UI only labels them, never
+// re-derives the rule.
+const METER_TICKS: Partial<Record<HumanResource, { at: number; title: string }[]>> = {
+  recovery: [
+    { at: 45, title: "Below 45: fog on the crest" },
+    { at: 60, title: "60 and up: clear air holds (with composure 55+)" },
+  ],
+  composure: [{ at: 55, title: "55 and up: clear air holds (with recovery 60+)" }],
+  connection: [{ at: 60, title: "60 and up: tailwind — support buffers the load" }],
 };
 
 // morning scan readings — information about how the day feels, never a judgment
@@ -126,6 +154,15 @@ const ENDING_LABEL: Record<RunEnding, string> = {
   recon: "Recon",
 };
 
+// shown only when the week closed while the player was away (calendar auto-complete),
+// replacing the standard non-summit line for that case
+const AWAY_COMPLETE_LINE =
+  "The week completed while you were away. The run produced signal — the next Ascent starts with a clearer map.";
+
+const BASELINE_CAPTION = "Your baseline going into this Ascent";
+
+const HAND_LOCKED_CUE = "Today's moves — unlocked by your scan.";
+
 const NEXT_MAP_LINE = "The run produced signal. The next Ascent starts with a clearer map.";
 const ENDING_LINE: Record<RunEnding, string> = {
   "summit-attempt": "The attempt is made. Whatever the mountain gives back becomes next week's signal.",
@@ -157,10 +194,28 @@ function formatEffects(effects: Partial<Record<HumanResource, number>>): string 
     .join(" · ");
 }
 
-function toplineCopy(state: "night" | "dawn" | "send", day: number): string {
+function toplineCopy(state: "night" | "dawn" | "send", day: number, bossLabel: string): string {
   if (state === "night") return "CAMP · RECOVERY CONVERTING";
   if (state === "send") return "SEND WINDOW · OPEN";
-  return `ASCENT · DAY ${day} / 7 · BOSS WINDOW SAT`;
+  return `ASCENT · DAY ${day} / 7 · BOSS WINDOW ${bossLabel}`;
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
+// Living Light: map the two 0-100 kernel readings onto CSS custom properties (data, not
+// presentation). Warmth rotates the tint hue; low clarity raises a pale veil. Strain always
+// reads cooler and quieter — never darker (the veil lightens, it never blacks out).
+function tintVars(tint: { warmth: number; clarity: number }): Record<string, string> {
+  const hue = ((tint.warmth - 50) * 0.8).toFixed(1);
+  const veil = (((100 - tint.clarity) / 100) * 0.4).toFixed(3);
+  const warmth = (0.55 + (tint.warmth / 100) * 0.6).toFixed(2);
+  return {
+    "--tint-hue": `${hue}deg`,
+    "--tint-veil": veil,
+    "--tint-warmth": warmth,
+  };
 }
 
 function loadSignals(): boolean {
@@ -204,6 +259,9 @@ export default function EdgeGame() {
   const [ritual, setRitual] = useState<RitualState | null>(null);
   const [settingStone, setSettingStone] = useState(false);
   const [summary, setSummary] = useState<RunSummary | null>(() => loadSummary());
+  // View-only flag (not persisted): the week closed while the player was away, so the
+  // summary greets them with the away-completion line rather than the standard one.
+  const [awayComplete, setAwayComplete] = useState(false);
 
   // Preload every backdrop once so scene-to-scene cross-fades never flash a blank layer.
   useEffect(() => {
@@ -211,6 +269,45 @@ export default function EdgeGame() {
       const img = new Image();
       img.src = `/art/${asset}`;
     }
+  }, []);
+
+  // The Ascent runs on real days: on mount and whenever the tab becomes visible again,
+  // reconcile the saved run with today. A finished week auto-completes into the summary;
+  // otherwise elapsed calendar days are folded in (idempotent same-day). `new Date()`
+  // never leaves the App boundary — todayLocalISO is the single clock read.
+  useEffect(() => {
+    function syncToToday() {
+      const current = loadRun();
+      if (!current) return;
+      const todayISO = todayLocalISO();
+      if (isWeekOver(current, todayISO)) {
+        const nextProfile = completeMissionRun(current, "complete", loadProfile());
+        const nextSummary: RunSummary = {
+          ending: "complete",
+          aim: current.aim,
+          bossName: current.bossName,
+          cairns: current.cairns.length,
+          confidenceBank: current.confidenceBank,
+          mastery: current.mastery,
+        };
+        saveSummary(nextSummary);
+        clearRun();
+        setRun(null);
+        setSummary(nextSummary);
+        setAwayComplete(true);
+        setProfile(nextProfile);
+        return;
+      }
+      const synced = syncRunToToday(current, todayISO);
+      if (synced !== current) persist(synced);
+    }
+    syncToToday();
+    const onVisible = () => {
+      if (document.visibilityState === "visible") syncToToday();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function persist(next: MissionRunState) {
@@ -268,11 +365,13 @@ export default function EdgeGame() {
     setRun(null);
     setProfile(nextProfile);
     setRitual(null);
+    setAwayComplete(false);
   }
 
   function startNextAscent() {
     clearSummary();
     setSummary(null);
+    setAwayComplete(false);
   }
 
   function commitRitual(r: RitualState) {
@@ -309,7 +408,14 @@ export default function EdgeGame() {
   }, [ritual, settingStone]);
 
   if (!run && summary) {
-    return <RunSummary summary={summary} profile={profile} onStartNext={startNextAscent} />;
+    return (
+      <RunSummary
+        summary={summary}
+        profile={profile}
+        awayComplete={awayComplete}
+        onStartNext={startNextAscent}
+      />
+    );
   }
 
   if (!run) {
@@ -350,13 +456,16 @@ export default function EdgeGame() {
 function RunSummary({
   summary,
   profile,
+  awayComplete,
   onStartNext,
 }: {
   summary: RunSummary;
   profile: PlayerProfile;
+  awayComplete: boolean;
   onStartNext: () => void;
 }) {
   const insights = getProfileInsights(profile);
+  const lede = awayComplete && summary.ending === "complete" ? AWAY_COMPLETE_LINE : ENDING_LINE[summary.ending];
   return (
     <main className="aim-entry">
       <div className="aim-panel">
@@ -365,7 +474,7 @@ function RunSummary({
           {ENDING_LABEL[summary.ending]}
         </span>
         <h1>{summary.aim}</h1>
-        <p className="lede">{ENDING_LINE[summary.ending]}</p>
+        <p className="lede">{lede}</p>
 
         <div className="counters">
           <span className="stat">
@@ -414,10 +523,24 @@ function AimEntry({
   profile: PlayerProfile;
 }) {
   const insights = getProfileInsights(profile);
+  // Non-persisted preview: createMissionRun folds the profile baselines into a full run
+  // shape so the instrument and gauges can read edgeLoad/edgeControl/zone/resources BEFORE
+  // the week begins. It is never saved — startAscent builds the real run from the typed aim.
+  const preview = useMemo(
+    () => createMissionRun("preview", profile.completedRuns > 0 ? profile : undefined),
+    [profile],
+  );
+  const tint = getWorldTint(preview);
   return (
     <main className="aim-entry">
+      <div className="living-light" style={tintVars(tint)} aria-hidden="true" />
       <div className="aim-panel">
         <p className="brand">EDGE</p>
+        <div className="instrument">
+          <EdgeLine edgeLoad={preview.edgeLoad} edgeControl={preview.edgeControl} zone={preview.zone} />
+          <ResourceStrip resources={preview.resources} />
+          <p className="baseline-caption">{BASELINE_CAPTION}</p>
+        </div>
         <h1>Start this week's Ascent</h1>
         <p className="lede">Name the aim in your own words. The mountain shapes itself around it.</p>
         <input
@@ -493,6 +616,8 @@ function Mountain({
   const conditions = useMemo(() => getConditions(run), [run]);
   const trailNote = getTrailNote(run);
   const pos = playerPos(run.readiness);
+  const tint = getWorldTint(run);
+  const bossLabel = getBossWindowLabel(run);
 
   return (
     <main className="mountain" data-state={world} data-scene={scene}>
@@ -502,16 +627,19 @@ function Mountain({
       <div className="bg dawn-fog" />
       <div className="bg dawn-wind" />
       <div className="bg dawn-golden" />
+      <div className="living-light" style={tintVars(tint)} aria-hidden="true" />
       <div className="scrim" />
 
       <div className="topline">
         <span>
           <b>EDGE</b>
         </span>
-        <span>{toplineCopy(world, run.day)}</span>
+        <span>{toplineCopy(world, run.day, bossLabel)}</span>
       </div>
 
       <p className="run-aim">&ldquo;{run.aim}&rdquo;</p>
+
+      <EdgeLine edgeLoad={run.edgeLoad} edgeControl={run.edgeControl} zone={run.zone} />
 
       {world === "dawn" && (
         <>
@@ -542,6 +670,8 @@ function Mountain({
 
         {world !== "night" && <ResourceStrip resources={run.resources} />}
 
+        {run.syncNote && <p className="syncnote">{run.syncNote}</p>}
+
         {world === "dawn" && run.scannedToday && conditions.length > 0 && (
           <div className="conditions">
             {conditions.map((condition) => (
@@ -561,25 +691,30 @@ function Mountain({
 
         <CairnRow cairns={run.cairns} day={run.day} settingStone={settingStone} />
 
-        {world === "dawn" && !run.scannedToday && <MorningScan onBegin={onScan} />}
-
-        {world === "dawn" && run.scannedToday && (
-          <>
-            <div className="hand">
+        {world === "dawn" && (
+          <div className={run.scannedToday ? "hand-region" : "hand-region locked"}>
+            <div className="hand" aria-hidden={!run.scannedToday}>
               {run.hand.map((card) => (
                 <MoveCardView
                   key={card.id}
                   card={card}
-                  chosen={run.chosenCardId === card.id}
+                  chosen={run.scannedToday && run.chosenCardId === card.id}
+                  disabled={!run.scannedToday}
                   onChoose={() => onChooseCard(card.id)}
                 />
               ))}
             </div>
-            <button className="primary cta" type="button" onClick={onOpenRitual}>
-              RESOLVE TODAY'S MOVE
-            </button>
-          </>
+            {run.scannedToday ? (
+              <button className="primary cta" type="button" onClick={onOpenRitual}>
+                RESOLVE TODAY'S MOVE
+              </button>
+            ) : (
+              <p className="hand-cue">{HAND_LOCKED_CUE}</p>
+            )}
+          </div>
         )}
+
+        {world === "dawn" && !run.scannedToday && <MorningScan onBegin={onScan} />}
 
         {world === "night" && run.day >= 7 && (
           <button className="primary cta" type="button" onClick={onComplete}>
@@ -634,9 +769,26 @@ function LockChip({ lock, anchor }: { lock: Lock; anchor: { x: string; y: string
   );
 }
 
-function MoveCardView({ card, chosen, onChoose }: { card: MoveCard; chosen: boolean; onChoose: () => void }) {
+function MoveCardView({
+  card,
+  chosen,
+  disabled = false,
+  onChoose,
+}: {
+  card: MoveCard;
+  chosen: boolean;
+  disabled?: boolean;
+  onChoose: () => void;
+}) {
   return (
-    <button className={chosen ? "card chosen" : "card"} type="button" aria-pressed={chosen} onClick={onChoose}>
+    <button
+      className={chosen ? "card chosen" : "card"}
+      type="button"
+      aria-pressed={chosen}
+      aria-disabled={disabled || undefined}
+      disabled={disabled}
+      onClick={onChoose}
+    >
       <span className="tier">TARGET · GOLD</span>
       <span className="name">{card.title}</span>
       <span className="preview">{card.gold.text}</span>
@@ -657,10 +809,37 @@ function ResourceStrip({ resources }: { resources: Record<HumanResource, number>
           <span className="meter-label">{RESOURCE_LABEL[key]}</span>
           <span className="meter-bar" aria-hidden="true">
             <i style={{ ["--w" as string]: `${resources[key]}%` }} />
+            {(METER_TICKS[key] ?? []).map((tick) => (
+              <b key={tick.at} className="tick" style={{ ["--at" as string]: `${tick.at}%` }} title={tick.title} />
+            ))}
           </span>
           <span className="meter-value">{resources[key]}</span>
         </span>
       ))}
+    </div>
+  );
+}
+
+// The Edge Line — the signature instrument. The player's light rides a luminous crest
+// cross-section: the valley (Idle) dips left, the exposed face (Overclock) sharpens right.
+// Marker position is the load/control balance; zone is read straight from the kernel and
+// drives the peak-luminosity styling — beauty crests in the `edge` zone, strain quiets it.
+function EdgeLine({ edgeLoad, edgeControl, zone }: { edgeLoad: number; edgeControl: number; zone: Zone }) {
+  const marker = clamp(50 + (edgeControl - edgeLoad), 5, 95);
+  // Ride the marker along the crest: valley (left) sits low, the face (right) rides high.
+  // Pure render geometry that matches the SVG path — no game rule lives here.
+  const fraction = marker / 100;
+  const markerTop = (3 + ((10.5 - 10 * fraction) / 12) * 14).toFixed(1);
+  const markerStyle = { ["--m" as string]: `${marker}%`, ["--my" as string]: `${markerTop}px` };
+  return (
+    <div className="edge-line" data-zone={zone} aria-label={`Edge state: ${ZONE_LABEL[zone]}`}>
+      <svg className="crest" viewBox="0 0 100 12" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M1 10.5 C 20 10.2 34 9.4 50 7 C 66 4.6 82 2.4 99 0.5" />
+      </svg>
+      <span className="edge-marker" style={markerStyle} aria-hidden="true" />
+      <span className="edge-zone" style={{ ["--m" as string]: `${marker}%` }}>
+        {ZONE_LABEL[zone]}
+      </span>
     </div>
   );
 }
@@ -677,7 +856,7 @@ function MorningScan({ onBegin }: { onBegin: (input: MorningScanInput) => void }
     setReadings((prev) => ({ ...prev, [key]: reading }));
 
   return (
-    <div className="morning-scan">
+    <div className="morning-scan compact">
       <div className="scan-head">
         <h2>MORNING SCAN</h2>
         <p>A quick read on where you are today. Every answer is just information.</p>

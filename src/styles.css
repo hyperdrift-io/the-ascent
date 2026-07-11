@@ -480,10 +480,23 @@ textarea:focus {
 }
 
 .resource-meter .meter-bar {
+  position: relative;
   height: 3px;
   border-radius: 2px;
   background: rgba(242, 232, 213, 0.16);
-  overflow: hidden;
+}
+
+/* quiet threshold ticks — the point where a condition changes the weather. They sit
+   above the fill (title names what crosses there) so the meter reads as the cause. */
+.resource-meter .meter-bar .tick {
+  position: absolute;
+  top: -1.5px;
+  left: var(--at, 50%);
+  width: 2px;
+  height: 6px;
+  transform: translateX(-50%);
+  border-radius: 1px;
+  background: rgba(255, 236, 190, 0.75);
 }
 
 .resource-meter .meter-bar i {
@@ -911,6 +924,222 @@ button.quiet:hover {
   animation: stone-set 0.6s ease;
 }
 
+/* ---------------------------------------------- Living Light (state tint) */
+
+/* One tint layer above the backdrops. Custom props carry data only (hue/veil/warmth from
+   getWorldTint); the color rules live here. Strain reads cooler and quieter — the veil
+   lightens (screen), it never darkens: the covenant's "earlier light" carried into color. */
+.living-light {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(
+    135% 95% at 50% 6%,
+    hsl(calc(42deg + var(--tint-hue, 0deg)) 78% 62% / 0.26),
+    transparent 70%
+  );
+  filter: saturate(var(--tint-warmth, 1));
+  mix-blend-mode: soft-light;
+}
+
+.living-light::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: hsl(205 30% 82%);
+  opacity: var(--tint-veil, 0);
+  mix-blend-mode: screen;
+}
+
+/* ------------------------------------------------- the Edge Line instrument */
+
+/* In-flow by default (aim entry sits it inside the instrument panel); on the mountain it
+   floats as fixed chrome just under the top line. */
+.edge-line {
+  position: relative;
+  width: 100%;
+  height: 32px;
+  --edge-glow: rgba(255, 226, 170, 0.72);
+}
+
+.mountain > .edge-line {
+  position: absolute;
+  z-index: 3;
+  top: 64px;
+  left: 20px;
+  right: 20px;
+  width: auto;
+}
+
+.edge-line .crest {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 3px;
+  width: 100%;
+  height: 14px;
+  overflow: visible;
+}
+
+.edge-line .crest path {
+  fill: none;
+  stroke: var(--edge-glow);
+  stroke-width: 1.1;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 4px var(--edge-glow));
+  opacity: 0.82;
+}
+
+/* the player's light rides the crest — same breathing language as .player-light */
+.edge-line .edge-marker {
+  position: absolute;
+  left: var(--m, 50%);
+  top: var(--my, 8px);
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #fff6e0;
+  box-shadow: 0 0 12px 3px var(--edge-glow);
+  transform: translate(-50%, -50%);
+  animation: breathe 3.6s ease-in-out infinite;
+  transition: left 0.9s ease, top 0.9s ease;
+}
+
+.edge-line .edge-zone {
+  position: absolute;
+  left: var(--m, 50%);
+  top: 21px;
+  transform: translateX(-50%);
+  font-size: 9px;
+  letter-spacing: var(--track);
+  color: var(--edge-glow);
+  white-space: nowrap;
+  transition: left 0.9s ease;
+}
+
+/* Zone luminosity: beauty crests in the Edge zone; strain (redline/overclock) desaturates
+   and quiets — never blackened, never glamorized. Idle/warmline read calm, not dim-failure. */
+.edge-line[data-zone="idle"] {
+  --edge-glow: rgba(200, 214, 235, 0.62);
+}
+
+.edge-line[data-zone="warmline"] {
+  --edge-glow: rgba(255, 226, 170, 0.78);
+}
+
+.edge-line[data-zone="edge"] {
+  --edge-glow: rgba(255, 241, 202, 1);
+}
+
+.edge-line[data-zone="edge"] .crest path {
+  opacity: 1;
+  stroke-width: 1.5;
+}
+
+.edge-line[data-zone="edge"] .edge-marker {
+  box-shadow: 0 0 18px 5px var(--edge-glow);
+}
+
+.edge-line[data-zone="redline"] {
+  --edge-glow: rgba(214, 198, 174, 0.6);
+}
+
+.edge-line[data-zone="overclock"] {
+  --edge-glow: rgba(198, 190, 182, 0.52);
+}
+
+/* --------------------------------------- aim-entry instrument (persistent) */
+
+.instrument {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--glass-border-dim);
+  border-radius: 12px;
+  background: var(--glass-chip);
+}
+
+.baseline-caption {
+  font-size: var(--fs-xs);
+  letter-spacing: var(--track);
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+/* -------------------------------------------- calendar-return reveal line */
+
+.syncnote {
+  color: var(--aurora);
+  font-size: var(--fs-md);
+  line-height: 1.6;
+  max-width: 46ch;
+  animation: rise 0.28s ease;
+}
+
+/* --------------------------------------------- unhidden hand + compact scan */
+
+.hand-region {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* before the scan the hand is on screen but resting — dimmed and non-interactive */
+.hand-region.locked .hand {
+  opacity: 0.4;
+  filter: saturate(0.7);
+}
+
+.hand-cue {
+  font-size: var(--fs-md);
+  letter-spacing: 0.04em;
+  color: var(--ink-warm);
+}
+
+.card:disabled {
+  cursor: default;
+}
+
+.card:disabled:hover {
+  transform: none;
+  border-color: var(--glass-border);
+}
+
+/* the scan becomes a focused panel layered over the resting hand, not a full replacement */
+.morning-scan.compact {
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  background: rgba(10, 14, 20, 0.86);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 28px rgba(6, 9, 15, 0.5);
+}
+
+.morning-scan.compact .scan-head h2 {
+  font-size: var(--fs-md);
+}
+
+.morning-scan.compact .scan-head p {
+  font-size: var(--fs-sm);
+}
+
+.morning-scan.compact .scan-rows {
+  gap: 5px;
+}
+
+.morning-scan.compact .scan-row .scan-label {
+  flex-basis: 78px;
+  font-size: var(--fs-xs);
+}
+
+.morning-scan.compact .segmented button {
+  padding: 5px 8px;
+  font-size: var(--fs-xs);
+}
+
 /* ------------------------------------------------------------- keyframes */
 
 @keyframes breathe {
@@ -971,6 +1200,9 @@ button.quiet:hover {
   .readiness .bar i,
   .resource-meter .meter-bar i,
   .morning-scan,
+  .edge-line .edge-marker,
+  .edge-line .edge-zone,
+  .syncnote,
   .bg {
     animation: none !important;
     transition: none !important;
