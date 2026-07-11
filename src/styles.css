@@ -624,6 +624,26 @@ textarea:focus {
   flex-wrap: wrap;
 }
 
+.recon-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: rise 0.22s ease;
+}
+
+.recon-line {
+  color: #e6f0ea;
+  font-size: var(--fs-md);
+  line-height: 1.6;
+  max-width: 46ch;
+}
+
+.recon-confirm-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 /* --------------------------------------------------------- cairn ritual */
 
 .ritual-overlay {
@@ -767,6 +787,7 @@ textarea:focus {
   .cairn-slot.setting,
   .ritual .stone-preview,
   .ritual,
+  .recon-confirm,
   .bg {
     animation: none !important;
     transition: none !important;

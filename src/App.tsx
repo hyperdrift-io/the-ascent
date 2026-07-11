@@ -482,6 +482,7 @@ function Footer({
   onRecon: () => void;
 }) {
   const insights = getProfileInsights(profile);
+  const [confirmingRecon, setConfirmingRecon] = useState(false);
   return (
     <section className="footer" aria-label="Run signals and profile">
       <div className="footer-handle">TRAIL LOG · SIGNALS</div>
@@ -515,9 +516,23 @@ function Footer({
         </label>
 
         <div className="footer-actions">
-          <button className="ghost" type="button" onClick={onRecon}>
-            End this Ascent as recon
-          </button>
+          {confirmingRecon ? (
+            <div className="recon-confirm">
+              <p className="recon-line">{RECON_LINE}</p>
+              <div className="recon-confirm-actions">
+                <button className="ghost" type="button" onClick={() => setConfirmingRecon(false)}>
+                  Keep climbing
+                </button>
+                <button className="primary" type="button" onClick={onRecon}>
+                  End as recon
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button className="ghost" type="button" onClick={() => setConfirmingRecon(true)}>
+              End this Ascent as recon
+            </button>
+          )}
         </div>
       </div>
     </section>
