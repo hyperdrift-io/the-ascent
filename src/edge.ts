@@ -100,6 +100,14 @@ export interface PlayerProfile {
   recurringPressure: CoreMetric | null;
   insights: string[];
 }
+export interface RunSummary {
+  ending: RunEnding;
+  aim: string;
+  bossName: string;
+  cairns: number;
+  confidenceBank: number;
+  mastery: number;
+}
 
 const HUMAN_RESOURCES: HumanResource[] = ["energy", "focus", "composure", "confidence", "recovery", "connection", "time"];
 const CORE_METRICS: CoreMetric[] = [
@@ -735,6 +743,7 @@ export function completeMissionRun(state: MissionRunState, ending: RunEnding): P
 
 const RUN_STORAGE_KEY = "edge.run.v1";
 const PROFILE_STORAGE_KEY = "edge.profile.v1";
+const SUMMARY_STORAGE_KEY = "edge.summary.v1";
 
 export function loadRun(): MissionRunState | null {
   try {
@@ -779,6 +788,34 @@ export function loadProfile(): PlayerProfile {
 export function saveProfile(profile: PlayerProfile): void {
   try {
     localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile));
+  } catch {
+    // ignore
+  }
+}
+
+export function loadSummary(): RunSummary | null {
+  try {
+    const raw = localStorage.getItem(SUMMARY_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return null;
+    return parsed as RunSummary;
+  } catch {
+    return null;
+  }
+}
+
+export function saveSummary(summary: RunSummary): void {
+  try {
+    localStorage.setItem(SUMMARY_STORAGE_KEY, JSON.stringify(summary));
+  } catch {
+    // localStorage unavailable (private mode, quota) — the summary stays in memory only.
+  }
+}
+
+export function clearSummary(): void {
+  try {
+    localStorage.removeItem(SUMMARY_STORAGE_KEY);
   } catch {
     // ignore
   }

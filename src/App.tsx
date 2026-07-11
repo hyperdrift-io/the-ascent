@@ -3,6 +3,7 @@ import {
   AIM_PACKS,
   advanceDay,
   clearRun,
+  clearSummary,
   completeMissionRun,
   createMissionRun,
   getConditions,
@@ -11,8 +12,10 @@ import {
   getWorldState,
   loadProfile,
   loadRun,
+  loadSummary,
   resolveMove,
   saveRun,
+  saveSummary,
   type CompletionTier,
   type FeltState,
   type HumanResource,
@@ -23,6 +26,7 @@ import {
   type ProofType,
   type RunEnding,
   type RunStatus,
+  type RunSummary,
 } from "./edge";
 
 // ------------------------------------------------------------------ constants
@@ -145,15 +149,6 @@ interface RitualState {
   note: string;
 }
 
-interface RunSummaryState {
-  ending: RunEnding;
-  aim: string;
-  bossName: string;
-  cairns: number;
-  confidenceBank: number;
-  mastery: number;
-}
-
 // ------------------------------------------------------------------ root
 
 export default function EdgeGame() {
@@ -163,7 +158,7 @@ export default function EdgeGame() {
   const [signalsOn, setSignalsOn] = useState<boolean>(() => loadSignals());
   const [ritual, setRitual] = useState<RitualState | null>(null);
   const [settingStone, setSettingStone] = useState(false);
-  const [summary, setSummary] = useState<RunSummaryState | null>(null);
+  const [summary, setSummary] = useState<RunSummary | null>(() => loadSummary());
 
   function persist(next: MissionRunState) {
     saveRun(next);
@@ -190,14 +185,16 @@ export default function EdgeGame() {
   function endRun(ending: RunEnding) {
     if (!run) return;
     const nextProfile = completeMissionRun(run, ending);
-    setSummary({
+    const nextSummary: RunSummary = {
       ending,
       aim: run.aim,
       bossName: run.bossName,
       cairns: run.cairns.length,
       confidenceBank: run.confidenceBank,
       mastery: run.mastery,
-    });
+    };
+    saveSummary(nextSummary);
+    setSummary(nextSummary);
     clearRun();
     setRun(null);
     setProfile(nextProfile);
@@ -205,6 +202,7 @@ export default function EdgeGame() {
   }
 
   function startNextAscent() {
+    clearSummary();
     setSummary(null);
   }
 
@@ -241,7 +239,7 @@ export default function EdgeGame() {
     return () => window.removeEventListener("keydown", onKey);
   }, [ritual, settingStone]);
 
-  if (summary) {
+  if (!run && summary) {
     return <RunSummary summary={summary} profile={profile} onStartNext={startNextAscent} />;
   }
 
@@ -276,7 +274,7 @@ function RunSummary({
   profile,
   onStartNext,
 }: {
-  summary: RunSummaryState;
+  summary: RunSummary;
   profile: PlayerProfile;
   onStartNext: () => void;
 }) {
