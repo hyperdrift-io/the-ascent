@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AIM_PACKS,
   advanceDay,
@@ -258,6 +258,14 @@ export default function EdgeGame() {
   const [signalsOn, setSignalsOn] = useState<boolean>(() => loadSignals());
   const [ritual, setRitual] = useState<RitualState | null>(null);
   const [settingStone, setSettingStone] = useState(false);
+  // Mirrors of ritual/settingStone for the visibilitychange listener below, which is
+  // registered once on mount and would otherwise close over their stale initial values.
+  const ritualRef = useRef(ritual);
+  const settingStoneRef = useRef(settingStone);
+  useEffect(() => {
+    ritualRef.current = ritual;
+    settingStoneRef.current = settingStone;
+  }, [ritual, settingStone]);
   const [summary, setSummary] = useState<RunSummary | null>(() => loadSummary());
   // View-only flag (not persisted): the week closed while the player was away, so the
   // summary greets them with the away-completion line rather than the standard one.
@@ -277,18 +285,27 @@ export default function EdgeGame() {
   // never leaves the App boundary — todayLocalISO is the single clock read.
   useEffect(() => {
     function syncToToday() {
+      // Never sync mid-ritual: the cairn ritual and the stone-setting beat both depend on
+      // the run state staying put until they resolve. A sync here would retarget the
+      // ritual's resolve or clobber it with a stale persist. The next visibility event or
+      // user action (which closes the ritual) re-syncs — no catch-up logic needed.
+      if (ritualRef.current || settingStoneRef.current) return;
       const current = loadRun();
       if (!current) return;
       const todayISO = todayLocalISO();
-      if (isWeekOver(current, todayISO)) {
-        const nextProfile = completeMissionRun(current, "complete", loadProfile());
+      // Sync away days first — the kernel's day-7 cap bounds the walk — so a week-over
+      // check afterward sees the caught-up state: quiet-day recovery drift and
+      // dormant-XP-to-mastery conversion from the away walk land before completion.
+      const synced = syncRunToToday(current, todayISO);
+      if (isWeekOver(synced, todayISO)) {
+        const nextProfile = completeMissionRun(synced, "complete", loadProfile());
         const nextSummary: RunSummary = {
           ending: "complete",
-          aim: current.aim,
-          bossName: current.bossName,
-          cairns: current.cairns.length,
-          confidenceBank: current.confidenceBank,
-          mastery: current.mastery,
+          aim: synced.aim,
+          bossName: synced.bossName,
+          cairns: synced.cairns.length,
+          confidenceBank: synced.confidenceBank,
+          mastery: synced.mastery,
         };
         saveSummary(nextSummary);
         clearRun();
@@ -298,7 +315,6 @@ export default function EdgeGame() {
         setProfile(nextProfile);
         return;
       }
-      const synced = syncRunToToday(current, todayISO);
       if (synced !== current) persist(synced);
     }
     syncToToday();
