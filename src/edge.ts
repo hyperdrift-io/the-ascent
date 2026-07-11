@@ -844,6 +844,7 @@ export function applyMorningScan(state: MissionRunState, input: MorningScanInput
     edgeControl,
     zone,
     scannedToday: true,
+    syncNote: null,
   };
 }
 

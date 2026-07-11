@@ -136,9 +136,9 @@ const FELT_OPTIONS: { value: FeltState; label: string }[] = [
 
 // lock chips pinned to the summit gate (percentage anchors, matching the mock)
 const LOCK_ANCHORS = [
-  { x: "26%", y: "24%" },
+  { x: "26%", y: "16%" },
   { x: "62%", y: "21%" },
-  { x: "56%", y: "44%" },
+  { x: "56%", y: "29%" },
 ];
 
 const REST_LINE =

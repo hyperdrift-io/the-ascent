@@ -416,7 +416,8 @@ textarea:focus {
 }
 
 .readiness .bar {
-  flex: 0 0 170px;
+  flex: 1 1 120px;
+  max-width: 170px;
   height: 3px;
   background: rgba(242, 232, 213, 0.22);
   border-radius: 2px;
@@ -459,20 +460,32 @@ textarea:focus {
 /* ----------------------------------------------- resource strip (7 meters) */
 
 .resource-strip {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  background: var(--glass-chip);
+  backdrop-filter: blur(6px);
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
+/* in-run: the mountain has no width cap, so the base grid columns would stretch
+   past a comfortable reading width — clamp each meter's growth on wide viewports */
+.bottom .resource-strip {
+  max-width: 460px;
 }
 
 .resource-meter {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  flex: 1 1 60px;
-  min-width: 56px;
+  min-width: 0;
 }
 
 .resource-meter .meter-label {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   font-size: 9px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
