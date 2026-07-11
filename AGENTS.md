@@ -1,4 +1,4 @@
-# Edge PoC
+# The Ascent
 
 > Inherits [PoC lane context](../AGENTS.md) and [Hyperdrift workspace context](../../../AGENTS.md).
 
@@ -8,8 +8,8 @@ Help a person see whether their current week can carry the aim they choose, then
 
 ## Boundaries
 
-- This is a local prototype, not a production Hyperdrift app.
-- Do not add infra, vault secrets, analytics, billing, or deployment wiring without an explicit promotion decision.
+- This app is public at `https://theascent.hyperdrift.io` and deployed through Hyperdrift infra as `the-ascent`.
+- Keep deployment, analytics, and discoverability aligned with the public app whenever its routes or metadata change.
 - Keep the game legible: small rules, visible trade-offs, no hidden punitive scoring.
 - Real data starts with local imports: `.ics` calendar files and health/activity JSON exports.
 - Follow the workspace CSS standard: semantic CSS with custom properties, no Tailwind, no CSS-in-JS.

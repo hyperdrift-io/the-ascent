@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://theascent.hyperdrift.io/sitemap.xml

@@ -1,7 +1,9 @@
 {
-  "name": "edge",
+  "name": "the-ascent",
   "version": "0.1.0",
   "private": true,
+  "repository": "https://github.com/hyperdrift-io/the-ascent",
+  "homepage": "https://theascent.hyperdrift.io",
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 5177",
