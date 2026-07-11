@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   AIM_PACKS,
   advanceDay,
+  applyMorningScan,
   clearRun,
   clearSummary,
   completeMissionRun,
@@ -9,6 +10,7 @@ import {
   getConditions,
   getProfileInsights,
   getTrailNote,
+  getWorldScene,
   getWorldState,
   loadProfile,
   loadRun,
@@ -21,17 +23,58 @@ import {
   type HumanResource,
   type Lock,
   type MissionRunState,
+  type MorningScanInput,
   type MoveCard,
   type PlayerProfile,
   type ProofType,
   type RunEnding,
   type RunStatus,
   type RunSummary,
+  type ScanReading,
 } from "./edge";
 
 // ------------------------------------------------------------------ constants
 
 const SIGNALS_KEY = "edge.signals.v1";
+
+// human resources in display order (matches the kernel's HUMAN_RESOURCES order)
+const RESOURCE_ORDER: HumanResource[] = [
+  "energy",
+  "focus",
+  "composure",
+  "confidence",
+  "recovery",
+  "connection",
+  "time",
+];
+
+const RESOURCE_LABEL: Record<HumanResource, string> = {
+  energy: "Energy",
+  focus: "Focus",
+  composure: "Composure",
+  confidence: "Confidence",
+  recovery: "Recovery",
+  connection: "Connection",
+  time: "Time",
+};
+
+// morning scan readings — information about how the day feels, never a judgment
+const SCAN_READINGS: ScanReading[] = ["low", "steady", "strong"];
+const SCAN_READING_LABEL: Record<ScanReading, string> = {
+  low: "Low",
+  steady: "Steady",
+  strong: "Strong",
+};
+
+// every backdrop the mountain can wear — preloaded once so scene cross-fades never flash
+const SCENE_ASSETS = [
+  "ascent-aurora.png",
+  "ascent-daybreak.png",
+  "ascent-dawn.png",
+  "ascent-dawn-fog.png",
+  "ascent-dawn-wind.png",
+  "ascent-dawn-golden.png",
+];
 
 const STATUS_LABEL: Record<RunStatus, string> = {
   ahead: "Ahead",
@@ -160,9 +203,22 @@ export default function EdgeGame() {
   const [settingStone, setSettingStone] = useState(false);
   const [summary, setSummary] = useState<RunSummary | null>(() => loadSummary());
 
+  // Preload every backdrop once so scene-to-scene cross-fades never flash a blank layer.
+  useEffect(() => {
+    for (const asset of SCENE_ASSETS) {
+      const img = new Image();
+      img.src = `/art/${asset}`;
+    }
+  }, []);
+
   function persist(next: MissionRunState) {
     saveRun(next);
     setRun(next);
+  }
+
+  function scanMorning(input: MorningScanInput) {
+    if (!run) return;
+    persist(applyMorningScan(run, input));
   }
 
   function startAscent() {
@@ -254,6 +310,7 @@ export default function EdgeGame() {
       signalsOn={signalsOn}
       settingStone={settingStone}
       onChooseCard={chooseCard}
+      onScan={scanMorning}
       onOpenRitual={() => setRitual({ step: 1, tier: null, proof: null, felt: null, note: "" })}
       onBreakCamp={breakCamp}
       onAttempt={() => endRun("summit-attempt")}
@@ -381,6 +438,7 @@ function Mountain({
   signalsOn,
   settingStone,
   onChooseCard,
+  onScan,
   onOpenRitual,
   onBreakCamp,
   onAttempt,
@@ -396,6 +454,7 @@ function Mountain({
   signalsOn: boolean;
   settingStone: boolean;
   onChooseCard: (id: string) => void;
+  onScan: (input: MorningScanInput) => void;
   onOpenRitual: () => void;
   onBreakCamp: () => void;
   onAttempt: () => void;
@@ -407,15 +466,19 @@ function Mountain({
   onCommitRitual: (r: RitualState) => void;
 }) {
   const world = getWorldState(run);
+  const scene = getWorldScene(run);
   const conditions = useMemo(() => getConditions(run), [run]);
   const trailNote = getTrailNote(run);
   const pos = playerPos(run.readiness);
 
   return (
-    <main className="mountain" data-state={world}>
+    <main className="mountain" data-state={world} data-scene={scene}>
       <div className="bg night" />
-      <div className="bg dawn" />
       <div className="bg send" />
+      <div className="bg dawn-clear" />
+      <div className="bg dawn-fog" />
+      <div className="bg dawn-wind" />
+      <div className="bg dawn-golden" />
       <div className="scrim" />
 
       <div className="topline">
@@ -424,6 +487,8 @@ function Mountain({
         </span>
         <span>{toplineCopy(world, run.day)}</span>
       </div>
+
+      <p className="run-aim">&ldquo;{run.aim}&rdquo;</p>
 
       {world === "dawn" && (
         <>
@@ -448,10 +513,13 @@ function Mountain({
               <i style={{ ["--w" as string]: `${run.readiness}%` }} />
             </span>
             <span className={`run-status ${run.status}`}>{STATUS_LABEL[run.status]}</span>
+            <span className="boss-name">{run.bossName.toUpperCase()}</span>
           </div>
         )}
 
-        {world === "dawn" && conditions.length > 0 && (
+        {world !== "night" && <ResourceStrip resources={run.resources} />}
+
+        {world === "dawn" && run.scannedToday && conditions.length > 0 && (
           <div className="conditions">
             {conditions.map((condition) => (
               <span key={condition.kind}>{condition.line}</span>
@@ -470,7 +538,9 @@ function Mountain({
 
         <CairnRow cairns={run.cairns} day={run.day} settingStone={settingStone} />
 
-        {world === "dawn" && (
+        {world === "dawn" && !run.scannedToday && <MorningScan onBegin={onScan} />}
+
+        {world === "dawn" && run.scannedToday && (
           <>
             <div className="hand">
               {run.hand.map((card) => (
@@ -549,6 +619,75 @@ function MoveCardView({ card, chosen, onChoose }: { card: MoveCard; chosen: bool
       <span className="preview">{card.gold.text}</span>
       <span className="fx">{formatEffects(card.gold.effects)}</span>
     </button>
+  );
+}
+
+function ResourceStrip({ resources }: { resources: Record<HumanResource, number> }) {
+  return (
+    <div className="resource-strip" aria-label="Human resources">
+      {RESOURCE_ORDER.map((key) => (
+        <span
+          key={key}
+          className="resource-meter"
+          title={`${RESOURCE_LABEL[key]} ${resources[key]}`}
+        >
+          <span className="meter-label">{RESOURCE_LABEL[key]}</span>
+          <span className="meter-bar" aria-hidden="true">
+            <i style={{ ["--w" as string]: `${resources[key]}%` }} />
+          </span>
+          <span className="meter-value">{resources[key]}</span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function MorningScan({ onBegin }: { onBegin: (input: MorningScanInput) => void }) {
+  const [readings, setReadings] = useState<Record<HumanResource, ScanReading>>(() =>
+    RESOURCE_ORDER.reduce((acc, key) => {
+      acc[key] = "steady";
+      return acc;
+    }, {} as Record<HumanResource, ScanReading>),
+  );
+
+  const setReading = (key: HumanResource, reading: ScanReading) =>
+    setReadings((prev) => ({ ...prev, [key]: reading }));
+
+  return (
+    <div className="morning-scan">
+      <div className="scan-head">
+        <h2>MORNING SCAN</h2>
+        <p>A quick read on where you are today. Every answer is just information.</p>
+      </div>
+      <div className="scan-rows">
+        {RESOURCE_ORDER.map((key) => (
+          <div className="scan-row" key={key}>
+            <span className="scan-label">{RESOURCE_LABEL[key]}</span>
+            <span className="segmented" role="group" aria-label={RESOURCE_LABEL[key]}>
+              {SCAN_READINGS.map((reading) => (
+                <button
+                  key={reading}
+                  type="button"
+                  className={readings[key] === reading ? "selected" : ""}
+                  aria-pressed={readings[key] === reading}
+                  onClick={() => setReading(key, reading)}
+                >
+                  {SCAN_READING_LABEL[reading]}
+                </button>
+              ))}
+            </span>
+          </div>
+        ))}
+      </div>
+      <div className="scan-actions">
+        <button className="primary" type="button" onClick={() => onBegin(readings)}>
+          Begin the day
+        </button>
+        <button className="quiet" type="button" onClick={() => onBegin({})}>
+          Skip — feel it out
+        </button>
+      </div>
+    </div>
   );
 }
 

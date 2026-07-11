@@ -240,17 +240,32 @@ textarea:focus {
   background-position: center 40%;
 }
 
-.bg.dawn {
+.bg.dawn-clear {
   background-image: url("/art/ascent-dawn.png");
+}
+
+.bg.dawn-fog {
+  background-image: url("/art/ascent-dawn-fog.png");
+}
+
+.bg.dawn-wind {
+  background-image: url("/art/ascent-dawn-wind.png");
+}
+
+.bg.dawn-golden {
+  background-image: url("/art/ascent-dawn-golden.png");
 }
 
 .bg.send {
   background-image: url("/art/ascent-daybreak.png");
 }
 
-.mountain[data-state="dawn"] .bg.dawn,
-.mountain[data-state="night"] .bg.night,
-.mountain[data-state="send"] .bg.send {
+.mountain[data-scene="night"] .bg.night,
+.mountain[data-scene="send"] .bg.send,
+.mountain[data-scene="dawn-clear"] .bg.dawn-clear,
+.mountain[data-scene="dawn-fog"] .bg.dawn-fog,
+.mountain[data-scene="dawn-wind"] .bg.dawn-wind,
+.mountain[data-scene="dawn-golden"] .bg.dawn-golden {
   opacity: 1;
 }
 
@@ -263,6 +278,18 @@ textarea:focus {
     transparent 22%,
     transparent 52%,
     rgba(8, 12, 20, 0.86) 90%
+  );
+}
+
+/* The two brightest backdrops need a heavier scrim so type keeps its legibility. */
+.mountain[data-scene="dawn-fog"] .scrim,
+.mountain[data-scene="dawn-golden"] .scrim {
+  background: linear-gradient(
+    180deg,
+    rgba(8, 12, 20, 0.82) 0%,
+    rgba(8, 12, 20, 0.28) 26%,
+    rgba(8, 12, 20, 0.4) 54%,
+    rgba(8, 12, 20, 0.92) 90%
   );
 }
 
@@ -284,6 +311,21 @@ textarea:focus {
 .topline b {
   color: #fff;
   font-weight: 600;
+}
+
+/* the player's aim — the mission, quoted, held just under the topline */
+.run-aim {
+  position: absolute;
+  z-index: 3;
+  top: 42px;
+  left: 20px;
+  right: 20px;
+  font-size: var(--fs-md);
+  font-style: italic;
+  letter-spacing: 0.02em;
+  color: var(--ink-warm);
+  text-shadow: 0 1px 6px rgba(6, 9, 15, 0.8);
+  max-width: 46ch;
 }
 
 /* lock chips — percentage-anchored to the summit gate */
@@ -402,6 +444,144 @@ textarea:focus {
 .run-status.route-shift {
   color: var(--aurora);
   border-color: rgba(127, 212, 194, 0.4);
+}
+
+/* boss name — the gate the week climbs toward */
+.boss-name {
+  font-size: var(--fs-xs);
+  letter-spacing: var(--track-wide);
+  color: var(--gold-bright);
+  border: 1px solid var(--glass-border-strong);
+  border-radius: 999px;
+  padding: 2px 12px;
+}
+
+/* ----------------------------------------------- resource strip (7 meters) */
+
+.resource-strip {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.resource-meter {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1 1 60px;
+  min-width: 56px;
+}
+
+.resource-meter .meter-label {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.resource-meter .meter-bar {
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(242, 232, 213, 0.16);
+  overflow: hidden;
+}
+
+.resource-meter .meter-bar i {
+  display: block;
+  height: 100%;
+  width: var(--w, 0%);
+  background: rgba(242, 232, 213, 0.72);
+  border-radius: 2px;
+  transition: width 0.9s ease;
+}
+
+.resource-meter .meter-value {
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: var(--ink-warm);
+}
+
+/* --------------------------------------------------------- morning scan */
+
+.morning-scan {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 460px;
+  animation: rise 0.28s ease;
+}
+
+.morning-scan .scan-head h2 {
+  font-size: var(--fs-lg);
+  letter-spacing: var(--track);
+  color: #fff;
+}
+
+.morning-scan .scan-head p {
+  margin-top: 4px;
+  font-size: var(--fs-md);
+  line-height: 1.5;
+  color: var(--ink-warm);
+}
+
+.scan-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.scan-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.scan-row .scan-label {
+  flex: 0 0 90px;
+  font-size: var(--fs-sm);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-warm);
+}
+
+.segmented {
+  display: flex;
+  gap: 5px;
+  flex: 1;
+}
+
+.segmented button {
+  flex: 1;
+  padding: 6px 10px;
+  font-size: var(--fs-sm);
+  letter-spacing: 0.06em;
+  border-radius: 8px;
+  color: var(--ink-warm);
+  border-color: var(--glass-border-dim);
+}
+
+.segmented button.selected {
+  border-color: var(--gold-bright);
+  color: #fff;
+  background: rgba(255, 214, 140, 0.14);
+}
+
+.scan-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+button.quiet {
+  border: none;
+  color: var(--ink-dim);
+  letter-spacing: 0.04em;
+  padding: 9px 6px;
+}
+
+button.quiet:hover {
+  color: var(--ink-warm);
 }
 
 .conditions {
@@ -789,6 +969,8 @@ textarea:focus {
   .ritual,
   .recon-confirm,
   .readiness .bar i,
+  .resource-meter .meter-bar i,
+  .morning-scan,
   .bg {
     animation: none !important;
     transition: none !important;
