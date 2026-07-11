@@ -392,75 +392,75 @@ export const OPEN_AIM_PACK: AimPack = {
   skills: ["Contact", "Shape", "Commitment"],
   cards: [
     {
-      id: "contact",
-      title: "Contact",
+      id: "open-hardest",
+      title: "The Hardest Part",
       gold: {
         tier: "gold",
-        text: "One full committed attempt at the hardest part.",
+        text: "One full committed attempt at the hardest part",
         effects: { energy: -8, confidence: 7 },
         readinessGain: 9,
       },
       silver: {
         tier: "silver",
-        text: "One focused rep with the friction named.",
+        text: "One focused rep with the friction named",
         effects: { energy: -6, confidence: 4 },
         readinessGain: 6,
       },
       spark: {
         tier: "spark",
-        text: "Ten minutes in contact with the work.",
+        text: "Ten minutes in contact with the work",
         effects: { energy: -3, confidence: 2 },
         readinessGain: 3,
       },
     },
     {
-      id: "shape",
-      title: "Shape",
+      id: "open-shape",
+      title: "Shape the Work",
       gold: {
         tier: "gold",
-        text: "One full committed attempt at the hardest part.",
-        effects: { energy: -8, confidence: 7 },
+        text: "Break the aim into three concrete moves and finish the first",
+        effects: { focus: -6, composure: 5 },
         readinessGain: 9,
       },
       silver: {
         tier: "silver",
-        text: "One focused rep with the friction named.",
-        effects: { energy: -6, confidence: 4 },
+        text: "Sketch what done looks like this week",
+        effects: { focus: -4, composure: 3 },
         readinessGain: 6,
       },
       spark: {
         tier: "spark",
-        text: "Ten minutes in contact with the work.",
-        effects: { energy: -3, confidence: 2 },
+        text: "Write one sentence naming what the aim really asks",
+        effects: { focus: -1, confidence: 2 },
         readinessGain: 3,
       },
     },
     {
-      id: "commitment",
-      title: "Commitment",
+      id: "open-witness",
+      title: "Show Someone",
       gold: {
         tier: "gold",
-        text: "One full committed attempt at the hardest part.",
-        effects: { energy: -8, confidence: 7 },
+        text: "Share the work in progress with one person who cares",
+        effects: { connection: 8, confidence: 5, energy: -4 },
         readinessGain: 9,
       },
       silver: {
         tier: "silver",
-        text: "One focused rep with the friction named.",
-        effects: { energy: -6, confidence: 4 },
+        text: "Tell someone what you are attempting this week",
+        effects: { connection: 5, confidence: 3 },
         readinessGain: 6,
       },
       spark: {
         tier: "spark",
-        text: "Ten minutes in contact with the work.",
-        effects: { energy: -3, confidence: 2 },
+        text: "Note who could help and what you would ask them",
+        effects: { connection: 2, focus: -1 },
         readinessGain: 3,
       },
     },
   ],
 };
 
-export const AIM_PACKS: AimPack[] = [SPORT_SKILL_PACK, PUBLIC_PERFORMANCE_PACK, CAREER_INTERVIEW_PACK];
+export const AIM_PACKS: AimPack[] = [SPORT_SKILL_PACK, PUBLIC_PERFORMANCE_PACK, CAREER_INTERVIEW_PACK, OPEN_AIM_PACK];
 
 // -----------------------------------------------------------------------------------------
 // Kernel constants
