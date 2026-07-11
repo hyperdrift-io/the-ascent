@@ -44,7 +44,6 @@ export interface MoveTier {
   tier: Exclude<CompletionTier, "route-shift">;
   text: string;
   effects: Partial<Record<HumanResource, number>>;
-  readinessGain: number;
 }
 export interface MoveCard {
   id: string;
@@ -155,19 +154,16 @@ const SPORT_SKILL_PACK: AimPack = {
         tier: "gold",
         text: "Held the edge cleanly through the whole approach, no bail.",
         effects: { energy: -8, confidence: 7 },
-        readinessGain: 9,
       },
       silver: {
         tier: "silver",
         text: "Held the edge through most of the approach, one wobble.",
         effects: { energy: -6, confidence: 4 },
-        readinessGain: 6,
       },
       spark: {
         tier: "spark",
         text: "Touched the edge and logged what it felt like.",
         effects: { energy: -3, confidence: 2 },
-        readinessGain: 3,
       },
     },
     {
@@ -177,19 +173,16 @@ const SPORT_SKILL_PACK: AimPack = {
         tier: "gold",
         text: "Entry was square and repeatable, three for three.",
         effects: { focus: 6, composure: 5 },
-        readinessGain: 9,
       },
       silver: {
         tier: "silver",
         text: "Entry held on two attempts out of three.",
         effects: { focus: 4, composure: 3 },
-        readinessGain: 6,
       },
       spark: {
         tier: "spark",
         text: "One entry logged clean, the rest were sketch reps.",
         effects: { focus: 2, composure: 1 },
-        readinessGain: 3,
       },
     },
     {
@@ -199,19 +192,16 @@ const SPORT_SKILL_PACK: AimPack = {
         tier: "gold",
         text: "Reviewed footage and named the exact fix for next session.",
         effects: { confidence: 5, time: -6, focus: 4 },
-        readinessGain: 9,
       },
       silver: {
         tier: "silver",
         text: "Watched the footage and caught the main pattern.",
         effects: { confidence: 3, time: -4, focus: 2 },
-        readinessGain: 6,
       },
       spark: {
         tier: "spark",
         text: "Skimmed the clip, one thing stood out.",
         effects: { confidence: 1, time: -2 },
-        readinessGain: 3,
       },
     },
   ],
@@ -236,19 +226,16 @@ const PUBLIC_PERFORMANCE_PACK: AimPack = {
         tier: "gold",
         text: "Ran the full piece live, no notes, and stayed with the room.",
         effects: { energy: -8, confidence: 7 },
-        readinessGain: 9,
       },
       silver: {
         tier: "silver",
         text: "Ran most of the piece live, checked notes twice.",
         effects: { energy: -6, confidence: 4 },
-        readinessGain: 6,
       },
       spark: {
         tier: "spark",
         text: "Ran the opening two minutes live and logged the feel.",
         effects: { energy: -3, confidence: 2 },
-        readinessGain: 3,
       },
     },
     {
@@ -258,19 +245,16 @@ const PUBLIC_PERFORMANCE_PACK: AimPack = {
         tier: "gold",
         text: "Opened cold in front of a real audience, no warm-up.",
         effects: { composure: 5, focus: 6 },
-        readinessGain: 9,
       },
       silver: {
         tier: "silver",
         text: "Opened cold for a smaller group, held composure.",
         effects: { composure: 3, focus: 4 },
-        readinessGain: 6,
       },
       spark: {
         tier: "spark",
         text: "Practiced the opening line out loud, alone.",
         effects: { composure: 1, focus: 2 },
-        readinessGain: 3,
       },
     },
     {
@@ -280,19 +264,16 @@ const PUBLIC_PERFORMANCE_PACK: AimPack = {
         tier: "gold",
         text: "Reviewed the recording and named the exact fix for next time.",
         effects: { confidence: 5, time: -6, focus: 4 },
-        readinessGain: 9,
       },
       silver: {
         tier: "silver",
         text: "Watched the recording and caught the main pattern.",
         effects: { confidence: 3, time: -4, focus: 2 },
-        readinessGain: 6,
       },
       spark: {
         tier: "spark",
         text: "Skimmed the recording, one thing stood out.",
         effects: { confidence: 1, time: -2 },
-        readinessGain: 3,
       },
     },
   ],
@@ -317,19 +298,16 @@ const CAREER_INTERVIEW_PACK: AimPack = {
         tier: "gold",
         text: "Ran a full mock interview live, no notes, stayed sharp.",
         effects: { energy: -8, confidence: 7 },
-        readinessGain: 9,
       },
       silver: {
         tier: "silver",
         text: "Ran most of the mock interview, checked notes twice.",
         effects: { energy: -6, confidence: 4 },
-        readinessGain: 6,
       },
       spark: {
         tier: "spark",
         text: "Answered three questions out loud and logged the feel.",
         effects: { energy: -3, confidence: 2 },
-        readinessGain: 3,
       },
     },
     {
@@ -339,19 +317,16 @@ const CAREER_INTERVIEW_PACK: AimPack = {
         tier: "gold",
         text: "Answered the hardest question in under ninety seconds, three for three.",
         effects: { focus: 6, composure: 5 },
-        readinessGain: 9,
       },
       silver: {
         tier: "silver",
         text: "Two of three answers landed tight and clear.",
         effects: { focus: 4, composure: 3 },
-        readinessGain: 6,
       },
       spark: {
         tier: "spark",
         text: "One answer logged tight, the rest ran long.",
         effects: { focus: 2, composure: 1 },
-        readinessGain: 3,
       },
     },
     {
@@ -361,19 +336,16 @@ const CAREER_INTERVIEW_PACK: AimPack = {
         tier: "gold",
         text: "Reviewed the transcript and named the exact fix for next round.",
         effects: { confidence: 5, time: -6, focus: 4 },
-        readinessGain: 9,
       },
       silver: {
         tier: "silver",
         text: "Read back the notes and caught the main pattern.",
         effects: { confidence: 3, time: -4, focus: 2 },
-        readinessGain: 6,
       },
       spark: {
         tier: "spark",
         text: "Skimmed the notes, one thing stood out.",
         effects: { confidence: 1, time: -2 },
-        readinessGain: 3,
       },
     },
   ],
@@ -398,19 +370,16 @@ export const OPEN_AIM_PACK: AimPack = {
         tier: "gold",
         text: "One full committed attempt at the hardest part",
         effects: { energy: -8, confidence: 7 },
-        readinessGain: 9,
       },
       silver: {
         tier: "silver",
         text: "One focused rep with the friction named",
         effects: { energy: -6, confidence: 4 },
-        readinessGain: 6,
       },
       spark: {
         tier: "spark",
         text: "Ten minutes in contact with the work",
         effects: { energy: -3, confidence: 2 },
-        readinessGain: 3,
       },
     },
     {
@@ -420,19 +389,16 @@ export const OPEN_AIM_PACK: AimPack = {
         tier: "gold",
         text: "Break the aim into three concrete moves and finish the first",
         effects: { focus: -6, composure: 5 },
-        readinessGain: 9,
       },
       silver: {
         tier: "silver",
         text: "Sketch what done looks like this week",
         effects: { focus: -4, composure: 3 },
-        readinessGain: 6,
       },
       spark: {
         tier: "spark",
         text: "Write one sentence naming what the aim really asks",
         effects: { focus: -1, confidence: 2 },
-        readinessGain: 3,
       },
     },
     {
@@ -442,19 +408,16 @@ export const OPEN_AIM_PACK: AimPack = {
         tier: "gold",
         text: "Share the work in progress with one person who cares",
         effects: { connection: 8, confidence: 5, energy: -4 },
-        readinessGain: 9,
       },
       silver: {
         tier: "silver",
         text: "Tell someone what you are attempting this week",
         effects: { connection: 5, confidence: 3 },
-        readinessGain: 6,
       },
       spark: {
         tier: "spark",
         text: "Note who could help and what you would ask them",
         effects: { connection: 2, focus: -1 },
-        readinessGain: 3,
       },
     },
   ],
@@ -547,7 +510,7 @@ function pickPack(aim: string): AimPack {
   if (/(speech|talk|present|presentation|performance|stage|public speak|pitch|audience|the room)/.test(text)) {
     return PUBLIC_PERFORMANCE_PACK;
   }
-  if (/(backroll|kite|surf|skate|ski|climb|swim|sprint|run|lift|trick|jump|serve|race|board|goal)/.test(text)) {
+  if (/\b(backroll|kite|surf|skate|ski|climb|swim|sprint|run|lift|trick|jump|serve|race|board|goal)\b/.test(text)) {
     return SPORT_SKILL_PACK;
   }
   return OPEN_AIM_PACK;
@@ -601,8 +564,12 @@ function deriveStatus(tier: CompletionTier, readiness: number, day: number): Run
 // Public kernel API
 // -----------------------------------------------------------------------------------------
 
-export function createMissionRun(aim: string, previousProfile?: PlayerProfile): MissionRunState {
-  const pack = pickPack(aim);
+export function createMissionRun(
+  aim: string,
+  previousProfile?: PlayerProfile,
+  packId?: AimPack["id"],
+): MissionRunState {
+  const pack = packId ? AIM_PACKS.find((candidate) => candidate.id === packId) ?? pickPack(aim) : pickPack(aim);
   const resources = previousProfile ? { ...previousProfile.baselines } : defaultResources(60);
   const coreMetrics = defaultCoreMetrics(55);
   const locks: Lock[] = pack.locks.map((lock) => ({ ...lock, cracked: false }));
@@ -716,6 +683,8 @@ export function advanceDay(state: MissionRunState): MissionRunState {
 // that matter most (recovery, connection, composure, time, ...) update the state directly,
 // with sympathetic effects on sleep/rest/social, before the day's conditions are drawn.
 export function applyMorningScan(state: MissionRunState, input: MorningScanInput): MissionRunState {
+  if (state.scannedToday) return state;
+
   let resources = state.resources;
   for (const key of HUMAN_RESOURCES) {
     const reading = input[key];

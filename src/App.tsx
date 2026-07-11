@@ -18,6 +18,7 @@ import {
   resolveMove,
   saveRun,
   saveSummary,
+  type AimPack,
   type CompletionTier,
   type FeltState,
   type HumanResource,
@@ -198,6 +199,7 @@ export default function EdgeGame() {
   const [run, setRun] = useState<MissionRunState | null>(() => loadRun());
   const [profile, setProfile] = useState<PlayerProfile>(() => loadProfile());
   const [aim, setAim] = useState("");
+  const [chosenPackId, setChosenPackId] = useState<AimPack["id"] | null>(null);
   const [signalsOn, setSignalsOn] = useState<boolean>(() => loadSignals());
   const [ritual, setRitual] = useState<RitualState | null>(null);
   const [settingStone, setSettingStone] = useState(false);
@@ -221,11 +223,22 @@ export default function EdgeGame() {
     persist(applyMorningScan(run, input));
   }
 
+  function updateAim(value: string) {
+    setAim(value);
+    setChosenPackId(null);
+  }
+
+  function selectSuggestion(pack: AimPack) {
+    setAim(pack.suggestion);
+    setChosenPackId(pack.id);
+  }
+
   function startAscent() {
     const text = aim.trim();
     if (!text) return;
-    persist(createMissionRun(text, profile.completedRuns > 0 ? profile : undefined));
+    persist(createMissionRun(text, profile.completedRuns > 0 ? profile : undefined, chosenPackId ?? undefined));
     setAim("");
+    setChosenPackId(null);
   }
 
   function chooseCard(id: string) {
@@ -300,7 +313,15 @@ export default function EdgeGame() {
   }
 
   if (!run) {
-    return <AimEntry aim={aim} setAim={setAim} onStart={startAscent} profile={profile} />;
+    return (
+      <AimEntry
+        aim={aim}
+        setAim={updateAim}
+        onSelectSuggestion={selectSuggestion}
+        onStart={startAscent}
+        profile={profile}
+      />
+    );
   }
 
   return (
@@ -382,11 +403,13 @@ function RunSummary({
 function AimEntry({
   aim,
   setAim,
+  onSelectSuggestion,
   onStart,
   profile,
 }: {
   aim: string;
   setAim: (value: string) => void;
+  onSelectSuggestion: (pack: AimPack) => void;
   onStart: () => void;
   profile: PlayerProfile;
 }) {
@@ -408,7 +431,7 @@ function AimEntry({
         />
         <div className="suggestions">
           {AIM_PACKS.map((pack) => (
-            <button key={pack.id} type="button" onClick={() => setAim(pack.suggestion)}>
+            <button key={pack.id} type="button" onClick={() => onSelectSuggestion(pack)}>
               <span className="pack">{pack.label}</span>
               {pack.suggestion}
             </button>

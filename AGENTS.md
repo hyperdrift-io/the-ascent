@@ -16,8 +16,8 @@ Help a person see whether their current week can carry the aim they choose, then
 
 ## Design Authority
 
-- Visual & game design: `docs/superpowers/specs/2026-07-11-edge-ascent-visual-design.md` (The Living Mountain world, light state, locks, cards, Resolve ritual, canonical metrics as Conditions + Trail Notes).
-- Game architecture & naming: `docs/superpowers/specs/2026-07-11-edge-hypergame-architecture-design.md` (product Edge, weekly mode Ascent, purpose graphs, game kernel, run signals, MVP scope).
+- Visual & game design: `~/dev/hyperdrift/docs/superpowers/specs/2026-07-11-edge-ascent-visual-design.md` (monorepo checkout) (The Living Mountain world, light state, locks, cards, Resolve ritual, canonical metrics as Conditions + Trail Notes).
+- Game architecture & naming: `~/dev/hyperdrift/docs/superpowers/specs/2026-07-11-edge-hypergame-architecture-design.md` (monorepo checkout) (product Edge, weekly mode Ascent, purpose graphs, game kernel, run signals, MVP scope).
 - First viewport composite: `design/first-viewport-mock.html` (open in browser; state switcher, dawn/night/send visuals, lock treatment, move hand, readiness bar).
 
 ## Product Notes
