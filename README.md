@@ -1,10 +1,10 @@
 # Edge
 
-Ascent is a weekly mission game. The player sets a meaningful aim, the game turns it into a seven-day boss run across the Living Mountain, and each day's real-world moves light up the path toward the summit gate.
+Edge is a weekly mission game. Each week is an Ascent toward a player-chosen aim: daily real-world moves, resolved as cairns on the path, carry you toward the summit gate — the week's meaningful attempt.
 
 ```bash
 pnpm install
-pnpm dev
+pnpm dev  # runs on http://127.0.0.1:5177
 pnpm build
 ```
 

@@ -1,4 +1,4 @@
-# Edge Ascent PoC
+# Edge PoC
 
 > Inherits [PoC lane context](../AGENTS.md) and [Hyperdrift workspace context](../../../AGENTS.md).
 
