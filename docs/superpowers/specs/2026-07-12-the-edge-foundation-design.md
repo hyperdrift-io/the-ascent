@@ -51,6 +51,7 @@ An optional long-horizon practice of completing 52 Weekruns. It counts completed
 - Recovery periods are part of using capacity well.
 - Enabling or disabling Athletic Mode never deletes history.
 - Athletic Mode adds season progress and longitudinal reflection; it does not change the foundation model.
+- Athletic Mode activates the Push Coach voice described below. This sharper coaching contract is part of the explicit opt-in.
 
 The default product is one Weekrun at a time with no annual commitment.
 
@@ -413,6 +414,41 @@ The Edge inherits Hyperdrift's Voice Covenant.
 - Do not imply that maximisation is fulfilment.
 - Do not turn missed days or breaks into failure.
 
+The Voice Covenant does not require passivity. The Edge expects meaningful action when capacity is available. It speaks with conviction, names avoidance plainly when the evidence supports that reading, and makes the next call difficult to evade.
+
+### Default Weekrun: Supportive Challenge
+
+Default voice is firm, concise, and forward-moving. It respects uncertainty while expecting the person to choose.
+
+> You have enough capacity for one demanding move. Choose it and begin.
+
+> The route does not need more planning. It needs one honest attempt.
+
+The default never uses shame, manufactured pressure, or a broken-streak frame. It challenges the call, not the person's worth.
+
+### Athletic Mode: Push Coach
+
+Athletic Mode reserves the pushier voice for a person who has explicitly chosen a 52-Weekrun practice. It assumes the player wants available capacity converted into deliberate action.
+
+The Push Coach:
+
+- is more direct about hesitation and unused capacity;
+- names the cost of avoiding a move that clearly fits;
+- expects a decision rather than indefinite reflection;
+- distinguishes productive discomfort from overload;
+- protects recovery as part of serious practice;
+- treats breaks as neutral while being demanding inside an active Weekrun.
+
+Examples:
+
+> The capacity is there. Stop negotiating with the first move. Take it.
+
+> You asked for the Edge. This is the part where commitment matters.
+
+> Redline is not courage. Cut the load, recover, then return ready.
+
+Push Coach never encourages unsafe action, overrides a danger state, attacks character, or implies that rest is weakness. It is demanding because the player opted into practice, not because the product is entitled to compliance.
+
 Example:
 
 > The aim still stands. Restoration is the call that keeps tomorrow available.
@@ -444,16 +480,17 @@ Future work must preserve these boundaries:
 4. Full capacity means dynamic fit, not every slider at maximum.
 5. Daily state may inform but never silently redefine the long-term foundation.
 6. Default mode is one Weekrun; 52 completed Weekruns belongs only to optional Athletic Mode.
-7. Simple surfaces must preserve access to depth.
-8. Domains organise KPIs; derived resources summarise them; neither may replace or hide the canonical registry.
-9. Sub-KPIs belong to a named parent KPI and retain that context in search, adjustment, and history.
-10. Recommendations are confirmed subsets of the fixed tree, never new metrics.
-11. Wikipedia study links help the player understand a recommended ability; they are never resources, tasks, or progression mechanics.
-12. Fractal navigation is literal spatial zoom, not a metaphor for nested panels or routes.
-13. Every layer follows the fractal state -> branches -> signals -> pattern -> call structure.
-14. Every KPI tree node has a distinct Recraft asset that visibly inherits its parent's visual DNA and shares transition anchors.
-15. Production bitmap art uses Recraft and the canonical Mythic Natural Realism direction.
-16. The user is never the problem. The system helps reveal the conditions for the next right call.
+7. Push Coach voice belongs only to opt-in Athletic Mode and remains bounded by the Voice Covenant and current Edge state.
+8. Simple surfaces must preserve access to depth.
+9. Domains organise KPIs; derived resources summarise them; neither may replace or hide the canonical registry.
+10. Sub-KPIs belong to a named parent KPI and retain that context in search, adjustment, and history.
+11. Recommendations are confirmed subsets of the fixed tree, never new metrics.
+12. Wikipedia study links help the player understand a recommended ability; they are never resources, tasks, or progression mechanics.
+13. Fractal navigation is literal spatial zoom, not a metaphor for nested panels or routes.
+14. Every layer follows the fractal state -> branches -> signals -> pattern -> call structure.
+15. Every KPI tree node has a distinct Recraft asset that visibly inherits its parent's visual DNA and shares transition anchors.
+16. Production bitmap art uses Recraft and the canonical Mythic Natural Realism direction.
+17. The user is never the problem. The system helps reveal the conditions for the next right call.
 
 ## Documentation and Skill Integration
 
