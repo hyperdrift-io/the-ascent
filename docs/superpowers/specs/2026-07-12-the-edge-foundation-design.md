@@ -136,6 +136,29 @@ This confirmed subset is the **underlying Edge aim**: the balance to protect or 
 
 Search remains available whether or not a KPI is recommended. Results show the complete contextual path, current state, and why the result matched. Opening a result zooms to that branch without losing the current Edge or Weekrun context.
 
+### Study Resources
+
+Each active Weekrun day suggests one optional resource that helps the player understand the confirmed KPI or sub-KPI currently shaping Today's Edge.
+
+Wikipedia is the canonical study source. The product uses a curated, stable mapping from KPI tree nodes to relevant Wikipedia articles. It does not generate arbitrary search results or present an uncited explanation as authority.
+
+The study suggestion:
+
+- is labelled with the KPI path and Wikipedia article title;
+- explains briefly why it is relevant today;
+- remains secondary to the right call and daily move;
+- opens the source directly;
+- never changes a reading, score, route, recommendation, or reward;
+- never creates a new human resource, KPI, sub-KPI, or game currency;
+- is optional and carries no completion state or streak.
+
+Example:
+
+> **Study today's ability: Stress -> Anxiety**  
+> Explore how arousal can affect attention and decision-making. [Read on Wikipedia](https://en.wikipedia.org/wiki/Arousal)
+
+The link is an invitation to understand, not medical guidance. Health-related topics retain the product's non-diagnostic boundary.
+
 Alignment is the direction of The Edge, not another score. It asks whether current action expresses the person's values and desired life. A goal may be tested against alignment, but it may not redefine the KPI tree.
 
 ## The Underlying Mechanism
@@ -241,6 +264,8 @@ Weekrun integration follows four operations:
 2. **Fit:** It adjusts move intensity, sequence, and support.
 3. **Act:** Cairns record evidence; route readiness records progress.
 4. **Return:** Reflection contributes learning back to The Edge.
+
+After the daily KPI subset is confirmed, Weekrun surfaces its single mapped Wikipedia study resource. The suggestion supports understanding; it does not become another task in the move hand.
 
 Long-term baseline changes proposed from Weekrun learning require confirmation. Weekrun cannot silently update the person's foundation.
 
@@ -373,6 +398,7 @@ Not:
 - Derived resource and domain states must disclose which canonical KPIs and sub-KPIs contributed.
 - Core KPIs and sub-KPIs are searchable by stable name, contextual path, and documented synonyms.
 - Recommendations select a subset of the fixed tree and require confirmation; they never mutate the ontology.
+- Study suggestions come only from the curated Wikipedia mapping and have no effect on state or progression.
 - Health-related signals are orientation tools, not diagnoses or treatment recommendations.
 - No signal should be shared or used for advertising.
 
@@ -390,10 +416,11 @@ Future work must preserve these boundaries:
 8. Domains organise KPIs; derived resources summarise them; neither may replace or hide the canonical registry.
 9. Sub-KPIs belong to a named parent KPI and retain that context in search, adjustment, and history.
 10. Recommendations are confirmed subsets of the fixed tree, never new metrics.
-11. Every layer follows the fractal state -> branches -> signals -> pattern -> call structure.
-12. Every KPI tree node has a distinct Recraft asset that visibly inherits its parent's visual DNA.
-13. Production bitmap art uses Recraft and the canonical Mythic Natural Realism direction.
-14. The user is never the problem. The system helps reveal the conditions for the next right call.
+11. Wikipedia study links help the player understand a recommended ability; they are never resources, tasks, or progression mechanics.
+12. Every layer follows the fractal state -> branches -> signals -> pattern -> call structure.
+13. Every KPI tree node has a distinct Recraft asset that visibly inherits its parent's visual DNA.
+14. Production bitmap art uses Recraft and the canonical Mythic Natural Realism direction.
+15. The user is never the problem. The system helps reveal the conditions for the next right call.
 
 ## Documentation and Skill Integration
 
