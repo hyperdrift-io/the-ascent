@@ -154,7 +154,7 @@ The study suggestion:
 
 Example:
 
-> **Study today's ability: Stress -> Anxiety**  
+> **Study today's ability: Stress -> Anxiety**
 > Explore how arousal can affect attention and decision-making. [Read on Wikipedia](https://en.wikipedia.org/wiki/Arousal)
 
 The link is an invitation to understand, not medical guidance. Health-related topics retain the product's non-diagnostic boundary.
