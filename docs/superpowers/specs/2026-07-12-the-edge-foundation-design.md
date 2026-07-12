@@ -198,7 +198,33 @@ References:
 
 The Edge is deceptively simple, never oversimplified.
 
-Every visible summary is a real, useful surface. Every summary can also be entered. Depth repeats the same structure at different scales, like a fractal:
+### Fractal Is the Literal Interface
+
+Fractal is not a metaphor for nested menus. The Edge is a continuous, spatially zoomable world.
+
+The person begins with the complete Edge landscape. Selecting a visible force moves the camera into that region. The region resolves into its domain. Continuing inward reveals a core KPI, then its sub-KPIs, daily state, patterns, and lived evidence. Every level is a real environment with its own composition and interaction, visibly descended from its parent.
+
+The transition is one uninterrupted spatial journey:
+
+**Edge world -> domain biome -> core KPI force -> sub-KPI process -> daily state -> temporal pattern -> evidence**
+
+The UI does not replace the world with a dashboard, modal stack, or unrelated detail page. Controls and text may appear at the current depth, but the parent world remains spatially legible during the transition.
+
+Navigation supports:
+
+- click or tap to enter a visible node;
+- wheel, trackpad, pinch, or explicit controls to change depth;
+- hover or keyboard focus for a truthful preview before entering;
+- a persistent depth path showing the current KPI lineage;
+- one-step return to the parent scale;
+- one action to return to the complete Edge;
+- restoration of the exact prior camera and Weekrun state on return.
+
+The experience may feel unbounded, but it must not fabricate infinite data. Depth exists only where the fixed KPI tree, time series, relationships, or lived evidence provide honest material. A leaf node becomes a place to understand and act, not a decorative dead end.
+
+Reduced-motion mode preserves the same hierarchy through controlled crossfades and scale changes without continuous camera travel. A semantic, keyboard-navigable representation mirrors every spatial node so the immersive surface remains accessible.
+
+Every visible summary is a real, useful surface. Every summary can also be entered by zooming into it. Depth repeats the same structure at different spatial scales:
 
 1. **State:** What is true at this level?
 2. **Branches:** Which domains and canonical KPIs contribute to it?
@@ -215,7 +241,7 @@ Always visible before and during a Weekrun.
 - The Edge horizon
 - One concise right call
 
-Hover or focus reveals the seven-resource summary. Click or tap opens the full matrix.
+Hover or focus previews the seven-resource summary. Click or tap begins the camera transition into the matrix.
 
 ### Zoom Level 1: Domains and Resources
 
@@ -247,7 +273,7 @@ The system may surface associations as observations. It must not present correla
 
 The deepest layer shows the person's own scans, reflections, cairns, contexts, and confirmed learning. The user's lived evidence remains the source of truth.
 
-Every depth has a clear route back to the parent layer. The product must never trap the person inside analysis.
+Every depth has a clear route back to the parent layer or the complete Edge. The product must never trap the person inside analysis.
 
 ## Weekrun Integration Contract
 
@@ -269,7 +295,7 @@ After the daily KPI subset is confirmed, Weekrun surfaces its single mapped Wiki
 
 Long-term baseline changes proposed from Weekrun learning require confirmation. Weekrun cannot silently update the person's foundation.
 
-The persistent Weekrun surface shows a compact Edge horizon and state. Hover or keyboard focus reveals the derived-resource and domain summary. Click or tap opens the full-screen matrix with a smooth spatial blend, then returns to the same Weekrun state.
+The persistent Weekrun surface shows a compact Edge horizon and state. Hover or keyboard focus previews the derived-resource and domain summary. Click or tap expands the horizon into the full-screen Edge world, then allows continuous zoom through its branches. Returning restores the exact Weekrun state.
 
 When current demand materially exceeds available capacity, the interface may introduce a controlled danger-red wash. This signals that the call needs adjustment, not that the person or aim has failed. The available calls are:
 
@@ -297,6 +323,8 @@ Everything is fractal-driven. Visual forms repeat across scales:
 - wave interference becomes regulation.
 
 Fractal structure is functional. It explains that a pattern visible in one day may recur across a Weekrun or season without claiming those scales are identical.
+
+It is also spatial. Parent geometry becomes child geography as the camera moves inward. Coastline irregularity may resolve into river branches; river branches into root systems; root systems into mycelial paths; those paths into a signal's history. Each transition preserves enough shared form that the person understands where the deeper level came from before reading the depth path.
 
 ### Recraft Asset Rule
 
@@ -342,6 +370,10 @@ Children inherit visual DNA from their parent:
 - motion character.
 
 A child must still have its own generated asset. Reusing one image with a new label is not sufficient. The relationship should be visible before it is explained: entering `stress -> anxiety`, for example, feels like moving deeper into the same weather system rather than opening an unrelated illustration.
+
+Assets also declare their zoom role and transition anchors. Parent and child generations must share visual landmarks that can be aligned during camera movement. The transition reveals the child inside the parent rather than crossfading between unrelated pictures.
+
+Production delivery uses level-of-detail loading: the current environment, its parent, and the immediately visible children are ready; deeper descendants load only as the person approaches them. Immersion must not require downloading the entire tree before the first interaction.
 
 The asset manifest records `nodeId`, `parentId`, prompt, Recraft model, intended states, output paths, and accessibility notes. This makes the visual tree reproducible and reviewable.
 
@@ -417,10 +449,11 @@ Future work must preserve these boundaries:
 9. Sub-KPIs belong to a named parent KPI and retain that context in search, adjustment, and history.
 10. Recommendations are confirmed subsets of the fixed tree, never new metrics.
 11. Wikipedia study links help the player understand a recommended ability; they are never resources, tasks, or progression mechanics.
-12. Every layer follows the fractal state -> branches -> signals -> pattern -> call structure.
-13. Every KPI tree node has a distinct Recraft asset that visibly inherits its parent's visual DNA.
-14. Production bitmap art uses Recraft and the canonical Mythic Natural Realism direction.
-15. The user is never the problem. The system helps reveal the conditions for the next right call.
+12. Fractal navigation is literal spatial zoom, not a metaphor for nested panels or routes.
+13. Every layer follows the fractal state -> branches -> signals -> pattern -> call structure.
+14. Every KPI tree node has a distinct Recraft asset that visibly inherits its parent's visual DNA and shares transition anchors.
+15. Production bitmap art uses Recraft and the canonical Mythic Natural Realism direction.
+16. The user is never the problem. The system helps reveal the conditions for the next right call.
 
 ## Documentation and Skill Integration
 
