@@ -40,7 +40,14 @@ import {
   type Zone,
 } from "./edge";
 import { EdgeWorld } from "./components/edge/EdgeWorld";
+import { EdgeOverlay } from "./components/edge/EdgeOverlay";
+import { EdgeSummary } from "./components/edge/EdgeSummary";
+import { KpiReading } from "./components/edge/KpiReading";
+import { KpiSearch } from "./components/edge/KpiSearch";
 import { getEdgeLinePoint } from "./edge-line";
+import { loadEdgeProfile, saveDailyReading, type EdgeProfile } from "./edge-profile";
+import type { KpiSearchResult } from "./edge-kpis";
+import { adaptMorningScanToEdge, buildWeekrunHeader, deriveTodayEdgeSnapshot, type TodayEdgeSnapshot } from "./weekrun-edge";
 
 // ------------------------------------------------------------------ constants
 
@@ -241,6 +248,10 @@ interface RitualState {
 export default function EdgeGame() {
   const [run, setRun] = useState<MissionRunState | null>(() => loadRun());
   const [profile, setProfile] = useState<PlayerProfile>(() => loadProfile());
+  const today = todayLocalISO();
+  const [edgeProfile, setEdgeProfile] = useState<EdgeProfile>(() => loadEdgeProfile(today));
+  const [edgeOpen, setEdgeOpen] = useState(false);
+  const [rootKpi, setRootKpi] = useState<KpiSearchResult | null>(null);
   const [aim, setAim] = useState("");
   const [chosenPackId, setChosenPackId] = useState<AimPack["id"] | null>(null);
   const [signalsOn, setSignalsOn] = useState<boolean>(() => loadSignals());
@@ -254,6 +265,13 @@ export default function EdgeGame() {
     ritualRef.current = ritual;
     settingStoneRef.current = settingStone;
   }, [ritual, settingStone]);
+  const todayReadings = edgeProfile.daily[today] ?? {};
+  const edgeSnapshot = useMemo(
+    () => run
+      ? adaptMorningScanToEdge(run.resources, todayReadings)
+      : deriveTodayEdgeSnapshot({ resources: edgeProfile.baselines, explicitDailyReadings: todayReadings }),
+    [edgeProfile.baselines, run, todayReadings],
+  );
   const [summary, setSummary] = useState<RunSummary | null>(() => loadSummary());
   // View-only flag (not persisted): the week closed while the player was away, so the
   // summary greets them with the away-completion line rather than the standard one.
@@ -423,8 +441,22 @@ export default function EdgeGame() {
   }
 
   if (!run) {
+    const rootPath = rootKpi?.source === "sub" ? rootKpi.path : null;
     return (
       <EdgeWorld
+        targetPath={rootKpi?.path ?? null}
+        tools={
+          <div className="edge-root-tools">
+            <KpiSearch onSelect={setRootKpi} />
+            {rootPath && (
+              <KpiReading
+                path={rootPath}
+                value={edgeProfile.daily[today]?.[rootPath] ?? 50}
+                onSave={(value) => setEdgeProfile(saveDailyReading(edgeProfile, { date: today, path: rootPath, value }))}
+              />
+            )}
+          </div>
+        }
         aimEntry={
           <AimEntry
             aim={aim}
@@ -439,23 +471,38 @@ export default function EdgeGame() {
   }
 
   return (
-    <Mountain
-      run={run}
-      profile={profile}
-      signalsOn={signalsOn}
-      settingStone={settingStone}
-      onChooseCard={chooseCard}
-      onScan={scanMorning}
-      onOpenRitual={() => setRitual({ step: 1, tier: null, proof: null, felt: null, note: "" })}
-      onBreakCamp={breakCamp}
-      onAttempt={() => endRun("summit-attempt")}
-      onComplete={() => endRun("complete")}
-      onRecon={() => endRun("recon")}
-      onToggleSignals={toggleSignals}
-      ritual={ritual}
-      setRitual={setRitual}
-      onCommitRitual={commitRitual}
-    />
+    <>
+      <Mountain
+        run={run}
+        profile={profile}
+        edgeSnapshot={edgeSnapshot}
+        onOpenEdge={() => setEdgeOpen(true)}
+        signalsOn={signalsOn}
+        settingStone={settingStone}
+        onChooseCard={chooseCard}
+        onScan={scanMorning}
+        onOpenRitual={() => setRitual({ step: 1, tier: null, proof: null, felt: null, note: "" })}
+        onBreakCamp={breakCamp}
+        onAttempt={() => endRun("summit-attempt")}
+        onComplete={() => endRun("complete")}
+        onRecon={() => endRun("recon")}
+        onToggleSignals={toggleSignals}
+        ritual={ritual}
+        setRitual={setRitual}
+        onCommitRitual={commitRitual}
+      />
+      {edgeOpen && (
+        <EdgeOverlay
+          aim={run.aim}
+          resources={run.resources}
+          snapshot={edgeSnapshot}
+          profile={edgeProfile}
+          today={today}
+          onProfile={setEdgeProfile}
+          onClose={() => setEdgeOpen(false)}
+        />
+      )}
+    </>
   );
 }
 
@@ -584,6 +631,8 @@ function AimEntry({
 function Mountain({
   run,
   profile,
+  edgeSnapshot,
+  onOpenEdge,
   signalsOn,
   settingStone,
   onChooseCard,
@@ -600,6 +649,8 @@ function Mountain({
 }: {
   run: MissionRunState;
   profile: PlayerProfile;
+  edgeSnapshot: TodayEdgeSnapshot;
+  onOpenEdge: () => void;
   signalsOn: boolean;
   settingStone: boolean;
   onChooseCard: (id: string) => void;
@@ -620,6 +671,11 @@ function Mountain({
   const trailNote = getTrailNote(run);
   const tint = getWorldTint(run);
   const bossLabel = getBossWindowLabel(run);
+  const weekrunHeader = buildWeekrunHeader({
+    edgeState: edgeSnapshot.state,
+    edgeValue: edgeSnapshot.orientationValue,
+    readiness: run.readiness,
+  });
 
   return (
     <main className="mountain" data-state={world} data-scene={scene}>
@@ -653,10 +709,11 @@ function Mountain({
       )}
 
       <div className="bottom">
+        <EdgeSummary snapshot={edgeSnapshot} onOpen={onOpenEdge} />
         {world !== "night" && (
           <div className="readiness">
             <span>
-              READINESS {run.readiness}% · {bandLabel(run.readiness).toUpperCase()}
+              {weekrunHeader.readinessLabel.toUpperCase()} · {bandLabel(run.readiness).toUpperCase()}
             </span>
             <progress className="readiness-progress" max={100} value={run.readiness} aria-label="Route readiness" />
             <span className={`run-status ${run.status}`}>{STATUS_LABEL[run.status]}</span>

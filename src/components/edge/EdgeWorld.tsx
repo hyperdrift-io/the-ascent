@@ -7,6 +7,7 @@ import {
   createViewport,
   edgeNavigationReducer,
   getVisibleNodeIds,
+  type EdgeNavigationAction,
   type EdgeViewportState,
 } from "../../edge-navigation";
 import { EdgeSemanticTree } from "./EdgeSemanticTree";
@@ -18,7 +19,17 @@ function isFormControl(target: EventTarget | null): boolean {
   return target instanceof HTMLElement && Boolean(target.closest("input, textarea, button, select, a"));
 }
 
-export function EdgeWorld({ aimEntry }: { aimEntry: ReactNode }) {
+export function EdgeWorld({
+  aimEntry,
+  tools,
+  targetPath,
+  embedded = false,
+}: {
+  aimEntry?: ReactNode;
+  tools?: ReactNode;
+  targetPath?: string | null;
+  embedded?: boolean;
+}) {
   const [viewport, dispatch] = useReducer(edgeNavigationReducer, ROOT_VIEWPORT);
   const [aimOpen, setAimOpen] = useState(false);
   const [rendererState, setRendererState] = useState<"loading" | "enhanced" | "fallback">("loading");
@@ -28,51 +39,83 @@ export function EdgeWorld({ aimEntry }: { aimEntry: ReactNode }) {
   const transitionRef = useRef(false);
   const touchPoints = useRef(new Map<number, { x: number; y: number }>());
   const touchOrigin = useRef<{ x: number; y: number; distance: number | null } | null>(null);
+  const navigationRequestRef = useRef(0);
+  const navigationQueueRef = useRef(Promise.resolve());
 
   viewportRef.current = viewport;
   const composition = useMemo(() => buildSceneComposition(viewport), [viewport]);
   const atRoot = viewport.path.length === 1;
 
-  const enter = useCallback((nodeId: string) => {
+  const applyNavigation = useCallback((action: EdgeNavigationAction) => {
+    const next = edgeNavigationReducer(viewportRef.current, action);
+    viewportRef.current = next;
+    dispatch(action);
+    return next;
+  }, []);
+
+  const enter = useCallback(async (nodeId: string): Promise<void> => {
     const current = viewportRef.current;
     const index = getVisibleNodeIds(current).indexOf(nodeId);
     if (index < 0 || transitionRef.current) return;
     transitionRef.current = true;
     setAimOpen(false);
-    dispatch({ type: "enter", nodeId, camera: getCameraPoseForEntry(current.path.length, index) });
+    applyNavigation({ type: "enter", nodeId, camera: getCameraPoseForEntry(current.path.length, index) });
     const transition = controllerRef.current?.enter(nodeId);
-    if (transition) void transition.finally(() => { transitionRef.current = false; });
-    else transitionRef.current = false;
-  }, []);
+    try {
+      if (transition) await transition;
+    } finally {
+      transitionRef.current = false;
+    }
+  }, [applyNavigation]);
 
-  const back = useCallback(() => {
+  const back = useCallback(async (): Promise<void> => {
     if (viewportRef.current.path.length === 1 || transitionRef.current) return;
     transitionRef.current = true;
-    dispatch({ type: "back" });
+    applyNavigation({ type: "back" });
     const transition = controllerRef.current?.back();
-    if (transition) void transition.finally(() => { transitionRef.current = false; });
-    else transitionRef.current = false;
-  }, []);
+    try {
+      if (transition) await transition;
+    } finally {
+      transitionRef.current = false;
+    }
+  }, [applyNavigation]);
 
-  const home = useCallback(() => {
+  const home = useCallback(async (): Promise<void> => {
     if (transitionRef.current) return;
     setAimOpen(false);
     transitionRef.current = true;
-    dispatch({ type: "home" });
+    applyNavigation({ type: "home" });
     const transition = controllerRef.current?.home();
-    if (transition) void transition.finally(() => { transitionRef.current = false; });
-    else transitionRef.current = false;
-  }, []);
+    try {
+      if (transition) await transition;
+    } finally {
+      transitionRef.current = false;
+    }
+  }, [applyNavigation]);
 
   const enterFirstBranch = useCallback(() => {
     const [first] = getVisibleNodeIds(viewportRef.current);
-    if (first) enter(viewportRef.current.selectedNodeId ?? first);
+    if (first) void enter(viewportRef.current.selectedNodeId ?? first);
   }, [enter]);
 
   const select = useCallback((nodeId: string | null) => {
-    dispatch({ type: "select", nodeId });
+    applyNavigation({ type: "select", nodeId });
     controllerRef.current?.setSelectedNode(nodeId);
-  }, []);
+  }, [applyNavigation]);
+
+  useEffect(() => {
+    if (!targetPath) return;
+    const request = ++navigationRequestRef.current;
+    const lineage = targetPath.split(".");
+    navigationQueueRef.current = navigationQueueRef.current.then(async () => {
+      await home();
+      for (const nodeId of lineage) {
+        if (request !== navigationRequestRef.current) return;
+        await enter(nodeId);
+      }
+    });
+    return () => { navigationRequestRef.current += 1; };
+  }, [enter, home, targetPath]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -95,7 +138,7 @@ export function EdgeWorld({ aimEntry }: { aimEntry: ReactNode }) {
           controller = createEdgeScene(canvas, viewportRef.current, enter, {
             reducedMotion: motion.matches,
             availableAssetIds,
-            onPreview: (nodeId) => dispatch({ type: "select", nodeId }),
+            onPreview: select,
           });
         } catch {
           setRendererState("fallback");
@@ -125,7 +168,7 @@ export function EdgeWorld({ aimEntry }: { aimEntry: ReactNode }) {
       controller?.dispose();
       if (controllerRef.current === controller) controllerRef.current = null;
     };
-  }, [enter]);
+  }, [enter, select]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -193,8 +236,9 @@ export function EdgeWorld({ aimEntry }: { aimEntry: ReactNode }) {
     if (touchPoints.current.size === 0) touchOrigin.current = null;
   }
 
+  const Root = embedded ? "section" : "main";
   return (
-    <main className="edge-world" data-depth={viewport.path.length - 1} data-renderer={rendererState} onWheel={onWheel}>
+    <Root className="edge-world" data-depth={viewport.path.length - 1} data-renderer={rendererState} onWheel={onWheel}>
       <canvas
         ref={canvasRef}
         className="edge-world-canvas"
@@ -210,7 +254,7 @@ export function EdgeWorld({ aimEntry }: { aimEntry: ReactNode }) {
         <span>{atRoot ? "AVAILABLE" : `DEPTH ${viewport.path.length - 1}`}</span>
       </header>
 
-      {atRoot && !aimOpen && (
+      {atRoot && aimEntry && !aimOpen && (
         <section className="edge-root-call" aria-label="Current call">
           <p>Capacity is present. Choose the branch that needs the clearest call.</p>
           <button type="button" className="edge-aim-action" onClick={() => setAimOpen(true)}>
@@ -218,6 +262,8 @@ export function EdgeWorld({ aimEntry }: { aimEntry: ReactNode }) {
           </button>
         </section>
       )}
+
+      {tools && <aside className="edge-world-tools">{tools}</aside>}
 
       {atRoot && aimOpen && (
         <section className="edge-aim-layer" aria-label="Set a Weekrun aim">
@@ -237,6 +283,6 @@ export function EdgeWorld({ aimEntry }: { aimEntry: ReactNode }) {
           select={select}
         />
       )}
-    </main>
+    </Root>
   );
 }
