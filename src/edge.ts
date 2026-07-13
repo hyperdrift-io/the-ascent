@@ -2,23 +2,11 @@
 // Pure, deterministic state transitions for a weekly "Ascent" toward a summit-gate boss.
 // The UI (Task 3) renders this; nothing here touches the DOM except the localStorage helpers.
 
+import { CORE_KPI_IDS, type CoreMetric } from "./edge-kpis";
+
+export type { CoreMetric } from "./edge-kpis";
+
 export type HumanResource = "energy" | "focus" | "composure" | "confidence" | "recovery" | "connection" | "time";
-export type CoreMetric =
-  | "health"
-  | "stamina"
-  | "sleep"
-  | "stress"
-  | "nutrition"
-  | "cardio"
-  | "work"
-  | "commute"
-  | "routine"
-  | "sport"
-  | "rest"
-  | "travel"
-  | "social"
-  | "entertainment"
-  | "family";
 export type RunStatus = "ahead" | "on-target" | "narrow-path" | "route-shift";
 export type CompletionTier = "gold" | "silver" | "spark" | "route-shift";
 export type ProofType = "quick-note" | "photo-video" | "calendar-session" | "wearable-signal" | "honest-check-in";
@@ -116,23 +104,6 @@ export interface RunSummary {
 }
 
 const HUMAN_RESOURCES: HumanResource[] = ["energy", "focus", "composure", "confidence", "recovery", "connection", "time"];
-const CORE_METRICS: CoreMetric[] = [
-  "health",
-  "stamina",
-  "sleep",
-  "stress",
-  "nutrition",
-  "cardio",
-  "work",
-  "commute",
-  "routine",
-  "sport",
-  "rest",
-  "travel",
-  "social",
-  "entertainment",
-  "family",
-];
 
 // -----------------------------------------------------------------------------------------
 // Aim packs
@@ -517,7 +488,7 @@ function defaultResources(value: number): Record<HumanResource, number> {
 }
 
 function defaultCoreMetrics(value: number): Record<CoreMetric, number> {
-  return CORE_METRICS.reduce((acc, key) => {
+  return CORE_KPI_IDS.reduce((acc, key) => {
     acc[key] = value;
     return acc;
   }, {} as Record<CoreMetric, number>);
