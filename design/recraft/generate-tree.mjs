@@ -218,7 +218,7 @@ function sha256(file) {
 function writeProvenance(file, nodePlan, manifest, masterFile, generatedJobs) {
   const masterSha256 = sha256(masterFile);
   const stateMappings = Object.fromEntries(nodePlan.derived.map((job) => [job.state, {
-    output: job.output,
+    output: `public/assets/edge/${nodePlan.node.id}/${job.state}.webp`,
     treatment: job.stateTreatment,
     masterSha256: generatedJobs.includes(job) ? masterSha256 : null,
     lineage: generatedJobs.includes(job) ? "derived-from-this-master" : "existing-approved-output",

@@ -216,5 +216,7 @@ describe("Recraft tree orchestrator safety", () => {
     expect(provenance.masterSha256).toMatch(/^[a-f0-9]{64}$/);
     expect(Object.keys(provenance.stateMappings)).toEqual(STATES);
     expect(Object.values(provenance.stateMappings).every((mapping) => mapping.masterSha256 === provenance.masterSha256)).toBe(true);
+    expect(Object.values(provenance.stateMappings).every((mapping) => mapping.output.startsWith("public/assets/edge/"))).toBe(true);
+    expect(Object.values(provenance.stateMappings).every((mapping) => !path.isAbsolute(mapping.output))).toBe(true);
   });
 });
