@@ -10,7 +10,7 @@
   position: relative;
   min-height: 100svh;
   overflow: hidden;
-  background: #07100f;
+  background: #07100f url("/assets/edge/edge/available.webp") center / cover no-repeat;
   color: var(--edge-world-ink);
   isolation: isolate;
 }
@@ -28,6 +28,10 @@
   cursor: pointer;
 }
 
+.edge-world[data-renderer="fallback"] .edge-world-canvas {
+  opacity: 0;
+}
+
 .edge-world-heading {
   position: absolute;
   z-index: 2;
@@ -41,7 +45,7 @@
 .edge-world-heading span {
   color: var(--edge-world-gold);
   font-size: 10px;
-  letter-spacing: 0.16em;
+  letter-spacing: 0;
 }
 
 .edge-world-heading h1 {
@@ -82,7 +86,7 @@ button.edge-aim-action {
   padding: 8px 12px;
   border-color: var(--edge-world-border);
   color: var(--edge-world-gold);
-  letter-spacing: 0.06em;
+  letter-spacing: 0;
 }
 
 .edge-semantic-tree {
@@ -105,7 +109,7 @@ button.edge-aim-action {
   gap: 5px;
   color: var(--edge-world-muted);
   font-size: 10px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 
@@ -139,7 +143,7 @@ button.edge-aim-action {
   background: var(--edge-world-surface);
   color: var(--edge-world-muted);
   font-size: 10px;
-  letter-spacing: 0.06em;
+  letter-spacing: 0;
   backdrop-filter: blur(8px);
 }
 

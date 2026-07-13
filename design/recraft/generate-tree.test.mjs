@@ -280,6 +280,12 @@ describe("Recraft tree orchestrator safety", () => {
       expect(path.isAbsolute(mapping.output)).toBe(false);
       expect(mapping.outputSha256).toBe(sha256(path.join(assetRoot, "edge", `${state}.webp`)));
     }
+    const availability = JSON.parse(fs.readFileSync(path.join(assetRoot, "availability.json"), "utf8"));
+    expect(availability).toEqual({
+      schema: "https://hyperdrift.io/schemas/edge-asset-availability/v1",
+      manifestVersion: MANIFEST.version,
+      nodes: ["edge"],
+    });
   });
 
   it("regenerates all five companions for a forced state selector", () => {
@@ -304,5 +310,11 @@ describe("Recraft tree orchestrator safety", () => {
         expect(provenance.stateMappings[state].outputSha256).toBe(sha256(path.join(nodeRoot, `${state}.webp`)));
       }
     }
+  });
+
+  it("commits an availability index for exactly the generated vertical slice", () => {
+    const availability = JSON.parse(fs.readFileSync(path.join(APP_ROOT, "public/assets/edge/availability.json"), "utf8"));
+    expect(availability.nodes).toEqual(["edge", "pressure", "pressure.stress", "pressure.stress.anxiety"]);
+    expect(availability.manifestVersion).toBe(MANIFEST.version);
   });
 });

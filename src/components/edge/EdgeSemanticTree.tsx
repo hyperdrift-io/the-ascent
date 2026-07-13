@@ -1,4 +1,4 @@
-import { buildSceneComposition, getEdgeNodeLabel } from "../../edge-scene";
+import { buildSceneComposition, getEdgeNodeLabel } from "../../edge-scene-model";
 import type { EdgeViewportState } from "../../edge-navigation";
 
 export function EdgeSemanticTree({

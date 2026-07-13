@@ -1,27 +1,16 @@
-// `three` ships runtime modules without TypeScript declarations. The project keeps this
-// approved dependency surface small, so this controller owns the narrow untyped boundary.
+// `three` ships runtime modules without TypeScript declarations. This is the only
+// temporary untyped boundary while the matching `@types/three` approval is pending.
 // @ts-expect-error Runtime package intentionally has no bundled declaration file.
 import * as THREE from "three";
 import { getEdgeAsset, type EdgeAssetState } from "./edge-assets";
-import { KPI_TREE } from "./edge-kpis";
+import { resolveEdgeAssetId } from "./edge-asset-availability";
 import {
-  edgeNavigationReducer,
-  getVisibleNodeIds,
-  type CameraPose,
-  type EdgeViewportState,
-} from "./edge-navigation";
-
-export type EdgeSceneNode = {
-  id: string;
-  assetId: string;
-  label: string;
-};
-
-export type EdgeSceneComposition = {
-  current: EdgeSceneNode;
-  parent: EdgeSceneNode | null;
-  children: EdgeSceneNode[];
-};
+  buildSceneComposition,
+  getCameraPoseForEntry,
+  resolvePreviewNodeId,
+  type EdgeSceneNode,
+} from "./edge-scene-model";
+import { edgeNavigationReducer, getVisibleNodeIds, type CameraPose, type EdgeViewportState } from "./edge-navigation";
 
 export type EdgeSceneController = {
   enter(nodeId: string): Promise<void>;
@@ -29,72 +18,18 @@ export type EdgeSceneController = {
   home(): Promise<void>;
   resize(width: number, height: number, pixelRatio: number): void;
   setReducedMotion(reduced: boolean): void;
+  setSelectedNode(nodeId: string | null): void;
   dispose(): void;
+};
+
+export type EdgeSceneOptions = {
+  reducedMotion?: boolean;
+  onPreview?: (nodeId: string | null) => void;
 };
 
 const ASSET_STATE: EdgeAssetState = "available";
 const CAMERA_TRAVEL_MS = 620;
 const REDUCED_CROSSFADE_MS = 150;
-
-const DOMAIN_BY_ID = new Map<string, (typeof KPI_TREE)[number]>(KPI_TREE.map((domain) => [domain.id, domain]));
-const KPI_BY_ID = new Map<string, (typeof KPI_TREE)[number]["kpis"][number]>(
-  KPI_TREE.flatMap((domain) => domain.kpis.map((kpi) => [kpi.id, kpi] as const)),
-);
-const SUB_KPI_BY_ID = new Map<string, (typeof KPI_TREE)[number]["kpis"][number]["children"][number]>(
-  KPI_TREE.flatMap((domain) => domain.kpis.flatMap((kpi) => kpi.children.map((child) => [child.id, child] as const))),
-);
-
-export function getEdgeNodeLabel(nodeId: string): string {
-  if (nodeId === "edge") return "The Edge";
-  const parts = nodeId.split(".");
-  const localId = parts[parts.length - 1] ?? nodeId;
-  return DOMAIN_BY_ID.get(localId)?.label ?? KPI_BY_ID.get(localId)?.label ?? SUB_KPI_BY_ID.get(localId)?.label ?? nodeId;
-}
-
-function toAssetId(path: readonly string[], nodeId: string): string {
-  if (nodeId === "edge" || nodeId.includes(".")) return nodeId;
-  return path[0] === "edge" && path.length > 1 ? path.slice(1).join(".") : nodeId;
-}
-
-function describeNode(path: readonly string[], nodeId: string): EdgeSceneNode {
-  return {
-    id: nodeId,
-    assetId: toAssetId(path, nodeId),
-    label: getEdgeNodeLabel(nodeId),
-  };
-}
-
-export function buildSceneComposition(viewport: EdgeViewportState): EdgeSceneComposition {
-  const currentId = viewport.path[viewport.path.length - 1] ?? "edge";
-  const parentId = viewport.path.length > 1 ? viewport.path[viewport.path.length - 2] : null;
-  return {
-    current: describeNode(viewport.path, currentId),
-    parent: parentId ? describeNode(viewport.path.slice(0, -1), parentId) : null,
-    children: getVisibleNodeIds(viewport).map((nodeId) => describeNode([...viewport.path, nodeId], nodeId)),
-  };
-}
-
-export function getAssetFallbackIds(assetId: string): string[] {
-  if (assetId === "edge") return ["edge"];
-  const parts = assetId.split(".");
-  const ids: string[] = [];
-  for (let length = parts.length; length > 0; length -= 1) ids.push(parts.slice(0, length).join("."));
-  ids.push("edge");
-  return ids;
-}
-
-export function getCameraPoseForEntry(depth: number, siblingIndex: number): CameraPose {
-  const angle = siblingIndex * 0.72;
-  const drift = Math.min(depth, 3) * 0.16;
-  return Object.freeze({
-    x: Number((Math.cos(angle) * drift).toFixed(3)),
-    y: Number((Math.sin(angle) * drift).toFixed(3)),
-    z: Number(Math.max(4.45, 8 - depth * 1.15).toFixed(3)),
-    targetX: Number((Math.cos(angle) * drift * 0.35).toFixed(3)),
-    targetY: Number((Math.sin(angle) * drift * 0.35).toFixed(3)),
-    targetZ: 0,
-  });
-}
 
 function wait(duration: number): Promise<void> {
   return new Promise((resolve) => window.setTimeout(resolve, duration));
@@ -104,6 +39,7 @@ export function createEdgeScene(
   canvas: HTMLCanvasElement,
   initial: EdgeViewportState,
   onSelect: (nodeId: string) => void,
+  options: EdgeSceneOptions = {},
 ): EdgeSceneController {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -127,21 +63,21 @@ export function createEdgeScene(
   scene.add(world);
 
   let viewport = initial;
-  let reducedMotion = false;
+  let reducedMotion = Boolean(options.reducedMotion);
   let disposed = false;
   let frameId = 0;
   let compositionVersion = 0;
   let fadeStartedAt = performance.now();
-  let fadeDuration = CAMERA_TRAVEL_MS;
+  let fadeDuration = reducedMotion ? REDUCED_CROSSFADE_MS : CAMERA_TRAVEL_MS;
   let interactiveMeshes: any[] = [];
+  let selectedNodeId: string | null = initial.selectedNodeId;
+  let previewNodeId: string | null = null;
   const pointerOrigins = new Map<number, { x: number; y: number }>();
-  const textures = new Set<any>();
+  const texturePromises = new Map<string, Promise<any | null>>();
+  const loadedTextures = new Set<any>();
 
   function disposeMaterial(material: any) {
-    if (material.map) {
-      textures.delete(material.map);
-      material.map.dispose();
-    }
+    material.map = null;
     material.dispose();
   }
 
@@ -156,24 +92,40 @@ export function createEdgeScene(
     interactiveMeshes = [];
   }
 
-  function loadTexture(src: string): Promise<any> {
-    return new Promise((resolve, reject) => {
-      textureLoader.load(src, resolve, undefined, reject);
+  function textureFor(assetId: string): Promise<any | null> {
+    const resolvedId = resolveEdgeAssetId(assetId);
+    const src = getEdgeAsset(resolvedId, ASSET_STATE).src;
+    const cached = texturePromises.get(src);
+    if (cached) return cached;
+    const loading = new Promise<any | null>((resolve) => {
+      textureLoader.load(
+        src,
+        (texture: any) => {
+          texture.colorSpace = THREE.SRGBColorSpace;
+          texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+          if (disposed) {
+            texture.dispose();
+            resolve(null);
+            return;
+          }
+          loadedTextures.add(texture);
+          resolve(texture);
+        },
+        undefined,
+        () => resolve(null),
+      );
     });
+    texturePromises.set(src, loading);
+    return loading;
   }
 
-  async function loadNearestTexture(assetId: string): Promise<any | null> {
-    for (const fallbackId of getAssetFallbackIds(assetId)) {
-      try {
-        const texture = await loadTexture(getEdgeAsset(fallbackId, ASSET_STATE).src);
-        texture.colorSpace = THREE.SRGBColorSpace;
-        texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
-        return texture;
-      } catch {
-        // A not-yet-generated child inherits the nearest real ancestor image.
-      }
+  function syncSelection() {
+    for (const mesh of interactiveMeshes) {
+      const selected = mesh.userData.nodeId === selectedNodeId;
+      const baseScale = mesh.userData.baseScale;
+      mesh.scale.setScalar(baseScale * (selected ? 1.08 : 1));
+      mesh.material.userData.selectionBoost = selected ? 0.14 : 0;
     }
-    return null;
   }
 
   function planeFor(
@@ -196,8 +148,9 @@ export function createEdgeScene(
       side: THREE.DoubleSide,
     });
     material.userData.baseOpacity = isCurrent ? 1 : isParent ? 0.66 : 0.82;
+    material.userData.selectionBoost = 0;
     const mesh = new THREE.Mesh(geometry, material);
-    mesh.userData = { nodeId: node.id, role };
+    mesh.userData = { nodeId: node.id, role, baseScale: 1 };
 
     if (isCurrent) mesh.position.set(0, 0, -0.55);
     else if (isParent) mesh.position.set(-3.5, 2.28, 0.42);
@@ -206,22 +159,18 @@ export function createEdgeScene(
       const angle = -Math.PI * 0.82 + (index / Math.max(1, count - 1)) * Math.PI * 1.64;
       const radiusX = count > 4 ? 3.35 : 2.9;
       const radiusY = count > 4 ? 2.05 : 1.82;
+      const baseScale = count > 4 ? 0.78 : 0.9;
       mesh.position.set(Math.cos(angle) * radiusX, Math.sin(angle) * radiusY, 0.48);
-      mesh.scale.setScalar(count > 4 ? 0.78 : 0.9);
+      mesh.scale.setScalar(baseScale);
+      mesh.userData.baseScale = baseScale;
       interactiveMeshes.push(mesh);
     }
     world.add(mesh);
 
-    void loadNearestTexture(node.assetId).then((texture) => {
-      if (!texture) return;
-      if (disposed || version !== compositionVersion || !world.children.includes(mesh)) {
-        texture.dispose();
-        return;
-      }
-      if (material.map) material.map.dispose();
+    void textureFor(node.assetId).then((texture) => {
+      if (!texture || disposed || version !== compositionVersion || !world.children.includes(mesh)) return;
       material.map = texture;
       material.color.setHex(0xffffff);
-      textures.add(texture);
       material.needsUpdate = true;
     });
   }
@@ -236,6 +185,7 @@ export function createEdgeScene(
     composition.children.forEach((node, index) => planeFor(node, "child", index, composition.children.length, version));
     fadeStartedAt = performance.now();
     fadeDuration = reducedMotion ? REDUCED_CROSSFADE_MS : CAMERA_TRAVEL_MS;
+    syncSelection();
   }
 
   function pointFromEvent(event: PointerEvent) {
@@ -250,8 +200,24 @@ export function createEdgeScene(
     return raycaster.intersectObjects(interactiveMeshes, false)[0]?.object ?? null;
   }
 
+  function preview(nodeId: string | null) {
+    if (previewNodeId === nodeId) return;
+    previewNodeId = nodeId;
+    selectedNodeId = nodeId;
+    syncSelection();
+    options.onPreview?.(nodeId);
+  }
+
   function onPointerMove(event: PointerEvent) {
-    canvas.classList.toggle("node-hovered", Boolean(intersect(event)));
+    const hit = intersect(event);
+    const nodeId = resolvePreviewNodeId(hit?.userData.nodeId, getVisibleNodeIds(viewport));
+    canvas.classList.toggle("node-hovered", Boolean(nodeId));
+    preview(nodeId);
+  }
+
+  function onPointerLeave() {
+    canvas.classList.remove("node-hovered");
+    preview(null);
   }
 
   function onPointerDown(event: PointerEvent) {
@@ -272,6 +238,7 @@ export function createEdgeScene(
 
   canvas.addEventListener("pointerdown", onPointerDown);
   canvas.addEventListener("pointermove", onPointerMove);
+  canvas.addEventListener("pointerleave", onPointerLeave);
   canvas.addEventListener("pointerup", onPointerUp);
   canvas.addEventListener("pointercancel", onPointerCancel);
 
@@ -289,7 +256,7 @@ export function createEdgeScene(
     const fadeProgress = Math.min(1, (now - fadeStartedAt) / Math.max(1, fadeDuration));
     for (const child of world.children) {
       const material = (child as any).material;
-      if (material) material.opacity = material.userData.baseOpacity * fadeProgress;
+      if (material) material.opacity = Math.min(1, material.userData.baseOpacity * fadeProgress + material.userData.selectionBoost);
     }
     renderer.render(scene, camera);
     frameId = window.requestAnimationFrame(animate);
@@ -308,6 +275,7 @@ export function createEdgeScene(
   async function transition(next: EdgeViewportState): Promise<void> {
     if (next === viewport) return;
     viewport = next;
+    selectedNodeId = null;
     targetCamera(next.camera);
     renderComposition(next);
     await wait(reducedMotion ? REDUCED_CROSSFADE_MS : CAMERA_TRAVEL_MS);
@@ -338,8 +306,16 @@ export function createEdgeScene(
       camera.updateProjectionMatrix();
     },
     setReducedMotion(reduced) {
+      if (reduced && !reducedMotion) {
+        fadeStartedAt = performance.now();
+        fadeDuration = REDUCED_CROSSFADE_MS;
+      }
       reducedMotion = reduced;
       targetCamera(viewport.camera);
+    },
+    setSelectedNode(nodeId) {
+      selectedNodeId = resolvePreviewNodeId(nodeId, getVisibleNodeIds(viewport));
+      syncSelection();
     },
     dispose() {
       if (disposed) return;
@@ -348,16 +324,17 @@ export function createEdgeScene(
       window.cancelAnimationFrame(frameId);
       canvas.removeEventListener("pointerdown", onPointerDown);
       canvas.removeEventListener("pointermove", onPointerMove);
+      canvas.removeEventListener("pointerleave", onPointerLeave);
       canvas.removeEventListener("pointerup", onPointerUp);
       canvas.removeEventListener("pointercancel", onPointerCancel);
       canvas.classList.remove("node-hovered");
       pointerOrigins.clear();
       clearWorld();
-      for (const texture of textures) texture.dispose();
-      textures.clear();
+      for (const texture of loadedTextures) texture.dispose();
+      loadedTextures.clear();
+      texturePromises.clear();
       scene.remove(world);
       renderer.dispose();
-      renderer.forceContextLoss();
     },
   };
 }

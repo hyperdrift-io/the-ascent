@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { createViewport, edgeNavigationReducer } from "./edge-navigation";
+import { resolveEdgeAssetId } from "./edge-asset-availability";
 import {
   buildSceneComposition,
   getAssetFallbackIds,
   getCameraPoseForEntry,
   getEdgeNodeLabel,
-} from "./edge-scene";
+  resolveAvailableAssetId,
+  resolvePreviewNodeId,
+} from "./edge-scene-model";
 
 describe("Edge scene composition", () => {
   it("keeps the root current while exposing domains in ontology order", () => {
@@ -53,6 +56,26 @@ describe("Edge scene composition", () => {
     ]);
   });
 
+  it("resolves directly to the nearest indexed asset without probing missing paths", () => {
+    const available = new Set(["edge", "pressure", "pressure.stress", "pressure.stress.anxiety"]);
+
+    expect(resolveAvailableAssetId("body.health.general-wellbeing", available)).toBe("edge");
+    expect(resolveAvailableAssetId("pressure.stress.tension", available)).toBe("pressure.stress");
+    expect(resolveAvailableAssetId("pressure.stress.anxiety", available)).toBe("pressure.stress.anxiety");
+  });
+
+  it("uses the committed vertical-slice index for every current root request", () => {
+    const root = buildSceneComposition(createViewport());
+    expect(root.children.map((node) => resolveEdgeAssetId(node.assetId))).toEqual([
+      "edge",
+      "edge",
+      "pressure",
+      "edge",
+      "edge",
+      "edge",
+    ]);
+  });
+
   it("uses stable camera poses so reducer history can restore them exactly", () => {
     const domainCamera = getCameraPoseForEntry(1, 2);
     const kpiCamera = getCameraPoseForEntry(2, 0);
@@ -70,5 +93,12 @@ describe("Edge scene composition", () => {
     expect(getEdgeNodeLabel("pressure")).toBe("Pressure");
     expect(getEdgeNodeLabel("stress")).toBe("Stress");
     expect(getEdgeNodeLabel("pressure.stress.anxiety")).toBe("Anxiety");
+  });
+
+  it("exposes only a currently visible canvas node as a truthful preview", () => {
+    const visible = ["body", "recovery", "pressure"];
+    expect(resolvePreviewNodeId("pressure", visible)).toBe("pressure");
+    expect(resolvePreviewNodeId("stress", visible)).toBeNull();
+    expect(resolvePreviewNodeId(undefined, visible)).toBeNull();
   });
 });

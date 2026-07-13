@@ -40,6 +40,7 @@ import {
   type Zone,
 } from "./edge";
 import { EdgeWorld } from "./components/edge/EdgeWorld";
+import { getEdgeLinePoint } from "./edge-line";
 
 // ------------------------------------------------------------------ constants
 
@@ -818,15 +819,19 @@ function ResourceStrip({ resources }: { resources: Record<HumanResource, number>
 // drives the peak-luminosity styling — beauty crests in the `edge` zone, strain quiets it.
 function EdgeLine({ edgeLoad, edgeControl, zone }: { edgeLoad: number; edgeControl: number; zone: Zone }) {
   const marker = clamp(50 + (edgeControl - edgeLoad), 5, 95);
+  const point = getEdgeLinePoint(marker);
+  const markerY = 3 + (point.y / 12) * 14;
   return (
     <div className="edge-line" data-zone={zone} aria-label={`Edge state: ${ZONE_LABEL[zone]}`}>
       <svg className="crest" viewBox="0 0 100 12" preserveAspectRatio="none" aria-hidden="true">
         <path d="M1 10.5 C 20 10.2 34 9.4 50 7 C 66 4.6 82 2.4 99 0.5" />
       </svg>
-      <input className="edge-marker" type="range" min={5} max={95} value={marker} readOnly tabIndex={-1} aria-hidden="true" />
-      <span className="edge-zone">
-        {ZONE_LABEL[zone]}
-      </span>
+      <svg className="edge-indicator" aria-hidden="true">
+        <circle className="edge-marker" cx={`${point.x}%`} cy={markerY} r="4.5" />
+        <text className="edge-zone" x={`${point.x}%`} y={Math.min(31, markerY + 15)} textAnchor="middle">
+          {ZONE_LABEL[zone]}
+        </text>
+      </svg>
     </div>
   );
 }

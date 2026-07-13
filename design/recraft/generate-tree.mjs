@@ -314,6 +314,22 @@ function writeProvenance(file, nodePlan, manifest, masterFile, stagedTree) {
   fs.writeFileSync(file, `${JSON.stringify(provenance, null, 2)}\n`);
 }
 
+function writeAvailabilityIndex(stagedTree, manifest) {
+  const nodes = manifest.nodes
+    .filter((node) => [
+      resolveContainedPath(stagedTree, node.nodeId, "provenance.json"),
+      ...expectedStates.map((state) => resolveContainedPath(stagedTree, node.nodeId, `${state}.webp`)),
+    ].every((file) => fs.existsSync(file) && fs.statSync(file).size > 0))
+    .map((node) => node.nodeId);
+  invariant(nodes[0] === "edge", "The generated availability index requires the Edge root family");
+  const index = {
+    schema: "https://hyperdrift.io/schemas/edge-asset-availability/v1",
+    manifestVersion: manifest.version,
+    nodes,
+  };
+  fs.writeFileSync(resolveContainedPath(stagedTree, "availability.json"), `${JSON.stringify(index, null, 2)}\n`);
+}
+
 function publishStagedTree(stagedTree, assetRoot, stagingRoot) {
   const backup = path.join(path.dirname(assetRoot), `.edge-tree-backup-${process.pid}-${randomUUID()}`);
   const hadOriginal = fs.existsSync(assetRoot);
@@ -370,6 +386,7 @@ export function executeInvocation(plans, manifest, assetRoot) {
       writeProvenance(stagedProvenance, plan, manifest, masterFile, stagedTree);
     }
 
+    writeAvailabilityIndex(stagedTree, manifest);
     publishStagedTree(stagedTree, assetRoot, stagingRoot);
   } finally {
     fs.rmSync(stagingRoot, { recursive: true, force: true });

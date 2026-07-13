@@ -1,10 +1,6 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from "react";
-import {
-  buildSceneComposition,
-  createEdgeScene,
-  getCameraPoseForEntry,
-  type EdgeSceneController,
-} from "../../edge-scene";
+import type { EdgeSceneController } from "../../edge-scene";
+import { buildSceneComposition, getCameraPoseForEntry } from "../../edge-scene-model";
 import {
   createViewport,
   edgeNavigationReducer,
@@ -23,6 +19,7 @@ function isFormControl(target: EventTarget | null): boolean {
 export function EdgeWorld({ aimEntry }: { aimEntry: ReactNode }) {
   const [viewport, dispatch] = useReducer(edgeNavigationReducer, ROOT_VIEWPORT);
   const [aimOpen, setAimOpen] = useState(false);
+  const [rendererState, setRendererState] = useState<"loading" | "enhanced" | "fallback">("loading");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const controllerRef = useRef<EdgeSceneController | null>(null);
   const viewportRef = useRef<EdgeViewportState>(viewport);
@@ -70,30 +67,55 @@ export function EdgeWorld({ aimEntry }: { aimEntry: ReactNode }) {
     if (first) enter(viewportRef.current.selectedNodeId ?? first);
   }, [enter]);
 
+  const select = useCallback((nodeId: string | null) => {
+    dispatch({ type: "select", nodeId });
+    controllerRef.current?.setSelectedNode(nodeId);
+  }, []);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const controller = createEdgeScene(canvas, ROOT_VIEWPORT, enter);
-    controllerRef.current = controller;
-
-    const resize = () => {
-      const bounds = canvas.getBoundingClientRect();
-      controller.resize(bounds.width, bounds.height, window.devicePixelRatio);
-    };
-    const observer = new ResizeObserver(resize);
-    observer.observe(canvas);
-    resize();
-
+    let cancelled = false;
+    let controller: EdgeSceneController | null = null;
+    let observer: ResizeObserver | null = null;
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const syncMotion = () => controller.setReducedMotion(motion.matches);
-    syncMotion();
-    motion.addEventListener("change", syncMotion);
+    const syncMotion = () => controller?.setReducedMotion(motion.matches);
+
+    void import("../../edge-scene")
+      .then(({ createEdgeScene }) => {
+        if (cancelled) return;
+        try {
+          controller = createEdgeScene(canvas, viewportRef.current, enter, {
+            reducedMotion: motion.matches,
+            onPreview: (nodeId) => dispatch({ type: "select", nodeId }),
+          });
+        } catch {
+          setRendererState("fallback");
+          return;
+        }
+        controllerRef.current = controller;
+        controller.setSelectedNode(viewportRef.current.selectedNodeId);
+        const resize = () => {
+          if (!controller) return;
+          const bounds = canvas.getBoundingClientRect();
+          controller.resize(bounds.width, bounds.height, window.devicePixelRatio);
+        };
+        observer = new ResizeObserver(resize);
+        observer.observe(canvas);
+        resize();
+        motion.addEventListener("change", syncMotion);
+        setRendererState("enhanced");
+      })
+      .catch(() => {
+        if (!cancelled) setRendererState("fallback");
+      });
 
     return () => {
+      cancelled = true;
       motion.removeEventListener("change", syncMotion);
-      observer.disconnect();
-      controller.dispose();
-      controllerRef.current = null;
+      observer?.disconnect();
+      controller?.dispose();
+      if (controllerRef.current === controller) controllerRef.current = null;
     };
   }, [enter]);
 
@@ -157,8 +179,14 @@ export function EdgeWorld({ aimEntry }: { aimEntry: ReactNode }) {
     if (touchPoints.current.size === 0) touchOrigin.current = null;
   }
 
+  function onPointerCancel(event: React.PointerEvent<HTMLCanvasElement>) {
+    if (event.pointerType !== "touch") return;
+    touchPoints.current.delete(event.pointerId);
+    if (touchPoints.current.size === 0) touchOrigin.current = null;
+  }
+
   return (
-    <main className="edge-world" data-depth={viewport.path.length - 1} onWheel={onWheel}>
+    <main className="edge-world" data-depth={viewport.path.length - 1} data-renderer={rendererState} onWheel={onWheel}>
       <canvas
         ref={canvasRef}
         className="edge-world-canvas"
@@ -166,7 +194,7 @@ export function EdgeWorld({ aimEntry }: { aimEntry: ReactNode }) {
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
+        onPointerCancel={onPointerCancel}
       />
       <header className="edge-world-heading">
         <p>THE EDGE</p>
@@ -198,7 +226,7 @@ export function EdgeWorld({ aimEntry }: { aimEntry: ReactNode }) {
           enter={enter}
           back={back}
           home={home}
-          select={(nodeId) => dispatch({ type: "select", nodeId })}
+          select={select}
         />
       )}
     </main>
