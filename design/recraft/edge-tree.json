@@ -1,0 +1,1481 @@
+{
+  "version": 1,
+  "artDirection": "Mythic Natural Realism",
+  "nodes": [
+    {
+      "nodeId": "edge",
+      "parentId": null,
+      "force": "living convergence of breath, tide, stone, canopy, weather, and relationship",
+      "fractalFamily": "self-similar living mountain watershed",
+      "palette": [
+        "obsidian basalt",
+        "moonlit silver",
+        "lichen green",
+        "glacial cyan",
+        "ember crimson"
+      ],
+      "transitionAnchor": "a luminous watershed spiral held at the living mountain heart",
+      "wikipedia": "https://en.wikipedia.org/wiki/Well-being",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "A living mountain watershed branches from a luminous central spiral."
+    },
+    {
+      "nodeId": "body",
+      "parentId": "edge",
+      "force": "tectonic vitality",
+      "fractalFamily": "self-similar living mountain watershed; root ridges resolving into vascular river deltas",
+      "palette": [
+        "basalt black",
+        "lichen green",
+        "arterial coral",
+        "glacial white"
+      ],
+      "transitionAnchor": "a forked river vein crossing a basalt ridge",
+      "wikipedia": "https://en.wikipedia.org/wiki/Human_body",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Body appears as tectonic vitality shaped around a forked river vein crossing a basalt ridge."
+    },
+    {
+      "nodeId": "body.health",
+      "parentId": "body",
+      "force": "whole-body equilibrium",
+      "fractalFamily": "self-similar living mountain watershed; root ridges resolving into vascular river deltas; interlocking leaf, stone, and water membranes",
+      "palette": [
+        "basalt black",
+        "lichen green",
+        "arterial coral",
+        "alpine teal"
+      ],
+      "transitionAnchor": "a translucent membrane encircling a warm mineral core",
+      "wikipedia": "https://en.wikipedia.org/wiki/Health",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Whole-body equilibrium gathers around a translucent membrane encircling a warm mineral core."
+    },
+    {
+      "nodeId": "body.health.general-wellbeing",
+      "parentId": "body.health",
+      "force": "general wellbeing current within whole-body equilibrium",
+      "fractalFamily": "self-similar living mountain watershed; root ridges resolving into vascular river deltas; interlocking leaf, stone, and water membranes; general wellbeing patterns repeat as finer living geography",
+      "palette": [
+        "basalt black",
+        "lichen green",
+        "sunlit ochre",
+        "glacial white"
+      ],
+      "transitionAnchor": "a translucent membrane encircling a warm mineral core resolving into a smaller general wellbeing chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Well-being",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "General Wellbeing appears as a natural current around a translucent membrane encircling a warm mineral core resolving into a smaller general wellbeing chamber."
+    },
+    {
+      "nodeId": "body.health.physical-comfort",
+      "parentId": "body.health",
+      "force": "physical comfort current within whole-body equilibrium",
+      "fractalFamily": "self-similar living mountain watershed; root ridges resolving into vascular river deltas; interlocking leaf, stone, and water membranes; physical comfort patterns repeat as finer living geography",
+      "palette": [
+        "basalt black",
+        "lichen green",
+        "glacial cyan",
+        "glacial white"
+      ],
+      "transitionAnchor": "a translucent membrane encircling a warm mineral core resolving into a smaller physical comfort chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Comfort",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Physical Comfort appears as a natural current around a translucent membrane encircling a warm mineral core resolving into a smaller physical comfort chamber."
+    },
+    {
+      "nodeId": "body.health.illness-load",
+      "parentId": "body.health",
+      "force": "illness load current within whole-body equilibrium",
+      "fractalFamily": "self-similar living mountain watershed; root ridges resolving into vascular river deltas; interlocking leaf, stone, and water membranes; illness load patterns repeat as finer living geography",
+      "palette": [
+        "basalt black",
+        "lichen green",
+        "moss jade",
+        "glacial white"
+      ],
+      "transitionAnchor": "a translucent membrane encircling a warm mineral core resolving into a smaller illness load chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Disease_burden",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Illness Load appears as a natural current around a translucent membrane encircling a warm mineral core resolving into a smaller illness load chamber."
+    },
+    {
+      "nodeId": "body.stamina",
+      "parentId": "body",
+      "force": "sustained mountain current",
+      "fractalFamily": "self-similar living mountain watershed; root ridges resolving into vascular river deltas; long contour lines flowing through resilient root fibres",
+      "palette": [
+        "basalt black",
+        "lichen green",
+        "arterial coral",
+        "quartz lavender"
+      ],
+      "transitionAnchor": "a continuous root line climbing the ridge without breaking",
+      "wikipedia": "https://en.wikipedia.org/wiki/Endurance",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Sustained mountain current gathers around a continuous root line climbing the ridge without breaking."
+    },
+    {
+      "nodeId": "body.stamina.sustained-effort",
+      "parentId": "body.stamina",
+      "force": "sustained effort current within sustained mountain current",
+      "fractalFamily": "self-similar living mountain watershed; root ridges resolving into vascular river deltas; long contour lines flowing through resilient root fibres; sustained effort patterns repeat as finer living geography",
+      "palette": [
+        "basalt black",
+        "lichen green",
+        "storm cobalt",
+        "glacial white"
+      ],
+      "transitionAnchor": "a continuous root line climbing the ridge without breaking resolving into a smaller sustained effort chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Endurance",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Sustained Effort appears as a natural current around a continuous root line climbing the ridge without breaking resolving into a smaller sustained effort chamber."
+    },
+    {
+      "nodeId": "body.stamina.physical-endurance",
+      "parentId": "body.stamina",
+      "force": "physical endurance current within sustained mountain current",
+      "fractalFamily": "self-similar living mountain watershed; root ridges resolving into vascular river deltas; long contour lines flowing through resilient root fibres; physical endurance patterns repeat as finer living geography",
+      "palette": [
+        "basalt black",
+        "lichen green",
+        "pearl grey",
+        "glacial white"
+      ],
+      "transitionAnchor": "a continuous root line climbing the ridge without breaking resolving into a smaller physical endurance chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Endurance",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Physical Endurance appears as a natural current around a continuous root line climbing the ridge without breaking resolving into a smaller physical endurance chamber."
+    },
+    {
+      "nodeId": "body.stamina.mental-endurance",
+      "parentId": "body.stamina",
+      "force": "mental endurance current within sustained mountain current",
+      "fractalFamily": "self-similar living mountain watershed; root ridges resolving into vascular river deltas; long contour lines flowing through resilient root fibres; mental endurance patterns repeat as finer living geography",
+      "palette": [
+        "basalt black",
+        "lichen green",
+        "lichen chartreuse",
+        "glacial white"
+      ],
+      "transitionAnchor": "a continuous root line climbing the ridge without breaking resolving into a smaller mental endurance chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Mental_fatigue",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Mental Endurance appears as a natural current around a continuous root line climbing the ridge without breaking resolving into a smaller mental endurance chamber."
+    },
+    {
+      "nodeId": "body.nutrition",
+      "parentId": "body",
+      "force": "nourishing soil exchange",
+      "fractalFamily": "self-similar living mountain watershed; root ridges resolving into vascular river deltas; mineral capillaries feeding seed-like chambers",
+      "palette": [
+        "basalt black",
+        "lichen green",
+        "arterial coral",
+        "mineral amber"
+      ],
+      "transitionAnchor": "a seed chamber fed by three mineral capillaries",
+      "wikipedia": "https://en.wikipedia.org/wiki/Nutrition",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Nourishing soil exchange gathers around a seed chamber fed by three mineral capillaries."
+    },
+    {
+      "nodeId": "body.nutrition.nourishment",
+      "parentId": "body.nutrition",
+      "force": "nourishment current within nourishing soil exchange",
+      "fractalFamily": "self-similar living mountain watershed; root ridges resolving into vascular river deltas; mineral capillaries feeding seed-like chambers; nourishment patterns repeat as finer living geography",
+      "palette": [
+        "basalt black",
+        "lichen green",
+        "river steel",
+        "glacial white"
+      ],
+      "transitionAnchor": "a seed chamber fed by three mineral capillaries resolving into a smaller nourishment chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Nutrition",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Nourishment appears as a natural current around a seed chamber fed by three mineral capillaries resolving into a smaller nourishment chamber."
+    },
+    {
+      "nodeId": "body.nutrition.hydration",
+      "parentId": "body.nutrition",
+      "force": "hydration current within nourishing soil exchange",
+      "fractalFamily": "self-similar living mountain watershed; root ridges resolving into vascular river deltas; mineral capillaries feeding seed-like chambers; hydration patterns repeat as finer living geography",
+      "palette": [
+        "basalt black",
+        "lichen green",
+        "aurora violet",
+        "glacial white"
+      ],
+      "transitionAnchor": "a seed chamber fed by three mineral capillaries resolving into a smaller hydration chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Hydration",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Hydration appears as a natural current around a seed chamber fed by three mineral capillaries resolving into a smaller hydration chamber."
+    },
+    {
+      "nodeId": "body.nutrition.regularity",
+      "parentId": "body.nutrition",
+      "force": "regularity current within nourishing soil exchange",
+      "fractalFamily": "self-similar living mountain watershed; root ridges resolving into vascular river deltas; mineral capillaries feeding seed-like chambers; regularity patterns repeat as finer living geography",
+      "palette": [
+        "basalt black",
+        "lichen green",
+        "deep spruce",
+        "glacial white"
+      ],
+      "transitionAnchor": "a seed chamber fed by three mineral capillaries resolving into a smaller regularity chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Regularity_(behavior)",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Regularity appears as a natural current around a seed chamber fed by three mineral capillaries resolving into a smaller regularity chamber."
+    },
+    {
+      "nodeId": "body.cardio",
+      "parentId": "body",
+      "force": "rhythmic oxygen tide",
+      "fractalFamily": "self-similar living mountain watershed; root ridges resolving into vascular river deltas; branching airways opening into tidal coral fans",
+      "palette": [
+        "basalt black",
+        "lichen green",
+        "arterial coral",
+        "moonstone blue"
+      ],
+      "transitionAnchor": "a breathing coral fan opening from the river vein",
+      "wikipedia": "https://en.wikipedia.org/wiki/Cardiovascular_fitness",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Rhythmic oxygen tide gathers around a breathing coral fan opening from the river vein."
+    },
+    {
+      "nodeId": "body.cardio.breath",
+      "parentId": "body.cardio",
+      "force": "breath current within rhythmic oxygen tide",
+      "fractalFamily": "self-similar living mountain watershed; root ridges resolving into vascular river deltas; branching airways opening into tidal coral fans; breath patterns repeat as finer living geography",
+      "palette": [
+        "basalt black",
+        "lichen green",
+        "weathered gold",
+        "glacial white"
+      ],
+      "transitionAnchor": "a breathing coral fan opening from the river vein resolving into a smaller breath chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Breathing",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Breath appears as a natural current around a breathing coral fan opening from the river vein resolving into a smaller breath chamber."
+    },
+    {
+      "nodeId": "body.cardio.aerobic-capacity",
+      "parentId": "body.cardio",
+      "force": "aerobic capacity current within rhythmic oxygen tide",
+      "fractalFamily": "self-similar living mountain watershed; root ridges resolving into vascular river deltas; branching airways opening into tidal coral fans; aerobic capacity patterns repeat as finer living geography",
+      "palette": [
+        "basalt black",
+        "lichen green",
+        "fern green",
+        "glacial white"
+      ],
+      "transitionAnchor": "a breathing coral fan opening from the river vein resolving into a smaller aerobic capacity chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Aerobic_exercise",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Aerobic Capacity appears as a natural current around a breathing coral fan opening from the river vein resolving into a smaller aerobic capacity chamber."
+    },
+    {
+      "nodeId": "body.cardio.exertion-response",
+      "parentId": "body.cardio",
+      "force": "exertion response current within rhythmic oxygen tide",
+      "fractalFamily": "self-similar living mountain watershed; root ridges resolving into vascular river deltas; branching airways opening into tidal coral fans; exertion response patterns repeat as finer living geography",
+      "palette": [
+        "basalt black",
+        "lichen green",
+        "frosted indigo",
+        "glacial white"
+      ],
+      "transitionAnchor": "a breathing coral fan opening from the river vein resolving into a smaller exertion response chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Exercise_physiology",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Exertion Response appears as a natural current around a breathing coral fan opening from the river vein resolving into a smaller exertion response chamber."
+    },
+    {
+      "nodeId": "body.sport",
+      "parentId": "body",
+      "force": "kinetic terrain",
+      "fractalFamily": "self-similar living mountain watershed; root ridges resolving into vascular river deltas; wind-carved arcs crossing responsive muscle-like ridges",
+      "palette": [
+        "basalt black",
+        "lichen green",
+        "arterial coral",
+        "kelp emerald"
+      ],
+      "transitionAnchor": "a wind arc lifting from a flexed basalt ridge",
+      "wikipedia": "https://en.wikipedia.org/wiki/Sport",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Kinetic terrain gathers around a wind arc lifting from a flexed basalt ridge."
+    },
+    {
+      "nodeId": "body.sport.movement",
+      "parentId": "body.sport",
+      "force": "movement current within kinetic terrain",
+      "fractalFamily": "self-similar living mountain watershed; root ridges resolving into vascular river deltas; wind-carved arcs crossing responsive muscle-like ridges; movement patterns repeat as finer living geography",
+      "palette": [
+        "basalt black",
+        "lichen green",
+        "slate cyan",
+        "glacial white"
+      ],
+      "transitionAnchor": "a wind arc lifting from a flexed basalt ridge resolving into a smaller movement chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Physical_activity",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Movement appears as a natural current around a wind arc lifting from a flexed basalt ridge resolving into a smaller movement chamber."
+    },
+    {
+      "nodeId": "body.sport.motivation",
+      "parentId": "body.sport",
+      "force": "motivation current within kinetic terrain",
+      "fractalFamily": "self-similar living mountain watershed; root ridges resolving into vascular river deltas; wind-carved arcs crossing responsive muscle-like ridges; motivation patterns repeat as finer living geography",
+      "palette": [
+        "basalt black",
+        "lichen green",
+        "solar brass",
+        "glacial white"
+      ],
+      "transitionAnchor": "a wind arc lifting from a flexed basalt ridge resolving into a smaller motivation chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Motivation",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Motivation appears as a natural current around a wind arc lifting from a flexed basalt ridge resolving into a smaller motivation chamber."
+    },
+    {
+      "nodeId": "body.sport.enjoyment",
+      "parentId": "body.sport",
+      "force": "enjoyment current within kinetic terrain",
+      "fractalFamily": "self-similar living mountain watershed; root ridges resolving into vascular river deltas; wind-carved arcs crossing responsive muscle-like ridges; enjoyment patterns repeat as finer living geography",
+      "palette": [
+        "basalt black",
+        "lichen green",
+        "rainwashed turquoise",
+        "glacial white"
+      ],
+      "transitionAnchor": "a wind arc lifting from a flexed basalt ridge resolving into a smaller enjoyment chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Pleasure",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Enjoyment appears as a natural current around a wind arc lifting from a flexed basalt ridge resolving into a smaller enjoyment chamber."
+    },
+    {
+      "nodeId": "recovery",
+      "parentId": "edge",
+      "force": "tidal restoration",
+      "fractalFamily": "self-similar living mountain watershed; river deltas folding into moonlit tidal pools",
+      "palette": [
+        "midnight indigo",
+        "pearl grey",
+        "kelp green",
+        "dawn gold"
+      ],
+      "transitionAnchor": "a moonlit tidal basin nested inside the watershed",
+      "wikipedia": "https://en.wikipedia.org/wiki/Rest_(activity)",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Recovery appears as tidal restoration shaped around a moonlit tidal basin nested inside the watershed."
+    },
+    {
+      "nodeId": "recovery.sleep",
+      "parentId": "recovery",
+      "force": "nocturnal tide",
+      "fractalFamily": "self-similar living mountain watershed; river deltas folding into moonlit tidal pools; moonlit rings descending into a deep still basin",
+      "palette": [
+        "midnight indigo",
+        "pearl grey",
+        "kelp green",
+        "alpine teal"
+      ],
+      "transitionAnchor": "a silver ring reflected in the innermost tidal pool",
+      "wikipedia": "https://en.wikipedia.org/wiki/Sleep",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Nocturnal tide gathers around a silver ring reflected in the innermost tidal pool."
+    },
+    {
+      "nodeId": "recovery.sleep.duration",
+      "parentId": "recovery.sleep",
+      "force": "duration current within nocturnal tide",
+      "fractalFamily": "self-similar living mountain watershed; river deltas folding into moonlit tidal pools; moonlit rings descending into a deep still basin; duration patterns repeat as finer living geography",
+      "palette": [
+        "midnight indigo",
+        "pearl grey",
+        "sunlit ochre",
+        "dawn gold"
+      ],
+      "transitionAnchor": "a silver ring reflected in the innermost tidal pool resolving into a smaller duration chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Duration_(philosophy)",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Duration appears as a natural current around a silver ring reflected in the innermost tidal pool resolving into a smaller duration chamber."
+    },
+    {
+      "nodeId": "recovery.sleep.quality",
+      "parentId": "recovery.sleep",
+      "force": "quality current within nocturnal tide",
+      "fractalFamily": "self-similar living mountain watershed; river deltas folding into moonlit tidal pools; moonlit rings descending into a deep still basin; quality patterns repeat as finer living geography",
+      "palette": [
+        "midnight indigo",
+        "pearl grey",
+        "glacial cyan",
+        "dawn gold"
+      ],
+      "transitionAnchor": "a silver ring reflected in the innermost tidal pool resolving into a smaller quality chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Quality_(philosophy)",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Quality appears as a natural current around a silver ring reflected in the innermost tidal pool resolving into a smaller quality chamber."
+    },
+    {
+      "nodeId": "recovery.sleep.regularity",
+      "parentId": "recovery.sleep",
+      "force": "regularity current within nocturnal tide",
+      "fractalFamily": "self-similar living mountain watershed; river deltas folding into moonlit tidal pools; moonlit rings descending into a deep still basin; regularity patterns repeat as finer living geography",
+      "palette": [
+        "midnight indigo",
+        "pearl grey",
+        "moss jade",
+        "dawn gold"
+      ],
+      "transitionAnchor": "a silver ring reflected in the innermost tidal pool resolving into a smaller regularity chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Regularity_(behavior)",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Regularity appears as a natural current around a silver ring reflected in the innermost tidal pool resolving into a smaller regularity chamber."
+    },
+    {
+      "nodeId": "recovery.rest",
+      "parentId": "recovery",
+      "force": "quiet return",
+      "fractalFamily": "self-similar living mountain watershed; river deltas folding into moonlit tidal pools; soft moss spirals reclaiming the edges of tidal stone",
+      "palette": [
+        "midnight indigo",
+        "pearl grey",
+        "kelp green",
+        "quartz lavender"
+      ],
+      "transitionAnchor": "a moss spiral settling around a still pool",
+      "wikipedia": "https://en.wikipedia.org/wiki/Rest_(activity)",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Quiet return gathers around a moss spiral settling around a still pool."
+    },
+    {
+      "nodeId": "recovery.rest.detachment",
+      "parentId": "recovery.rest",
+      "force": "detachment current within quiet return",
+      "fractalFamily": "self-similar living mountain watershed; river deltas folding into moonlit tidal pools; soft moss spirals reclaiming the edges of tidal stone; detachment patterns repeat as finer living geography",
+      "palette": [
+        "midnight indigo",
+        "pearl grey",
+        "storm cobalt",
+        "dawn gold"
+      ],
+      "transitionAnchor": "a moss spiral settling around a still pool resolving into a smaller detachment chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Psychological_detachment",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Detachment appears as a natural current around a moss spiral settling around a still pool resolving into a smaller detachment chamber."
+    },
+    {
+      "nodeId": "recovery.rest.relaxation",
+      "parentId": "recovery.rest",
+      "force": "relaxation current within quiet return",
+      "fractalFamily": "self-similar living mountain watershed; river deltas folding into moonlit tidal pools; soft moss spirals reclaiming the edges of tidal stone; relaxation patterns repeat as finer living geography",
+      "palette": [
+        "midnight indigo",
+        "pearl grey",
+        "alpine teal",
+        "dawn gold"
+      ],
+      "transitionAnchor": "a moss spiral settling around a still pool resolving into a smaller relaxation chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Relaxation_(psychology)",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Relaxation appears as a natural current around a moss spiral settling around a still pool resolving into a smaller relaxation chamber."
+    },
+    {
+      "nodeId": "recovery.rest.quiet",
+      "parentId": "recovery.rest",
+      "force": "quiet current within quiet return",
+      "fractalFamily": "self-similar living mountain watershed; river deltas folding into moonlit tidal pools; soft moss spirals reclaiming the edges of tidal stone; quiet patterns repeat as finer living geography",
+      "palette": [
+        "midnight indigo",
+        "pearl grey",
+        "lichen chartreuse",
+        "dawn gold"
+      ],
+      "transitionAnchor": "a moss spiral settling around a still pool resolving into a smaller quiet chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Silence",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Quiet appears as a natural current around a moss spiral settling around a still pool resolving into a smaller quiet chamber."
+    },
+    {
+      "nodeId": "pressure",
+      "parentId": "edge",
+      "force": "storm pressure",
+      "fractalFamily": "self-similar living mountain watershed; mountain weather condensing into nested storm cells",
+      "palette": [
+        "mineral grey",
+        "moonlit blue",
+        "lichen green",
+        "controlled crimson"
+      ],
+      "transitionAnchor": "the central spiral cloud boundary",
+      "wikipedia": "https://en.wikipedia.org/wiki/Stress_(biology)",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Pressure appears as storm pressure shaped around the central spiral cloud boundary."
+    },
+    {
+      "nodeId": "pressure.stress",
+      "parentId": "pressure",
+      "force": "adaptive storm field",
+      "fractalFamily": "self-similar living mountain watershed; mountain weather condensing into nested storm cells; storm cells resolving into branching electrical fields",
+      "palette": [
+        "mineral grey",
+        "moonlit blue",
+        "lichen green",
+        "mineral amber"
+      ],
+      "transitionAnchor": "the central spiral cloud boundary tightening into nested storm bands",
+      "wikipedia": "https://en.wikipedia.org/wiki/Stress_(biology)",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Adaptive storm field gathers around the central spiral cloud boundary tightening into nested storm bands."
+    },
+    {
+      "nodeId": "pressure.stress.anxiety",
+      "parentId": "pressure.stress",
+      "force": "anxiety current within adaptive storm field",
+      "fractalFamily": "self-similar living mountain watershed; mountain weather condensing into nested storm cells; storm cells resolving into branching electrical fields; anxiety patterns repeat as finer living geography",
+      "palette": [
+        "mineral grey",
+        "moonlit blue",
+        "river steel",
+        "controlled crimson"
+      ],
+      "transitionAnchor": "the central spiral cloud boundary tightening into nested storm bands",
+      "wikipedia": "https://en.wikipedia.org/wiki/Arousal",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Storm pressure gathers around a nested spiral cloud boundary."
+    },
+    {
+      "nodeId": "pressure.stress.tension",
+      "parentId": "pressure.stress",
+      "force": "tension current within adaptive storm field",
+      "fractalFamily": "self-similar living mountain watershed; mountain weather condensing into nested storm cells; storm cells resolving into branching electrical fields; tension patterns repeat as finer living geography",
+      "palette": [
+        "mineral grey",
+        "moonlit blue",
+        "aurora violet",
+        "controlled crimson"
+      ],
+      "transitionAnchor": "the central spiral cloud boundary tightening into nested storm bands resolving into a smaller tension chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Stress_(psychology)",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Tension appears as a natural current around the central spiral cloud boundary tightening into nested storm bands resolving into a smaller tension chamber."
+    },
+    {
+      "nodeId": "pressure.stress.overwhelm",
+      "parentId": "pressure.stress",
+      "force": "overwhelm current within adaptive storm field",
+      "fractalFamily": "self-similar living mountain watershed; mountain weather condensing into nested storm cells; storm cells resolving into branching electrical fields; overwhelm patterns repeat as finer living geography",
+      "palette": [
+        "mineral grey",
+        "moonlit blue",
+        "deep spruce",
+        "controlled crimson"
+      ],
+      "transitionAnchor": "the central spiral cloud boundary tightening into nested storm bands resolving into a smaller overwhelm chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Stress_management",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Overwhelm appears as a natural current around the central spiral cloud boundary tightening into nested storm bands resolving into a smaller overwhelm chamber."
+    },
+    {
+      "nodeId": "structure",
+      "parentId": "edge",
+      "force": "crystalline rhythm",
+      "fractalFamily": "self-similar living mountain watershed; basalt strata resolving into geometric mineral terraces",
+      "palette": [
+        "graphite black",
+        "quartz white",
+        "moss green",
+        "copper gold"
+      ],
+      "transitionAnchor": "a stepped crystal fault running through the mountain",
+      "wikipedia": "https://en.wikipedia.org/wiki/Structure",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Structure appears as crystalline rhythm shaped around a stepped crystal fault running through the mountain."
+    },
+    {
+      "nodeId": "structure.work",
+      "parentId": "structure",
+      "force": "directed effort current",
+      "fractalFamily": "self-similar living mountain watershed; basalt strata resolving into geometric mineral terraces; crystal terraces channeling light toward a single working face",
+      "palette": [
+        "graphite black",
+        "quartz white",
+        "moss green",
+        "moonstone blue"
+      ],
+      "transitionAnchor": "a bright mineral seam crossing the central terrace",
+      "wikipedia": "https://en.wikipedia.org/wiki/Work_(human_activity)",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Directed effort current gathers around a bright mineral seam crossing the central terrace."
+    },
+    {
+      "nodeId": "structure.work.workload",
+      "parentId": "structure.work",
+      "force": "workload current within directed effort current",
+      "fractalFamily": "self-similar living mountain watershed; basalt strata resolving into geometric mineral terraces; crystal terraces channeling light toward a single working face; workload patterns repeat as finer living geography",
+      "palette": [
+        "graphite black",
+        "quartz white",
+        "weathered gold",
+        "copper gold"
+      ],
+      "transitionAnchor": "a bright mineral seam crossing the central terrace resolving into a smaller workload chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Workload",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Workload appears as a natural current around a bright mineral seam crossing the central terrace resolving into a smaller workload chamber."
+    },
+    {
+      "nodeId": "structure.work.motivation",
+      "parentId": "structure.work",
+      "force": "motivation current within directed effort current",
+      "fractalFamily": "self-similar living mountain watershed; basalt strata resolving into geometric mineral terraces; crystal terraces channeling light toward a single working face; motivation patterns repeat as finer living geography",
+      "palette": [
+        "graphite black",
+        "quartz white",
+        "fern green",
+        "copper gold"
+      ],
+      "transitionAnchor": "a bright mineral seam crossing the central terrace resolving into a smaller motivation chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Motivation",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Motivation appears as a natural current around a bright mineral seam crossing the central terrace resolving into a smaller motivation chamber."
+    },
+    {
+      "nodeId": "structure.work.autonomy",
+      "parentId": "structure.work",
+      "force": "autonomy current within directed effort current",
+      "fractalFamily": "self-similar living mountain watershed; basalt strata resolving into geometric mineral terraces; crystal terraces channeling light toward a single working face; autonomy patterns repeat as finer living geography",
+      "palette": [
+        "graphite black",
+        "quartz white",
+        "frosted indigo",
+        "copper gold"
+      ],
+      "transitionAnchor": "a bright mineral seam crossing the central terrace resolving into a smaller autonomy chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Autonomy",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Autonomy appears as a natural current around a bright mineral seam crossing the central terrace resolving into a smaller autonomy chamber."
+    },
+    {
+      "nodeId": "structure.commute",
+      "parentId": "structure",
+      "force": "transit current",
+      "fractalFamily": "self-similar living mountain watershed; basalt strata resolving into geometric mineral terraces; parallel erosion channels crossing shifting mineral terraces",
+      "palette": [
+        "graphite black",
+        "quartz white",
+        "moss green",
+        "kelp emerald"
+      ],
+      "transitionAnchor": "a braided channel passing through the stepped fault",
+      "wikipedia": "https://en.wikipedia.org/wiki/Commuting",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Transit current gathers around a braided channel passing through the stepped fault."
+    },
+    {
+      "nodeId": "structure.commute.duration",
+      "parentId": "structure.commute",
+      "force": "duration current within transit current",
+      "fractalFamily": "self-similar living mountain watershed; basalt strata resolving into geometric mineral terraces; parallel erosion channels crossing shifting mineral terraces; duration patterns repeat as finer living geography",
+      "palette": [
+        "graphite black",
+        "quartz white",
+        "slate cyan",
+        "copper gold"
+      ],
+      "transitionAnchor": "a braided channel passing through the stepped fault resolving into a smaller duration chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Duration_(philosophy)",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Duration appears as a natural current around a braided channel passing through the stepped fault resolving into a smaller duration chamber."
+    },
+    {
+      "nodeId": "structure.commute.friction",
+      "parentId": "structure.commute",
+      "force": "friction current within transit current",
+      "fractalFamily": "self-similar living mountain watershed; basalt strata resolving into geometric mineral terraces; parallel erosion channels crossing shifting mineral terraces; friction patterns repeat as finer living geography",
+      "palette": [
+        "graphite black",
+        "quartz white",
+        "solar brass",
+        "copper gold"
+      ],
+      "transitionAnchor": "a braided channel passing through the stepped fault resolving into a smaller friction chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Friction",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Friction appears as a natural current around a braided channel passing through the stepped fault resolving into a smaller friction chamber."
+    },
+    {
+      "nodeId": "structure.commute.predictability",
+      "parentId": "structure.commute",
+      "force": "predictability current within transit current",
+      "fractalFamily": "self-similar living mountain watershed; basalt strata resolving into geometric mineral terraces; parallel erosion channels crossing shifting mineral terraces; predictability patterns repeat as finer living geography",
+      "palette": [
+        "graphite black",
+        "quartz white",
+        "rainwashed turquoise",
+        "copper gold"
+      ],
+      "transitionAnchor": "a braided channel passing through the stepped fault resolving into a smaller predictability chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Predictability",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Predictability appears as a natural current around a braided channel passing through the stepped fault resolving into a smaller predictability chamber."
+    },
+    {
+      "nodeId": "structure.routine",
+      "parentId": "structure",
+      "force": "repeating earth rhythm",
+      "fractalFamily": "self-similar living mountain watershed; basalt strata resolving into geometric mineral terraces; nested mineral rings with one adaptive opening",
+      "palette": [
+        "graphite black",
+        "quartz white",
+        "moss green",
+        "alpine teal"
+      ],
+      "transitionAnchor": "a repeating quartz ring interrupted by a living green gate",
+      "wikipedia": "https://en.wikipedia.org/wiki/Habit",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Repeating earth rhythm gathers around a repeating quartz ring interrupted by a living green gate."
+    },
+    {
+      "nodeId": "structure.routine.consistency",
+      "parentId": "structure.routine",
+      "force": "consistency current within repeating earth rhythm",
+      "fractalFamily": "self-similar living mountain watershed; basalt strata resolving into geometric mineral terraces; nested mineral rings with one adaptive opening; consistency patterns repeat as finer living geography",
+      "palette": [
+        "graphite black",
+        "quartz white",
+        "sunlit ochre",
+        "copper gold"
+      ],
+      "transitionAnchor": "a repeating quartz ring interrupted by a living green gate resolving into a smaller consistency chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Consistency",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Consistency appears as a natural current around a repeating quartz ring interrupted by a living green gate resolving into a smaller consistency chamber."
+    },
+    {
+      "nodeId": "structure.routine.adaptability",
+      "parentId": "structure.routine",
+      "force": "adaptability current within repeating earth rhythm",
+      "fractalFamily": "self-similar living mountain watershed; basalt strata resolving into geometric mineral terraces; nested mineral rings with one adaptive opening; adaptability patterns repeat as finer living geography",
+      "palette": [
+        "graphite black",
+        "quartz white",
+        "glacial cyan",
+        "copper gold"
+      ],
+      "transitionAnchor": "a repeating quartz ring interrupted by a living green gate resolving into a smaller adaptability chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Adaptation",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Adaptability appears as a natural current around a repeating quartz ring interrupted by a living green gate resolving into a smaller adaptability chamber."
+    },
+    {
+      "nodeId": "structure.routine.activation",
+      "parentId": "structure.routine",
+      "force": "activation current within repeating earth rhythm",
+      "fractalFamily": "self-similar living mountain watershed; basalt strata resolving into geometric mineral terraces; nested mineral rings with one adaptive opening; activation patterns repeat as finer living geography",
+      "palette": [
+        "graphite black",
+        "quartz white",
+        "moss jade",
+        "copper gold"
+      ],
+      "transitionAnchor": "a repeating quartz ring interrupted by a living green gate resolving into a smaller activation chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Action_(philosophy)",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Activation appears as a natural current around a repeating quartz ring interrupted by a living green gate resolving into a smaller activation chamber."
+    },
+    {
+      "nodeId": "structure.travel",
+      "parentId": "structure",
+      "force": "migratory weather",
+      "fractalFamily": "self-similar living mountain watershed; basalt strata resolving into geometric mineral terraces; wind paths carrying mineral seeds across terraced horizons",
+      "palette": [
+        "graphite black",
+        "quartz white",
+        "moss green",
+        "quartz lavender"
+      ],
+      "transitionAnchor": "a wind-borne seed crossing the crystal fault",
+      "wikipedia": "https://en.wikipedia.org/wiki/Travel",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Migratory weather gathers around a wind-borne seed crossing the crystal fault."
+    },
+    {
+      "nodeId": "structure.travel.disruption",
+      "parentId": "structure.travel",
+      "force": "disruption current within migratory weather",
+      "fractalFamily": "self-similar living mountain watershed; basalt strata resolving into geometric mineral terraces; wind paths carrying mineral seeds across terraced horizons; disruption patterns repeat as finer living geography",
+      "palette": [
+        "graphite black",
+        "quartz white",
+        "storm cobalt",
+        "copper gold"
+      ],
+      "transitionAnchor": "a wind-borne seed crossing the crystal fault resolving into a smaller disruption chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Disruption",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Disruption appears as a natural current around a wind-borne seed crossing the crystal fault resolving into a smaller disruption chamber."
+    },
+    {
+      "nodeId": "structure.travel.novelty",
+      "parentId": "structure.travel",
+      "force": "novelty current within migratory weather",
+      "fractalFamily": "self-similar living mountain watershed; basalt strata resolving into geometric mineral terraces; wind paths carrying mineral seeds across terraced horizons; novelty patterns repeat as finer living geography",
+      "palette": [
+        "graphite black",
+        "quartz white",
+        "pearl grey",
+        "copper gold"
+      ],
+      "transitionAnchor": "a wind-borne seed crossing the crystal fault resolving into a smaller novelty chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Novelty",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Novelty appears as a natural current around a wind-borne seed crossing the crystal fault resolving into a smaller novelty chamber."
+    },
+    {
+      "nodeId": "structure.travel.recovery-cost",
+      "parentId": "structure.travel",
+      "force": "recovery cost current within migratory weather",
+      "fractalFamily": "self-similar living mountain watershed; basalt strata resolving into geometric mineral terraces; wind paths carrying mineral seeds across terraced horizons; recovery cost patterns repeat as finer living geography",
+      "palette": [
+        "graphite black",
+        "quartz white",
+        "lichen chartreuse",
+        "copper gold"
+      ],
+      "transitionAnchor": "a wind-borne seed crossing the crystal fault resolving into a smaller recovery cost chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Fatigue",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Recovery Cost appears as a natural current around a wind-borne seed crossing the crystal fault resolving into a smaller recovery cost chamber."
+    },
+    {
+      "nodeId": "connection",
+      "parentId": "edge",
+      "force": "mycelial current",
+      "fractalFamily": "self-similar living mountain watershed; root networks resolving into luminous mycelial bridges",
+      "palette": [
+        "forest black",
+        "fungal ivory",
+        "moss green",
+        "coral rose"
+      ],
+      "transitionAnchor": "a braided mycelial bridge joining two root systems",
+      "wikipedia": "https://en.wikipedia.org/wiki/Social_connection",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Connection appears as mycelial current shaped around a braided mycelial bridge joining two root systems."
+    },
+    {
+      "nodeId": "connection.social",
+      "parentId": "connection",
+      "force": "communal mycelial exchange",
+      "fractalFamily": "self-similar living mountain watershed; root networks resolving into luminous mycelial bridges; many fine hyphae converging into shared luminous clearings",
+      "palette": [
+        "forest black",
+        "fungal ivory",
+        "moss green",
+        "mineral amber"
+      ],
+      "transitionAnchor": "a shared clearing where three mycelial threads meet",
+      "wikipedia": "https://en.wikipedia.org/wiki/Social_relation",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Communal mycelial exchange gathers around a shared clearing where three mycelial threads meet."
+    },
+    {
+      "nodeId": "connection.social.support",
+      "parentId": "connection.social",
+      "force": "support current within communal mycelial exchange",
+      "fractalFamily": "self-similar living mountain watershed; root networks resolving into luminous mycelial bridges; many fine hyphae converging into shared luminous clearings; support patterns repeat as finer living geography",
+      "palette": [
+        "forest black",
+        "fungal ivory",
+        "river steel",
+        "coral rose"
+      ],
+      "transitionAnchor": "a shared clearing where three mycelial threads meet resolving into a smaller support chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Social_support",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Support appears as a natural current around a shared clearing where three mycelial threads meet resolving into a smaller support chamber."
+    },
+    {
+      "nodeId": "connection.social.belonging",
+      "parentId": "connection.social",
+      "force": "belonging current within communal mycelial exchange",
+      "fractalFamily": "self-similar living mountain watershed; root networks resolving into luminous mycelial bridges; many fine hyphae converging into shared luminous clearings; belonging patterns repeat as finer living geography",
+      "palette": [
+        "forest black",
+        "fungal ivory",
+        "aurora violet",
+        "coral rose"
+      ],
+      "transitionAnchor": "a shared clearing where three mycelial threads meet resolving into a smaller belonging chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Belongingness",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Belonging appears as a natural current around a shared clearing where three mycelial threads meet resolving into a smaller belonging chamber."
+    },
+    {
+      "nodeId": "connection.social.relational-energy",
+      "parentId": "connection.social",
+      "force": "relational energy current within communal mycelial exchange",
+      "fractalFamily": "self-similar living mountain watershed; root networks resolving into luminous mycelial bridges; many fine hyphae converging into shared luminous clearings; relational energy patterns repeat as finer living geography",
+      "palette": [
+        "forest black",
+        "fungal ivory",
+        "deep spruce",
+        "coral rose"
+      ],
+      "transitionAnchor": "a shared clearing where three mycelial threads meet resolving into a smaller relational energy chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Interpersonal_relationship",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Relational Energy appears as a natural current around a shared clearing where three mycelial threads meet resolving into a smaller relational energy chamber."
+    },
+    {
+      "nodeId": "connection.family",
+      "parentId": "connection",
+      "force": "ancestral root braid",
+      "fractalFamily": "self-similar living mountain watershed; root networks resolving into luminous mycelial bridges; older roots sheltering new branching growth rings",
+      "palette": [
+        "forest black",
+        "fungal ivory",
+        "moss green",
+        "moonstone blue"
+      ],
+      "transitionAnchor": "a thick root braid sheltering a young luminous shoot",
+      "wikipedia": "https://en.wikipedia.org/wiki/Family",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Ancestral root braid gathers around a thick root braid sheltering a young luminous shoot."
+    },
+    {
+      "nodeId": "connection.family.support",
+      "parentId": "connection.family",
+      "force": "support current within ancestral root braid",
+      "fractalFamily": "self-similar living mountain watershed; root networks resolving into luminous mycelial bridges; older roots sheltering new branching growth rings; support patterns repeat as finer living geography",
+      "palette": [
+        "forest black",
+        "fungal ivory",
+        "weathered gold",
+        "coral rose"
+      ],
+      "transitionAnchor": "a thick root braid sheltering a young luminous shoot resolving into a smaller support chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Social_support",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Support appears as a natural current around a thick root braid sheltering a young luminous shoot resolving into a smaller support chamber."
+    },
+    {
+      "nodeId": "connection.family.closeness",
+      "parentId": "connection.family",
+      "force": "closeness current within ancestral root braid",
+      "fractalFamily": "self-similar living mountain watershed; root networks resolving into luminous mycelial bridges; older roots sheltering new branching growth rings; closeness patterns repeat as finer living geography",
+      "palette": [
+        "forest black",
+        "fungal ivory",
+        "fern green",
+        "coral rose"
+      ],
+      "transitionAnchor": "a thick root braid sheltering a young luminous shoot resolving into a smaller closeness chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Intimacy",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Closeness appears as a natural current around a thick root braid sheltering a young luminous shoot resolving into a smaller closeness chamber."
+    },
+    {
+      "nodeId": "connection.family.responsibility-load",
+      "parentId": "connection.family",
+      "force": "responsibility load current within ancestral root braid",
+      "fractalFamily": "self-similar living mountain watershed; root networks resolving into luminous mycelial bridges; older roots sheltering new branching growth rings; responsibility load patterns repeat as finer living geography",
+      "palette": [
+        "forest black",
+        "fungal ivory",
+        "frosted indigo",
+        "coral rose"
+      ],
+      "transitionAnchor": "a thick root braid sheltering a young luminous shoot resolving into a smaller responsibility load chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Responsibility",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Responsibility Load appears as a natural current around a thick root braid sheltering a young luminous shoot resolving into a smaller responsibility load chamber."
+    },
+    {
+      "nodeId": "renewal",
+      "parentId": "edge",
+      "force": "auroral play",
+      "fractalFamily": "self-similar living mountain watershed; canopy spirals resolving into bioluminescent aurora gardens",
+      "palette": [
+        "night violet",
+        "aurora cyan",
+        "leaf green",
+        "solar amber"
+      ],
+      "transitionAnchor": "an open canopy spiral holding a ribbon of aurora",
+      "wikipedia": "https://en.wikipedia.org/wiki/Recreation",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Renewal appears as auroral play shaped around an open canopy spiral holding a ribbon of aurora."
+    },
+    {
+      "nodeId": "renewal.entertainment",
+      "parentId": "renewal",
+      "force": "restorative play field",
+      "fractalFamily": "self-similar living mountain watershed; canopy spirals resolving into bioluminescent aurora gardens; aurora ribbons curling through responsive flower-like canopies",
+      "palette": [
+        "night violet",
+        "aurora cyan",
+        "leaf green",
+        "kelp emerald"
+      ],
+      "transitionAnchor": "an aurora ribbon looping through the open canopy spiral",
+      "wikipedia": "https://en.wikipedia.org/wiki/Entertainment",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Restorative play field gathers around an aurora ribbon looping through the open canopy spiral."
+    },
+    {
+      "nodeId": "renewal.entertainment.enjoyment",
+      "parentId": "renewal.entertainment",
+      "force": "enjoyment current within restorative play field",
+      "fractalFamily": "self-similar living mountain watershed; canopy spirals resolving into bioluminescent aurora gardens; aurora ribbons curling through responsive flower-like canopies; enjoyment patterns repeat as finer living geography",
+      "palette": [
+        "night violet",
+        "aurora cyan",
+        "slate cyan",
+        "solar amber"
+      ],
+      "transitionAnchor": "an aurora ribbon looping through the open canopy spiral resolving into a smaller enjoyment chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Pleasure",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Enjoyment appears as a natural current around an aurora ribbon looping through the open canopy spiral resolving into a smaller enjoyment chamber."
+    },
+    {
+      "nodeId": "renewal.entertainment.restoration",
+      "parentId": "renewal.entertainment",
+      "force": "restoration current within restorative play field",
+      "fractalFamily": "self-similar living mountain watershed; canopy spirals resolving into bioluminescent aurora gardens; aurora ribbons curling through responsive flower-like canopies; restoration patterns repeat as finer living geography",
+      "palette": [
+        "night violet",
+        "aurora cyan",
+        "solar brass",
+        "solar amber"
+      ],
+      "transitionAnchor": "an aurora ribbon looping through the open canopy spiral resolving into a smaller restoration chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Restoration",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Restoration appears as a natural current around an aurora ribbon looping through the open canopy spiral resolving into a smaller restoration chamber."
+    },
+    {
+      "nodeId": "renewal.entertainment.stimulation",
+      "parentId": "renewal.entertainment",
+      "force": "stimulation current within restorative play field",
+      "fractalFamily": "self-similar living mountain watershed; canopy spirals resolving into bioluminescent aurora gardens; aurora ribbons curling through responsive flower-like canopies; stimulation patterns repeat as finer living geography",
+      "palette": [
+        "night violet",
+        "aurora cyan",
+        "rainwashed turquoise",
+        "solar amber"
+      ],
+      "transitionAnchor": "an aurora ribbon looping through the open canopy spiral resolving into a smaller stimulation chamber",
+      "wikipedia": "https://en.wikipedia.org/wiki/Stimulation",
+      "states": [
+        "quiet",
+        "available",
+        "edge",
+        "loaded",
+        "overloaded"
+      ],
+      "alt": "Stimulation appears as a natural current around an aurora ribbon looping through the open canopy spiral resolving into a smaller stimulation chamber."
+    }
+  ]
+}
