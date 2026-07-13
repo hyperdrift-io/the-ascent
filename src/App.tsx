@@ -39,6 +39,23 @@ import {
   type ScanReading,
   type Zone,
 } from "./edge";
+import { EdgeWorld } from "./components/edge/EdgeWorld";
+import { EdgeOverlay } from "./components/edge/EdgeOverlay";
+import { EdgeSummary } from "./components/edge/EdgeSummary";
+import { KpiReading } from "./components/edge/KpiReading";
+import { KpiSearch } from "./components/edge/KpiSearch";
+import { AthleticMode } from "./components/edge/AthleticMode";
+import { getEdgeLinePoint } from "./edge-line";
+import {
+  EDGE_PROFILE_KEY,
+  completeAthleticWeekrun,
+  loadEdgeProfile,
+  saveDailyReading,
+  type EdgeProfile,
+} from "./edge-profile";
+import type { KpiSearchResult } from "./edge-kpis";
+import { adaptMorningScanToEdge, buildWeekrunHeader, deriveTodayEdgeSnapshot, type TodayEdgeSnapshot } from "./weekrun-edge";
+import { getCoachLine, type CoachCall, type CoachCapacity } from "./edge-voice";
 
 // ------------------------------------------------------------------ constants
 
@@ -135,11 +152,7 @@ const FELT_OPTIONS: { value: FeltState; label: string }[] = [
 ];
 
 // lock chips pinned to the summit gate (percentage anchors, matching the mock)
-const LOCK_ANCHORS = [
-  { x: "26%", y: "16%" },
-  { x: "62%", y: "21%" },
-  { x: "56%", y: "29%" },
-];
+const LOCK_ANCHORS = ["anchor-one", "anchor-two", "anchor-three"] as const;
 
 const REST_LINE =
   "The camp is set. Recovery is converting yesterday's work into mastery — the path behind you is hardening into stone. Nothing is asked of you tonight.";
@@ -180,12 +193,8 @@ function bandLabel(readiness: number): string {
   return "First Spark";
 }
 
-// interpolate the player light between a low anchor and the gate anchor
-function playerPos(readiness: number): { px: string; py: string } {
-  const t = Math.max(0, Math.min(100, readiness)) / 100;
-  const left = 44 + (51 - 44) * t;
-  const top = 78 - (78 - 33) * t;
-  return { px: `${left.toFixed(1)}%`, py: `${top.toFixed(1)}%` };
+function percentageClass(value: number): string {
+  return `at-${Math.round(clamp(value, 0, 100) / 10) * 10}`;
 }
 
 function formatEffects(effects: Partial<Record<HumanResource, number>>): string {
@@ -204,18 +213,12 @@ function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
-// Living Light: map the two 0-100 kernel readings onto CSS custom properties (data, not
-// presentation). Warmth rotates the tint hue; low clarity raises a pale veil. Strain always
-// reads cooler and quieter — never darker (the veil lightens, it never blacks out).
-function tintVars(tint: { warmth: number; clarity: number }): Record<string, string> {
-  const hue = ((tint.warmth - 50) * 0.8).toFixed(1);
-  const veil = (((100 - tint.clarity) / 100) * 0.4).toFixed(3);
-  const warmth = (0.55 + (tint.warmth / 100) * 0.6).toFixed(2);
-  return {
-    "--tint-hue": `${hue}deg`,
-    "--tint-veil": veil,
-    "--tint-warmth": warmth,
-  };
+// Living Light maps kernel readings onto named CSS states. The values stay in the kernel;
+// presentation remains in the stylesheet with no per-render style injection.
+function tintClass(tint: { warmth: number; clarity: number }): string {
+  const warmth = tint.warmth >= 67 ? "warm" : tint.warmth <= 33 ? "cool" : "temperate";
+  const clarity = tint.clarity >= 67 ? "clear" : tint.clarity <= 33 ? "veiled" : "open";
+  return `living-light ${warmth} ${clarity}`;
 }
 
 function loadSignals(): boolean {
@@ -253,6 +256,10 @@ interface RitualState {
 export default function EdgeGame() {
   const [run, setRun] = useState<MissionRunState | null>(() => loadRun());
   const [profile, setProfile] = useState<PlayerProfile>(() => loadProfile());
+  const today = todayLocalISO();
+  const [edgeProfile, setEdgeProfile] = useState<EdgeProfile>(() => loadEdgeProfile(today));
+  const [edgeOpen, setEdgeOpen] = useState(false);
+  const [rootKpi, setRootKpi] = useState<KpiSearchResult | null>(null);
   const [aim, setAim] = useState("");
   const [chosenPackId, setChosenPackId] = useState<AimPack["id"] | null>(null);
   const [signalsOn, setSignalsOn] = useState<boolean>(() => loadSignals());
@@ -266,10 +273,35 @@ export default function EdgeGame() {
     ritualRef.current = ritual;
     settingStoneRef.current = settingStone;
   }, [ritual, settingStone]);
+  const todayReadings = edgeProfile.daily[today] ?? {};
+  const edgeSnapshot = useMemo(
+    () => run
+      ? adaptMorningScanToEdge(run.resources, todayReadings)
+      : deriveTodayEdgeSnapshot({ resources: edgeProfile.baselines, explicitDailyReadings: todayReadings }),
+    [edgeProfile.baselines, run, todayReadings],
+  );
   const [summary, setSummary] = useState<RunSummary | null>(() => loadSummary());
   // View-only flag (not persisted): the week closed while the player was away, so the
   // summary greets them with the away-completion line rather than the standard one.
   const [awayComplete, setAwayComplete] = useState(false);
+  const weekrunSurfaceRef = useRef<HTMLDivElement>(null);
+  const edgeTriggerRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const surface = weekrunSurfaceRef.current;
+    if (!surface) return;
+    if (edgeOpen) surface.setAttribute("inert", "");
+    else surface.removeAttribute("inert");
+    return () => surface.removeAttribute("inert");
+  }, [edgeOpen]);
+
+  useEffect(() => {
+    function refreshEdgeProfile(event: StorageEvent) {
+      if (event.key === EDGE_PROFILE_KEY) setEdgeProfile(loadEdgeProfile(today));
+    }
+    window.addEventListener("storage", refreshEdgeProfile);
+    return () => window.removeEventListener("storage", refreshEdgeProfile);
+  }, [today]);
 
   // Preload every backdrop once so scene-to-scene cross-fades never flash a blank layer.
   useEffect(() => {
@@ -299,6 +331,7 @@ export default function EdgeGame() {
       const synced = syncRunToToday(current, todayISO);
       if (isWeekOver(synced, todayISO)) {
         const nextProfile = completeMissionRun(synced, "complete", loadProfile());
+        const nextEdgeProfile = completeAthleticWeekrun(loadEdgeProfile(todayISO), synced.runId);
         const nextSummary: RunSummary = {
           ending: "complete",
           aim: synced.aim,
@@ -313,6 +346,7 @@ export default function EdgeGame() {
         setSummary(nextSummary);
         setAwayComplete(true);
         setProfile(nextProfile);
+        setEdgeProfile(nextEdgeProfile);
         return;
       }
       if (synced !== current) persist(synced);
@@ -367,6 +401,7 @@ export default function EdgeGame() {
   function endRun(ending: RunEnding) {
     if (!run) return;
     const nextProfile = completeMissionRun(run, ending, profile);
+    const nextEdgeProfile = completeAthleticWeekrun(edgeProfile, run.runId);
     const nextSummary: RunSummary = {
       ending,
       aim: run.aim,
@@ -380,6 +415,7 @@ export default function EdgeGame() {
     clearRun();
     setRun(null);
     setProfile(nextProfile);
+    setEdgeProfile(nextEdgeProfile);
     setRitual(null);
     setAwayComplete(false);
   }
@@ -413,6 +449,16 @@ export default function EdgeGame() {
     });
   }
 
+  function openEdge() {
+    edgeTriggerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    setEdgeOpen(true);
+  }
+
+  function closeEdge() {
+    setEdgeOpen(false);
+    window.requestAnimationFrame(() => edgeTriggerRef.current?.focus());
+  }
+
   // Escape cancels the ritual at any step
   useEffect(() => {
     if (!ritual) return;
@@ -435,35 +481,72 @@ export default function EdgeGame() {
   }
 
   if (!run) {
+    const rootPath = rootKpi?.source === "sub" ? rootKpi.path : null;
     return (
-      <AimEntry
-        aim={aim}
-        setAim={updateAim}
-        onSelectSuggestion={selectSuggestion}
-        onStart={startAscent}
-        profile={profile}
+      <EdgeWorld
+        targetPath={rootKpi?.path ?? null}
+        tools={
+          <div className="edge-root-tools">
+            <KpiSearch onSelect={setRootKpi} />
+            {rootPath && (
+              <KpiReading
+                path={rootPath}
+                value={edgeProfile.daily[today]?.[rootPath] ?? null}
+                onSave={(value) => setEdgeProfile(saveDailyReading(edgeProfile, { date: today, path: rootPath, value }))}
+              />
+            )}
+            <AthleticMode profile={edgeProfile} onChange={setEdgeProfile} />
+          </div>
+        }
+        aimEntry={
+          <AimEntry
+            aim={aim}
+            setAim={updateAim}
+            onSelectSuggestion={selectSuggestion}
+            onStart={startAscent}
+            profile={profile}
+          />
+        }
       />
     );
   }
 
   return (
-    <Mountain
-      run={run}
-      profile={profile}
-      signalsOn={signalsOn}
-      settingStone={settingStone}
-      onChooseCard={chooseCard}
-      onScan={scanMorning}
-      onOpenRitual={() => setRitual({ step: 1, tier: null, proof: null, felt: null, note: "" })}
-      onBreakCamp={breakCamp}
-      onAttempt={() => endRun("summit-attempt")}
-      onComplete={() => endRun("complete")}
-      onRecon={() => endRun("recon")}
-      onToggleSignals={toggleSignals}
-      ritual={ritual}
-      setRitual={setRitual}
-      onCommitRitual={commitRitual}
-    />
+    <>
+      <div ref={weekrunSurfaceRef} className="weekrun-surface" aria-hidden={edgeOpen || undefined}>
+        <Mountain
+          run={run}
+          profile={profile}
+          edgeSnapshot={edgeSnapshot}
+          athleticMode={edgeProfile.athletic.enabled}
+          onOpenEdge={openEdge}
+          signalsOn={signalsOn}
+          settingStone={settingStone}
+          onChooseCard={chooseCard}
+          onScan={scanMorning}
+          onOpenRitual={() => setRitual({ step: 1, tier: null, proof: null, felt: null, note: "" })}
+          onBreakCamp={breakCamp}
+          onAttempt={() => endRun("summit-attempt")}
+          onComplete={() => endRun("complete")}
+          onRecon={() => endRun("recon")}
+          onToggleSignals={toggleSignals}
+          ritual={ritual}
+          setRitual={setRitual}
+          onCommitRitual={commitRitual}
+        />
+      </div>
+      {edgeOpen && (
+        <EdgeOverlay
+          aim={run.aim}
+          resources={run.resources}
+          snapshot={edgeSnapshot}
+          profile={edgeProfile}
+          today={today}
+          onProfile={setEdgeProfile}
+          onClose={closeEdge}
+        />
+      )}
+    </>
   );
 }
 
@@ -546,20 +629,17 @@ function AimEntry({
     () => createMissionRun("preview", profile.completedRuns > 0 ? profile : undefined),
     [profile],
   );
-  const tint = getWorldTint(preview);
   return (
-    <main className="aim-entry">
-      <div className="living-light" style={tintVars(tint)} aria-hidden="true" />
-      <div className="aim-panel">
+    <section className="aim-panel edge-aim-form">
         <p className="brand">EDGE</p>
         <div className="instrument">
           <EdgeLine edgeLoad={preview.edgeLoad} edgeControl={preview.edgeControl} zone={preview.zone} />
           <ResourceStrip resources={preview.resources} />
           <p className="baseline-caption">{BASELINE_CAPTION}</p>
         </div>
-        <h1>Start this week's Ascent</h1>
-        <p className="lede">Name the aim in your own words. The mountain shapes itself around it.</p>
+        <h2>Set this Weekrun's aim</h2>
         <input
+          name="weekrun-aim"
           aria-label="Your aim for this week"
           placeholder="e.g. land a surface backroll"
           value={aim}
@@ -587,8 +667,7 @@ function AimEntry({
         <button className="primary" type="button" onClick={onStart}>
           Begin the Ascent
         </button>
-      </div>
-    </main>
+    </section>
   );
 }
 
@@ -597,6 +676,9 @@ function AimEntry({
 function Mountain({
   run,
   profile,
+  edgeSnapshot,
+  athleticMode,
+  onOpenEdge,
   signalsOn,
   settingStone,
   onChooseCard,
@@ -613,6 +695,9 @@ function Mountain({
 }: {
   run: MissionRunState;
   profile: PlayerProfile;
+  edgeSnapshot: TodayEdgeSnapshot;
+  athleticMode: boolean;
+  onOpenEdge: () => void;
   signalsOn: boolean;
   settingStone: boolean;
   onChooseCard: (id: string) => void;
@@ -631,9 +716,22 @@ function Mountain({
   const scene = getWorldScene(run);
   const conditions = useMemo(() => getConditions(run), [run]);
   const trailNote = getTrailNote(run);
-  const pos = playerPos(run.readiness);
   const tint = getWorldTint(run);
   const bossLabel = getBossWindowLabel(run);
+  const weekrunHeader = buildWeekrunHeader({
+    edgeState: edgeSnapshot.state,
+    edgeValue: edgeSnapshot.orientationValue,
+    readiness: run.readiness,
+  });
+  const coachCapacity: CoachCapacity = edgeSnapshot.state === "overextended"
+    ? "overloaded"
+    : edgeSnapshot.state;
+  const coachCall: CoachCall = coachCapacity === "overloaded" || coachCapacity === "restoring"
+    ? "restore"
+    : coachCapacity === "loaded"
+      ? "narrow"
+      : "act";
+  const coachLine = athleticMode ? getCoachLine("athletic", { capacity: coachCapacity, call: coachCall }) : null;
 
   return (
     <main className="mountain" data-state={world} data-scene={scene}>
@@ -643,7 +741,7 @@ function Mountain({
       <div className="bg dawn-fog" />
       <div className="bg dawn-wind" />
       <div className="bg dawn-golden" />
-      <div className="living-light" style={tintVars(tint)} aria-hidden="true" />
+      <div className={tintClass(tint)} aria-hidden="true" />
       <div className="scrim" />
 
       <div className="topline">
@@ -656,17 +754,14 @@ function Mountain({
       <p className="run-aim">&ldquo;{run.aim}&rdquo;</p>
 
       <EdgeLine edgeLoad={run.edgeLoad} edgeControl={run.edgeControl} zone={run.zone} />
+      <EdgeSummary snapshot={edgeSnapshot} onOpen={onOpenEdge} coachLine={coachLine} />
 
       {world === "dawn" && (
         <>
           {run.locks.map((lock, index) => (
             <LockChip key={lock.id} lock={lock} anchor={LOCK_ANCHORS[index] ?? LOCK_ANCHORS[0]} />
           ))}
-          <span
-            className="player-light"
-            style={{ ["--px" as string]: pos.px, ["--py" as string]: pos.py }}
-            aria-hidden="true"
-          />
+          <span className={`player-light ${percentageClass(run.readiness)}`} aria-hidden="true" />
         </>
       )}
 
@@ -674,11 +769,9 @@ function Mountain({
         {world !== "night" && (
           <div className="readiness">
             <span>
-              READINESS {run.readiness}% · {bandLabel(run.readiness).toUpperCase()}
+              {weekrunHeader.readinessLabel.toUpperCase()} · {bandLabel(run.readiness).toUpperCase()}
             </span>
-            <span className="bar">
-              <i style={{ ["--w" as string]: `${run.readiness}%` }} />
-            </span>
+            <progress className="readiness-progress" max={100} value={run.readiness} aria-label="Route readiness" />
             <span className={`run-status ${run.status}`}>{STATUS_LABEL[run.status]}</span>
             <span className="boss-name">{run.bossName.toUpperCase()}</span>
           </div>
@@ -773,12 +866,9 @@ function Mountain({
 
 // ------------------------------------------------------------------ pieces
 
-function LockChip({ lock, anchor }: { lock: Lock; anchor: { x: string; y: string } }) {
+function LockChip({ lock, anchor }: { lock: Lock; anchor: (typeof LOCK_ANCHORS)[number] }) {
   return (
-    <span
-      className={lock.cracked ? "lock-chip" : "lock-chip dim"}
-      style={{ ["--x" as string]: anchor.x, ["--y" as string]: anchor.y }}
-    >
+    <span className={`${lock.cracked ? "lock-chip" : "lock-chip dim"} ${anchor}`}>
       <span className="dot" />
       {lock.label}
     </span>
@@ -815,7 +905,7 @@ function MoveCardView({
 
 function ResourceStrip({ resources }: { resources: Record<HumanResource, number> }) {
   return (
-    <div className="resource-strip" aria-label="Human resources">
+    <div className="resource-strip" role="group" aria-label="Human resources">
       {RESOURCE_ORDER.map((key) => (
         <span
           key={key}
@@ -823,10 +913,10 @@ function ResourceStrip({ resources }: { resources: Record<HumanResource, number>
           title={`${RESOURCE_LABEL[key]} ${resources[key]}`}
         >
           <span className="meter-label">{RESOURCE_LABEL[key]}</span>
-          <span className="meter-bar" aria-hidden="true">
-            <i style={{ ["--w" as string]: `${resources[key]}%` }} />
+          <span className="meter-bar">
+            <progress max={100} value={resources[key]} aria-label={`${RESOURCE_LABEL[key]} ${resources[key]}`} />
             {(METER_TICKS[key] ?? []).map((tick) => (
-              <b key={tick.at} className="tick" style={{ ["--at" as string]: `${tick.at}%` }} title={tick.title} />
+              <b key={tick.at} className={`tick tick-${tick.at}`} title={tick.title} />
             ))}
           </span>
           <span className="meter-value">{resources[key]}</span>
@@ -842,20 +932,19 @@ function ResourceStrip({ resources }: { resources: Record<HumanResource, number>
 // drives the peak-luminosity styling — beauty crests in the `edge` zone, strain quiets it.
 function EdgeLine({ edgeLoad, edgeControl, zone }: { edgeLoad: number; edgeControl: number; zone: Zone }) {
   const marker = clamp(50 + (edgeControl - edgeLoad), 5, 95);
-  // Ride the marker along the crest: valley (left) sits low, the face (right) rides high.
-  // Pure render geometry that matches the SVG path — no game rule lives here.
-  const fraction = marker / 100;
-  const markerTop = (3 + ((10.5 - 10 * fraction) / 12) * 14).toFixed(1);
-  const markerStyle = { ["--m" as string]: `${marker}%`, ["--my" as string]: `${markerTop}px` };
+  const point = getEdgeLinePoint(marker);
+  const markerY = 3 + (point.y / 12) * 14;
   return (
-    <div className="edge-line" data-zone={zone} aria-label={`Edge state: ${ZONE_LABEL[zone]}`}>
+    <div className="edge-line" data-zone={zone} role="img" aria-label={`Edge state: ${ZONE_LABEL[zone]}`}>
       <svg className="crest" viewBox="0 0 100 12" preserveAspectRatio="none" aria-hidden="true">
         <path d="M1 10.5 C 20 10.2 34 9.4 50 7 C 66 4.6 82 2.4 99 0.5" />
       </svg>
-      <span className="edge-marker" style={markerStyle} aria-hidden="true" />
-      <span className="edge-zone" style={{ ["--m" as string]: `${marker}%` }}>
-        {ZONE_LABEL[zone]}
-      </span>
+      <svg className="edge-indicator" viewBox="0 0 100 31" preserveAspectRatio="none" aria-hidden="true">
+        <circle className="edge-marker" cx={`${point.x}%`} cy={markerY} r="4.5" />
+        <text className="edge-zone" x={`${point.x}%`} y={Math.min(31, markerY + 15)} textAnchor="middle">
+          {ZONE_LABEL[zone]}
+        </text>
+      </svg>
     </div>
   );
 }
@@ -910,8 +999,13 @@ function MorningScan({ onBegin }: { onBegin: (input: MorningScanInput) => void }
 }
 
 function CairnRow({ cairns, day, settingStone }: { cairns: MissionRunState["cairns"]; day: number; settingStone: boolean }) {
+  const setCairns = cairns.filter((cairn) => cairn.day >= 1 && cairn.day <= 7);
+  const progress = setCairns.length === 0
+    ? "No cairn days set yet"
+    : `${setCairns.length} of 7 cairn days set: ${setCairns.map((cairn) => `day ${cairn.day} ${cairn.tier}`).join(", ")}`;
+  const label = settingStone ? `${progress}. Setting day ${day}` : progress;
   return (
-    <div className="cairns" aria-label="Cairns — one stone per day">
+    <div className="cairns" role="img" aria-label={label}>
       {Array.from({ length: 7 }, (_, index) => {
         const dayNumber = index + 1;
         const cairn = cairns.find((entry) => entry.day === dayNumber);
@@ -968,7 +1062,7 @@ function Footer({
         )}
 
         <label className="signals">
-          <input type="checkbox" checked={signalsOn} onChange={onToggleSignals} />
+          <input name="run-signals" type="checkbox" checked={signalsOn} onChange={onToggleSignals} />
           <span>{SIGNALS_COPY}</span>
         </label>
 

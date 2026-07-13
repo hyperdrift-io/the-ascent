@@ -1,0 +1,90 @@
+{
+  "schema": "https://hyperdrift.io/schemas/edge-recraft-tree/v2",
+  "manifestVersion": "2.0.0",
+  "generatorPath": "../../../../scripts/generate-recraft-asset.mjs",
+  "model": "recraftv4",
+  "size": "1024x1024",
+  "masterPrompt": "Mythic Natural Realism, cinematic square environmental artwork with tactile stone, weather, water, roots, and living light. Create one master composition for node body.stamina; all five capacity states will be deterministic treatments of this exact Recraft scene, so do not encode a capacity state or warning tint in the composition itself. Prompt intent: Render sustained mountain current as the canonical body.stamina environment, preserving a continuous root line climbing the ridge without breaking as the spatial landmark shared with its children. Universal human-capacity force: sustained mountain current. This identity is universal and independent of any aim, goal, profession, or sport. Fractal family: self-similar living mountain watershed; root ridges resolving into vascular river deltas; long contour lines flowing through resilient root fibres. Parent geometry must visibly become child geography rather than a separate icon or panel. Inherited parent visual DNA: edge: living convergence of breath, tide, stone, canopy, weather, and relationship; self-similar living mountain watershed; anchor a luminous watershed spiral held at the living mountain heart | body: tectonic vitality; self-similar living mountain watershed; root ridges resolving into vascular river deltas; anchor a forked river vein crossing a basalt ridge. Transition anchor: preserve and clarify a continuous root line climbing the ridge without breaking. Neutral master palette: basalt black, lichen green, quartz lavender, warm natural gold, balanced full tonal range suitable for later cool, clear, amber, and controlled-crimson grading. Accessibility purpose: Describe the body.stamina environment as a non-diagnostic natural process whose identity and capacity state remain understandable without relying on colour. Pipeline intent 2.0.0: Generate one universal, text-free Mythic Natural Realism composition whose inherited landmark remains spatially stable across all deterministic capacity-state treatments. Single immersive natural world, inspectable detail, coherent central landmark, no decorative bokeh, no gradient blobs. No embedded text, numbers, or logos. No interface, cards, frames, badges, charts, people, faces, medical symbols, diagnoses, or aim-specific objects.",
+  "promptTemplateVersion": "2.0.0",
+  "promptIntent": "Render sustained mountain current as the canonical body.stamina environment, preserving a continuous root line climbing the ridge without breaking as the spatial landmark shared with its children.",
+  "accessibilityPurpose": "Describe the body.stamina environment as a non-diagnostic natural process whose identity and capacity state remain understandable without relying on colour.",
+  "stateStrategy": "one Recraft master composition per node, with every requested capacity state derived deterministically from that exact master",
+  "masterSha256": "0e816d58b70fc6060a83ce5157f5a25f0e878ff9524b9082c2c1b3f9324dcaca",
+  "stateMappings": {
+    "quiet": {
+      "output": "public/assets/edge/body.stamina/quiet.webp",
+      "outputSha256": "cbe5a01b5ab43a522a92ae6bbebc0f0252c1bc25b445c7f7867c08f003e0f5fa",
+      "treatment": {
+        "intent": "cool open equilibrium",
+        "magickArgs": [
+          "-modulate",
+          "92,62,100"
+        ]
+      },
+      "masterSha256": "0e816d58b70fc6060a83ce5157f5a25f0e878ff9524b9082c2c1b3f9324dcaca",
+      "lineage": "derived-from-this-master"
+    },
+    "available": {
+      "output": "public/assets/edge/body.stamina/available.webp",
+      "outputSha256": "09633ff931e8f5686ee94dda365d468ae1ac2a0a9aa72cd624f956ead3005d7e",
+      "treatment": {
+        "intent": "natural balanced readiness",
+        "magickArgs": [
+          "-modulate",
+          "100,82,100"
+        ]
+      },
+      "masterSha256": "0e816d58b70fc6060a83ce5157f5a25f0e878ff9524b9082c2c1b3f9324dcaca",
+      "lineage": "derived-from-this-master"
+    },
+    "edge": {
+      "output": "public/assets/edge/body.stamina/edge.webp",
+      "outputSha256": "322aba1fad1654d3be6811c6a84b0da330fad5981c771c0422770a9957350681",
+      "treatment": {
+        "intent": "luminous high-capacity focus",
+        "magickArgs": [
+          "-modulate",
+          "106,90,100",
+          "-contrast-stretch",
+          "1%x1%"
+        ]
+      },
+      "masterSha256": "0e816d58b70fc6060a83ce5157f5a25f0e878ff9524b9082c2c1b3f9324dcaca",
+      "lineage": "derived-from-this-master"
+    },
+    "loaded": {
+      "output": "public/assets/edge/body.stamina/loaded.webp",
+      "outputSha256": "6e08502a0766e2f58a287ffe35eb628086b23d89cf0a14ed76fa67070be66504",
+      "treatment": {
+        "intent": "compressed demand with amber warning",
+        "magickArgs": [
+          "-modulate",
+          "90,84,100",
+          "-fill",
+          "#ad782f",
+          "-colorize",
+          "12"
+        ]
+      },
+      "masterSha256": "0e816d58b70fc6060a83ce5157f5a25f0e878ff9524b9082c2c1b3f9324dcaca",
+      "lineage": "derived-from-this-master"
+    },
+    "overloaded": {
+      "output": "public/assets/edge/body.stamina/overloaded.webp",
+      "outputSha256": "d94bd5cf502d54c96ff699c08da478e60bc4d6887f1e205350707aaebc28ed08",
+      "treatment": {
+        "intent": "controlled crimson demand threshold",
+        "magickArgs": [
+          "-modulate",
+          "78,105,100",
+          "-fill",
+          "#9b1f2b",
+          "-colorize",
+          "28"
+        ]
+      },
+      "masterSha256": "0e816d58b70fc6060a83ce5157f5a25f0e878ff9524b9082c2c1b3f9324dcaca",
+      "lineage": "derived-from-this-master"
+    }
+  }
+}

@@ -226,6 +226,10 @@ textarea:focus {
   background: var(--night);
 }
 
+.weekrun-surface {
+  min-height: 100vh;
+}
+
 .bg {
   position: absolute;
   inset: 0;
@@ -332,8 +336,8 @@ textarea:focus {
 .lock-chip {
   position: absolute;
   z-index: 3;
-  left: var(--x);
-  top: var(--y);
+  left: 50%;
+  top: 20%;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -349,6 +353,10 @@ textarea:focus {
   transform: translate(-50%, -50%);
   white-space: nowrap;
 }
+
+.lock-chip.anchor-one { left: 26%; top: 16%; }
+.lock-chip.anchor-two { left: 62%; top: 21%; }
+.lock-chip.anchor-three { left: 56%; top: 29%; }
 
 .lock-chip.dim {
   color: rgba(220, 228, 240, 0.7);
@@ -374,8 +382,8 @@ textarea:focus {
 .player-light {
   position: absolute;
   z-index: 3;
-  left: var(--px);
-  top: var(--py);
+  left: 47.5%;
+  top: 55.5%;
   width: 11px;
   height: 11px;
   border-radius: 50%;
@@ -385,6 +393,18 @@ textarea:focus {
   animation: breathe 3.6s ease-in-out infinite;
   transition: left 0.9s ease, top 0.9s ease;
 }
+
+.player-light.at-0 { left: 44%; top: 78%; }
+.player-light.at-10 { left: 44.7%; top: 73.5%; }
+.player-light.at-20 { left: 45.4%; top: 69%; }
+.player-light.at-30 { left: 46.1%; top: 64.5%; }
+.player-light.at-40 { left: 46.8%; top: 60%; }
+.player-light.at-50 { left: 47.5%; top: 55.5%; }
+.player-light.at-60 { left: 48.2%; top: 51%; }
+.player-light.at-70 { left: 48.9%; top: 46.5%; }
+.player-light.at-80 { left: 49.6%; top: 42%; }
+.player-light.at-90 { left: 50.3%; top: 37.5%; }
+.player-light.at-100 { left: 51%; top: 33%; }
 
 .mountain[data-state="night"] .lock-chip,
 .mountain[data-state="send"] .lock-chip,
@@ -415,22 +435,26 @@ textarea:focus {
   letter-spacing: 0.12em;
 }
 
-.readiness .bar {
+.readiness progress.readiness-progress {
   flex: 1 1 120px;
   max-width: 170px;
-  height: 3px;
+  height: 4px;
   background: rgba(242, 232, 213, 0.22);
   border-radius: 2px;
-  overflow: hidden;
+  appearance: none;
+  border: 0;
 }
 
-.readiness .bar i {
-  display: block;
-  height: 100%;
-  width: var(--w, 0%);
+.readiness progress.readiness-progress::-webkit-progress-bar {
+  background: rgba(242, 232, 213, 0.22);
+}
+
+.readiness progress.readiness-progress::-webkit-progress-value {
   background: linear-gradient(90deg, var(--gold), var(--gold-bright));
-  border-radius: 2px;
-  transition: width 0.9s ease;
+}
+
+.readiness progress.readiness-progress::-moz-progress-bar {
+  background: var(--gold-bright);
 }
 
 .run-status {
@@ -504,7 +528,7 @@ textarea:focus {
 .resource-meter .meter-bar .tick {
   position: absolute;
   top: -1.5px;
-  left: var(--at, 50%);
+  left: 50%;
   width: 2px;
   height: 6px;
   transform: translateX(-50%);
@@ -512,13 +536,27 @@ textarea:focus {
   background: rgba(255, 236, 190, 0.75);
 }
 
-.resource-meter .meter-bar i {
+.resource-meter .meter-bar .tick-45 { left: 45%; }
+.resource-meter .meter-bar .tick-55 { left: 55%; }
+.resource-meter .meter-bar .tick-60 { left: 60%; }
+
+.resource-meter .meter-bar progress {
   display: block;
   height: 100%;
-  width: var(--w, 0%);
-  background: rgba(242, 232, 213, 0.72);
+  width: 100%;
+  appearance: none;
+  border: 0;
+  background: transparent;
   border-radius: 2px;
-  transition: width 0.9s ease;
+}
+
+.resource-meter .meter-bar progress::-webkit-progress-bar {
+  background: rgba(242, 232, 213, 0.16);
+}
+
+.resource-meter .meter-bar progress::-webkit-progress-value,
+.resource-meter .meter-bar progress::-moz-progress-bar {
+  background: rgba(242, 232, 213, 0.72);
 }
 
 .resource-meter .meter-value {
@@ -965,6 +1003,13 @@ button.quiet:hover {
   mix-blend-mode: screen;
 }
 
+.living-light.cool { --tint-hue: -14deg; --tint-warmth: 0.72; }
+.living-light.temperate { --tint-hue: 0deg; --tint-warmth: 1; }
+.living-light.warm { --tint-hue: 14deg; --tint-warmth: 1.12; }
+.living-light.clear { --tint-veil: 0.04; }
+.living-light.open { --tint-veil: 0.18; }
+.living-light.veiled { --tint-veil: 0.32; }
+
 /* ------------------------------------------------- the Edge Line instrument */
 
 /* In-flow by default (aim entry sits it inside the instrument panel); on the mountain it
@@ -1004,31 +1049,28 @@ button.quiet:hover {
   opacity: 0.82;
 }
 
-/* the player's light rides the crest — same breathing language as .player-light */
-.edge-line .edge-marker {
+/* Data-driven SVG geometry keeps the marker and label on the continuous crest. */
+.edge-line .edge-indicator {
   position: absolute;
-  left: var(--m, 50%);
-  top: var(--my, 8px);
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: #fff6e0;
-  box-shadow: 0 0 12px 3px var(--edge-glow);
-  transform: translate(-50%, -50%);
-  animation: breathe 3.6s ease-in-out infinite;
-  transition: left 0.9s ease, top 0.9s ease;
+  inset: 0;
+  width: 100%;
+  height: 32px;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.edge-line .edge-marker {
+  fill: #fff6e0;
+  filter: drop-shadow(0 0 5px var(--edge-glow));
 }
 
 .edge-line .edge-zone {
-  position: absolute;
-  left: var(--m, 50%);
-  top: 21px;
-  transform: translateX(-50%);
+  fill: var(--edge-glow);
   font-size: 9px;
-  letter-spacing: var(--track);
-  color: var(--edge-glow);
-  white-space: nowrap;
-  transition: left 0.9s ease;
+  letter-spacing: 0;
 }
 
 /* Zone luminosity: beauty crests in the Edge zone; strain (redline/overclock) desaturates
@@ -1051,7 +1093,7 @@ button.quiet:hover {
 }
 
 .edge-line[data-zone="edge"] .edge-marker {
-  box-shadow: 0 0 18px 5px var(--edge-glow);
+  filter: drop-shadow(0 0 8px var(--edge-glow));
 }
 
 .edge-line[data-zone="redline"] {
@@ -1118,6 +1160,32 @@ button.quiet:hover {
 .card:disabled:hover {
   transform: none;
   border-color: var(--glass-border);
+}
+
+@media (max-width: 700px) {
+  .mountain {
+    min-height: 100svh;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .mountain > .bottom {
+    position: relative;
+    bottom: auto;
+    padding: 310px 20px 58px;
+  }
+
+  .lock-chip.anchor-one { top: 140px; }
+  .lock-chip.anchor-two { top: 190px; }
+  .lock-chip.anchor-three { top: 245px; }
+
+  .mountain .player-light {
+    top: 286px;
+  }
+
+  .hand-region.locked .hand {
+    display: none;
+  }
 }
 
 /* the scan becomes a focused panel layered over the resting hand, not a full replacement */
@@ -1210,8 +1278,8 @@ button.quiet:hover {
   .ritual .stone-preview,
   .ritual,
   .recon-confirm,
-  .readiness .bar i,
-  .resource-meter .meter-bar i,
+  .readiness progress.readiness-progress,
+  .resource-meter .meter-bar progress,
   .morning-scan,
   .edge-line .edge-marker,
   .edge-line .edge-zone,

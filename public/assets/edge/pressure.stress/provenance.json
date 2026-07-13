@@ -1,0 +1,90 @@
+{
+  "schema": "https://hyperdrift.io/schemas/edge-recraft-tree/v2",
+  "manifestVersion": "2.0.0",
+  "generatorPath": "../../../../scripts/generate-recraft-asset.mjs",
+  "model": "recraftv4",
+  "size": "1024x1024",
+  "masterPrompt": "Mythic Natural Realism, cinematic square environmental artwork with tactile stone, weather, water, roots, and living light. Create one master composition for node pressure.stress; all five capacity states will be deterministic treatments of this exact Recraft scene, so do not encode a capacity state or warning tint in the composition itself. Prompt intent: Render adaptive storm field as the canonical pressure.stress environment, preserving the central spiral cloud boundary tightening into nested storm bands as the spatial landmark shared with its children. Universal human-capacity force: adaptive storm field. This identity is universal and independent of any aim, goal, profession, or sport. Fractal family: self-similar living mountain watershed; mountain weather condensing into nested storm cells; storm cells resolving into branching electrical fields. Parent geometry must visibly become child geography rather than a separate icon or panel. Inherited parent visual DNA: edge: living convergence of breath, tide, stone, canopy, weather, and relationship; self-similar living mountain watershed; anchor a luminous watershed spiral held at the living mountain heart | pressure: storm pressure; self-similar living mountain watershed; mountain weather condensing into nested storm cells; anchor the central spiral cloud boundary. Transition anchor: preserve and clarify the central spiral cloud boundary tightening into nested storm bands. Neutral master palette: mineral grey, moonlit blue, lichen green, mineral amber, warm natural gold, balanced full tonal range suitable for later cool, clear, amber, and controlled-crimson grading. Accessibility purpose: Describe the pressure.stress environment as a non-diagnostic natural process whose identity and capacity state remain understandable without relying on colour. Pipeline intent 2.0.0: Generate one universal, text-free Mythic Natural Realism composition whose inherited landmark remains spatially stable across all deterministic capacity-state treatments. Single immersive natural world, inspectable detail, coherent central landmark, no decorative bokeh, no gradient blobs. No embedded text, numbers, or logos. No interface, cards, frames, badges, charts, people, faces, medical symbols, diagnoses, or aim-specific objects.",
+  "promptTemplateVersion": "2.0.0",
+  "promptIntent": "Render adaptive storm field as the canonical pressure.stress environment, preserving the central spiral cloud boundary tightening into nested storm bands as the spatial landmark shared with its children.",
+  "accessibilityPurpose": "Describe the pressure.stress environment as a non-diagnostic natural process whose identity and capacity state remain understandable without relying on colour.",
+  "stateStrategy": "one Recraft master composition per node, with every requested capacity state derived deterministically from that exact master",
+  "masterSha256": "43ce8db9be07ccb9de22540fa37d5f50f367fb039843cab500f46da77dc0b582",
+  "stateMappings": {
+    "quiet": {
+      "output": "public/assets/edge/pressure.stress/quiet.webp",
+      "outputSha256": "96f5eae98572db0af550811adc91f7c4b4e4fa963786414d4e9b4364ab5609f5",
+      "treatment": {
+        "intent": "cool open equilibrium",
+        "magickArgs": [
+          "-modulate",
+          "92,62,100"
+        ]
+      },
+      "masterSha256": "43ce8db9be07ccb9de22540fa37d5f50f367fb039843cab500f46da77dc0b582",
+      "lineage": "derived-from-this-master"
+    },
+    "available": {
+      "output": "public/assets/edge/pressure.stress/available.webp",
+      "outputSha256": "1658d8c4f17886418b39a0b46722fa68667b3102c59b1f8af3cae83a756f92fd",
+      "treatment": {
+        "intent": "natural balanced readiness",
+        "magickArgs": [
+          "-modulate",
+          "100,82,100"
+        ]
+      },
+      "masterSha256": "43ce8db9be07ccb9de22540fa37d5f50f367fb039843cab500f46da77dc0b582",
+      "lineage": "derived-from-this-master"
+    },
+    "edge": {
+      "output": "public/assets/edge/pressure.stress/edge.webp",
+      "outputSha256": "6eecf0ca4062924085cf3763638e29ff031681bb6c0450508c171a56bc84fc07",
+      "treatment": {
+        "intent": "luminous high-capacity focus",
+        "magickArgs": [
+          "-modulate",
+          "106,90,100",
+          "-contrast-stretch",
+          "1%x1%"
+        ]
+      },
+      "masterSha256": "43ce8db9be07ccb9de22540fa37d5f50f367fb039843cab500f46da77dc0b582",
+      "lineage": "derived-from-this-master"
+    },
+    "loaded": {
+      "output": "public/assets/edge/pressure.stress/loaded.webp",
+      "outputSha256": "0840957f464b3cab1d20938ef67da791d1cb93bf783274185e3c192a0bef931e",
+      "treatment": {
+        "intent": "compressed demand with amber warning",
+        "magickArgs": [
+          "-modulate",
+          "90,84,100",
+          "-fill",
+          "#ad782f",
+          "-colorize",
+          "12"
+        ]
+      },
+      "masterSha256": "43ce8db9be07ccb9de22540fa37d5f50f367fb039843cab500f46da77dc0b582",
+      "lineage": "derived-from-this-master"
+    },
+    "overloaded": {
+      "output": "public/assets/edge/pressure.stress/overloaded.webp",
+      "outputSha256": "dd060dffa359468fbb78ac7258e29e23845bfd5a44aec55db41e3040fdcc25ac",
+      "treatment": {
+        "intent": "controlled crimson demand threshold",
+        "magickArgs": [
+          "-modulate",
+          "78,105,100",
+          "-fill",
+          "#9b1f2b",
+          "-colorize",
+          "28"
+        ]
+      },
+      "masterSha256": "43ce8db9be07ccb9de22540fa37d5f50f367fb039843cab500f46da77dc0b582",
+      "lineage": "derived-from-this-master"
+    }
+  }
+}

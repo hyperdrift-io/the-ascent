@@ -1,0 +1,90 @@
+{
+  "schema": "https://hyperdrift.io/schemas/edge-recraft-tree/v2",
+  "manifestVersion": "2.0.0",
+  "generatorPath": "../../../../scripts/generate-recraft-asset.mjs",
+  "model": "recraftv4",
+  "size": "1024x1024",
+  "masterPrompt": "Mythic Natural Realism, cinematic square environmental artwork with tactile stone, weather, water, roots, and living light. Create one master composition for node pressure.stress.anxiety; all five capacity states will be deterministic treatments of this exact Recraft scene, so do not encode a capacity state or warning tint in the composition itself. Prompt intent: Express anxious arousal as weather reaching ahead of itself, preserving useful alertness and avoiding diagnosis, panic imagery, or a trapped figure. Universal human-capacity force: anticipatory wind spiralling ahead of an approaching mountain front. This identity is universal and independent of any aim, goal, profession, or sport. Fractal family: self-similar living mountain watershed; mountain weather condensing into nested storm cells; storm cells resolving into branching electrical fields; fine pressure filaments curving forward from nested storm bands. Parent geometry must visibly become child geography rather than a separate icon or panel. Inherited parent visual DNA: edge: living convergence of breath, tide, stone, canopy, weather, and relationship; self-similar living mountain watershed; anchor a luminous watershed spiral held at the living mountain heart | pressure: storm pressure; self-similar living mountain watershed; mountain weather condensing into nested storm cells; anchor the central spiral cloud boundary | pressure.stress: adaptive storm field; self-similar living mountain watershed; mountain weather condensing into nested storm cells; storm cells resolving into branching electrical fields; anchor the central spiral cloud boundary tightening into nested storm bands. Transition anchor: preserve and clarify the central spiral cloud boundary extending into three forward-reaching wind arcs. Neutral master palette: mineral grey, moonlit blue, river steel, warm natural gold, balanced full tonal range suitable for later cool, clear, amber, and controlled-crimson grading. Accessibility purpose: Describe the pressure.stress.anxiety environment as a non-diagnostic natural process whose identity and capacity state remain understandable without relying on colour. Pipeline intent 2.0.0: Generate one universal, text-free Mythic Natural Realism composition whose inherited landmark remains spatially stable across all deterministic capacity-state treatments. Single immersive natural world, inspectable detail, coherent central landmark, no decorative bokeh, no gradient blobs. No embedded text, numbers, or logos. No interface, cards, frames, badges, charts, people, faces, medical symbols, diagnoses, or aim-specific objects.",
+  "promptTemplateVersion": "2.0.0",
+  "promptIntent": "Express anxious arousal as weather reaching ahead of itself, preserving useful alertness and avoiding diagnosis, panic imagery, or a trapped figure.",
+  "accessibilityPurpose": "Describe the pressure.stress.anxiety environment as a non-diagnostic natural process whose identity and capacity state remain understandable without relying on colour.",
+  "stateStrategy": "one Recraft master composition per node, with every requested capacity state derived deterministically from that exact master",
+  "masterSha256": "83bba185fc3d1e6f441cfc0051320a93668e0a2e1a85dacded5826eb153aefc1",
+  "stateMappings": {
+    "quiet": {
+      "output": "public/assets/edge/pressure.stress.anxiety/quiet.webp",
+      "outputSha256": "c011a0767f59dc5fec9d10efb1db44340dc7ecbcb81f5f0aa0e39e5e62dd8c2e",
+      "treatment": {
+        "intent": "cool open equilibrium",
+        "magickArgs": [
+          "-modulate",
+          "92,62,100"
+        ]
+      },
+      "masterSha256": "83bba185fc3d1e6f441cfc0051320a93668e0a2e1a85dacded5826eb153aefc1",
+      "lineage": "derived-from-this-master"
+    },
+    "available": {
+      "output": "public/assets/edge/pressure.stress.anxiety/available.webp",
+      "outputSha256": "97e1eb5105ef11c3cde3e1afaf887085a8fdecdd00d23fefaacff52c86312a49",
+      "treatment": {
+        "intent": "natural balanced readiness",
+        "magickArgs": [
+          "-modulate",
+          "100,82,100"
+        ]
+      },
+      "masterSha256": "83bba185fc3d1e6f441cfc0051320a93668e0a2e1a85dacded5826eb153aefc1",
+      "lineage": "derived-from-this-master"
+    },
+    "edge": {
+      "output": "public/assets/edge/pressure.stress.anxiety/edge.webp",
+      "outputSha256": "7d56944ac29b20edeed0c3778cb7be270d5b9ca781c4f2068e7b472f49476e1b",
+      "treatment": {
+        "intent": "luminous high-capacity focus",
+        "magickArgs": [
+          "-modulate",
+          "106,90,100",
+          "-contrast-stretch",
+          "1%x1%"
+        ]
+      },
+      "masterSha256": "83bba185fc3d1e6f441cfc0051320a93668e0a2e1a85dacded5826eb153aefc1",
+      "lineage": "derived-from-this-master"
+    },
+    "loaded": {
+      "output": "public/assets/edge/pressure.stress.anxiety/loaded.webp",
+      "outputSha256": "5cf7b3a6245692f45c8e361633b8cfb44adcb9cfb16f9ddb0f4ee1b2dd0dfc8d",
+      "treatment": {
+        "intent": "compressed demand with amber warning",
+        "magickArgs": [
+          "-modulate",
+          "90,84,100",
+          "-fill",
+          "#ad782f",
+          "-colorize",
+          "12"
+        ]
+      },
+      "masterSha256": "83bba185fc3d1e6f441cfc0051320a93668e0a2e1a85dacded5826eb153aefc1",
+      "lineage": "derived-from-this-master"
+    },
+    "overloaded": {
+      "output": "public/assets/edge/pressure.stress.anxiety/overloaded.webp",
+      "outputSha256": "8da67ad7b7c836216622ce8a97b834a0dde1158bb19c6087b0bf24c6a09c41c7",
+      "treatment": {
+        "intent": "controlled crimson demand threshold",
+        "magickArgs": [
+          "-modulate",
+          "78,105,100",
+          "-fill",
+          "#9b1f2b",
+          "-colorize",
+          "28"
+        ]
+      },
+      "masterSha256": "83bba185fc3d1e6f441cfc0051320a93668e0a2e1a85dacded5826eb153aefc1",
+      "lineage": "derived-from-this-master"
+    }
+  }
+}

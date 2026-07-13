@@ -2,23 +2,11 @@
 // Pure, deterministic state transitions for a weekly "Ascent" toward a summit-gate boss.
 // The UI (Task 3) renders this; nothing here touches the DOM except the localStorage helpers.
 
+import { CORE_KPI_IDS, type CoreMetric } from "./edge-kpis";
+
+export type { CoreMetric } from "./edge-kpis";
+
 export type HumanResource = "energy" | "focus" | "composure" | "confidence" | "recovery" | "connection" | "time";
-export type CoreMetric =
-  | "health"
-  | "stamina"
-  | "sleep"
-  | "stress"
-  | "nutrition"
-  | "cardio"
-  | "work"
-  | "commute"
-  | "routine"
-  | "sport"
-  | "rest"
-  | "travel"
-  | "social"
-  | "entertainment"
-  | "family";
 export type RunStatus = "ahead" | "on-target" | "narrow-path" | "route-shift";
 export type CompletionTier = "gold" | "silver" | "spark" | "route-shift";
 export type ProofType = "quick-note" | "photo-video" | "calendar-session" | "wearable-signal" | "honest-check-in";
@@ -75,6 +63,7 @@ export interface AimPack {
   cards: MoveCard[];
 }
 export interface MissionRunState {
+  runId: string;
   aim: string;
   packId: AimPack["id"];
   bossName: string;
@@ -116,23 +105,6 @@ export interface RunSummary {
 }
 
 const HUMAN_RESOURCES: HumanResource[] = ["energy", "focus", "composure", "confidence", "recovery", "connection", "time"];
-const CORE_METRICS: CoreMetric[] = [
-  "health",
-  "stamina",
-  "sleep",
-  "stress",
-  "nutrition",
-  "cardio",
-  "work",
-  "commute",
-  "routine",
-  "sport",
-  "rest",
-  "travel",
-  "social",
-  "entertainment",
-  "family",
-];
 
 // -----------------------------------------------------------------------------------------
 // Aim packs
@@ -517,7 +489,7 @@ function defaultResources(value: number): Record<HumanResource, number> {
 }
 
 function defaultCoreMetrics(value: number): Record<CoreMetric, number> {
-  return CORE_METRICS.reduce((acc, key) => {
+  return CORE_KPI_IDS.reduce((acc, key) => {
     acc[key] = value;
     return acc;
   }, {} as Record<CoreMetric, number>);
@@ -602,6 +574,7 @@ export function createMissionRun(
   previousProfile?: PlayerProfile,
   packId?: AimPack["id"],
   todayISO: string = todayLocalISO(),
+  runId: string = createRunId(todayISO),
 ): MissionRunState {
   const pack = packId ? AIM_PACKS.find((candidate) => candidate.id === packId) ?? pickPack(aim) : pickPack(aim);
   const resources = previousProfile ? { ...previousProfile.baselines } : defaultResources(60);
@@ -610,6 +583,7 @@ export function createMissionRun(
   const { edgeLoad, edgeControl, zone } = computeEdge(resources, coreMetrics);
 
   return {
+    runId,
     aim,
     packId: pack.id,
     bossName: pack.bossName,
@@ -634,6 +608,25 @@ export function createMissionRun(
     lastSyncedOn: todayISO,
     syncNote: null,
   };
+}
+
+let runIdSequence = 0;
+
+function createRunId(todayISO: string): string {
+  const uuid = globalThis.crypto?.randomUUID?.();
+  if (uuid) return `weekrun-${uuid}`;
+  runIdSequence += 1;
+  return `weekrun-${todayISO}-${Date.now().toString(36)}-${runIdSequence.toString(36)}`;
+}
+
+function legacyRunId(state: MissionRunState): string {
+  const identity = `${state.startedOn}|${state.packId}|${state.aim}`;
+  let hash = 2166136261;
+  for (let index = 0; index < identity.length; index += 1) {
+    hash ^= identity.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `legacy-${state.startedOn}-${(hash >>> 0).toString(36)}`;
 }
 
 export function resolveMove(state: MissionRunState, input: ResolveInput): MissionRunState {
@@ -1045,23 +1038,33 @@ export function loadRun(todayISO: string = todayLocalISO()): MissionRunState | n
       return null;
     }
     const state = parsed as MissionRunState;
+    let migrated = false;
     // Old saves (`edge.run.v1` from before Morning Scan) never wrote `scannedToday` —
     // missing means the player hasn't scanned yet today.
     if (typeof state.scannedToday !== "boolean") {
       state.scannedToday = false;
+      migrated = true;
     }
     // Old saves (from before calendar binding) never wrote `startedOn`/`lastSyncedOn`/
     // `syncNote` — back-fill a plausible start date from the in-run day counter so
     // `isWeekOver`/`getBossWindowLabel` have something timezone-safe to work with.
     if (typeof state.startedOn !== "string") {
       state.startedOn = addDaysISO(todayISO, -(state.day - 1));
+      migrated = true;
     }
     if (typeof state.lastSyncedOn !== "string") {
       state.lastSyncedOn = todayISO;
+      migrated = true;
     }
     if (state.syncNote === undefined) {
       state.syncNote = null;
+      migrated = true;
     }
+    if (typeof state.runId !== "string" || state.runId.trim().length === 0) {
+      state.runId = legacyRunId(state);
+      migrated = true;
+    }
+    if (migrated) saveRun(state);
     return state;
   } catch {
     return null;
