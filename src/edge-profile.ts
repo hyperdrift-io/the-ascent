@@ -1,4 +1,4 @@
-import type { KpiSearchResult } from "./edge-kpis";
+import { searchKpis, type KpiSearchResult } from "./edge-kpis";
 import type { HumanResource } from "./edge";
 
 export type DailyReading = {
@@ -37,6 +37,8 @@ const HUMAN_RESOURCES: readonly HumanResource[] = [
   "time",
 ];
 
+const CANONICAL_KPI_PATHS = new Set(searchKpis("").map((result) => result.path));
+
 function createBaselines(): Record<HumanResource, number> {
   return HUMAN_RESOURCES.reduce((baselines, resource) => {
     baselines[resource] = 60;
@@ -74,12 +76,24 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function isNonBlankString(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function isCanonicalKpiPath(value: unknown): value is KpiSearchResult["path"] {
+  return typeof value === "string" && CANONICAL_KPI_PATHS.has(value as KpiSearchResult["path"]);
+}
+
 function isReadingHistory(value: unknown): value is EdgeProfile["daily"] {
   if (!isRecord(value)) return false;
 
   return Object.values(value).every((day) => (
-    isRecord(day) && Object.values(day).every((reading) => (
-      typeof reading === "number" && Number.isFinite(reading) && reading >= 0 && reading <= 100
+    isRecord(day) && Object.entries(day).every(([path, reading]) => (
+      isCanonicalKpiPath(path) &&
+      typeof reading === "number" &&
+      Number.isFinite(reading) &&
+      reading >= 0 &&
+      reading <= 100
     ))
   ));
 }
@@ -87,10 +101,10 @@ function isReadingHistory(value: unknown): value is EdgeProfile["daily"] {
 function isRecommendation(value: unknown): value is ConfirmedRecommendation {
   if (!isRecord(value)) return false;
   return (
-    typeof value.date === "string" &&
-    typeof value.aim === "string" &&
+    isNonBlankString(value.date) &&
+    isNonBlankString(value.aim) &&
     Array.isArray(value.paths) &&
-    value.paths.every((path) => typeof path === "string")
+    value.paths.every(isCanonicalKpiPath)
   );
 }
 
@@ -115,7 +129,7 @@ function isEdgeProfile(value: unknown): value is EdgeProfile {
     !Number.isInteger(athletic.completed) ||
     athletic.completed < 0 ||
     !Array.isArray(athletic.runIds) ||
-    !athletic.runIds.every((runId) => typeof runId === "string")
+    !athletic.runIds.every(isNonBlankString)
   ) return false;
 
   const uniqueRunIds = new Set(athletic.runIds);
@@ -138,6 +152,8 @@ function clampReading(value: number): number {
 }
 
 export function saveDailyReading(profile: EdgeProfile, reading: DailyReading): EdgeProfile {
+  if (!isCanonicalKpiPath(reading.path) || !Number.isFinite(reading.value)) return profile;
+
   const next: EdgeProfile = {
     ...profile,
     daily: {
@@ -164,6 +180,8 @@ export function confirmRecommendation(
   profile: EdgeProfile,
   recommendation: ConfirmedRecommendation,
 ): EdgeProfile {
+  if (!isRecommendation(recommendation)) return profile;
+
   const normalized: ConfirmedRecommendation = {
     ...recommendation,
     paths: [...new Set(recommendation.paths)],
@@ -197,6 +215,8 @@ export function setAthleticMode(profile: EdgeProfile, enabled: boolean): EdgePro
 }
 
 export function completeAthleticWeekrun(profile: EdgeProfile, runId: string): EdgeProfile {
+  if (!isNonBlankString(runId)) return profile;
+
   if (!profile.athletic.enabled || profile.athletic.runIds.includes(runId)) {
     persistEdgeProfile(profile);
     return profile;

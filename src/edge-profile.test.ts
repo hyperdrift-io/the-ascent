@@ -79,6 +79,47 @@ describe("Edge profile", () => {
     expect(second.daily["2026-07-13"]["body.health"]).toBe(0);
   });
 
+  it.each([Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY])(
+    "rejects the non-finite reading %s without changing persisted history",
+    (value) => {
+      const stored = saveDailyReading(createEdgeProfile("2026-07-12"), {
+        date: "2026-07-12",
+        path: "recovery.sleep.quality",
+        value: 72,
+      });
+
+      const result = saveDailyReading(stored, {
+        date: "2026-07-13",
+        path: "pressure.stress.anxiety",
+        value,
+      });
+
+      expect(result).toBe(stored);
+      expect(loadEdgeProfile("2026-07-13")).toEqual(stored);
+    },
+  );
+
+  it.each([
+    "pressure/stress/anxiety",
+    "recovery.stress.anxiety",
+    "pressure.stress.invented-signal",
+  ])("rejects the non-canonical daily path %s without persisting it", (path) => {
+    const stored = saveDailyReading(createEdgeProfile("2026-07-12"), {
+      date: "2026-07-12",
+      path: "recovery.sleep.quality",
+      value: 72,
+    });
+
+    const result = saveDailyReading(stored, {
+      date: "2026-07-13",
+      path: path as never,
+      value: 68,
+    });
+
+    expect(result).toBe(stored);
+    expect(loadEdgeProfile("2026-07-13")).toEqual(stored);
+  });
+
   it("confirms normalized recommendations and ignores exact duplicates", () => {
     const profile = createEdgeProfile("2026-07-12");
     const once = confirmRecommendation(profile, {
@@ -116,6 +157,28 @@ describe("Edge profile", () => {
     expect(second.recommendations).toHaveLength(2);
   });
 
+  it.each([
+    ["malformed path", { date: "2026-07-13", paths: ["pressure/stress/anxiety"], aim: "Deliver the talk" }],
+    ["wrong-domain path", { date: "2026-07-13", paths: ["recovery.stress.anxiety"], aim: "Deliver the talk" }],
+    ["invented path", { date: "2026-07-13", paths: ["pressure.stress.invented-signal"], aim: "Deliver the talk" }],
+    ["blank date", { date: "   ", paths: ["pressure.stress.anxiety"], aim: "Deliver the talk" }],
+    ["blank aim", { date: "2026-07-13", paths: ["pressure.stress.anxiety"], aim: "   " }],
+  ])("rejects an invalid recommendation write without persisting it: %s", (_label, recommendation) => {
+    const stored = confirmRecommendation(createEdgeProfile("2026-07-12"), {
+      date: "2026-07-12",
+      paths: ["recovery.sleep.quality"],
+      aim: "Recover well",
+    });
+
+    const result = confirmRecommendation(stored, {
+      ...recommendation,
+      paths: recommendation.paths as never,
+    });
+
+    expect(result).toBe(stored);
+    expect(loadEdgeProfile("2026-07-13")).toEqual(stored);
+  });
+
   it("counts completed Weekruns only in Athletic Mode", () => {
     const defaultProfile = createEdgeProfile("2026-07-12");
     expect(completeAthleticWeekrun(defaultProfile, "run-1").athletic).toEqual({
@@ -137,6 +200,15 @@ describe("Edge profile", () => {
     const once = completeAthleticWeekrun(athletic, "run-1");
 
     expect(completeAthleticWeekrun(once, "run-1").athletic).toEqual(once.athletic);
+  });
+
+  it.each(["", "   "])("rejects the blank Weekrun ID %j without changing persisted history", (runId) => {
+    const athletic = setAthleticMode(createEdgeProfile("2026-07-12"), true);
+
+    const result = completeAthleticWeekrun(athletic, runId);
+
+    expect(result).toBe(athletic);
+    expect(loadEdgeProfile("2026-07-13")).toEqual(athletic);
   });
 
   it("preserves Athletic Mode history while disabled", () => {
@@ -175,6 +247,63 @@ describe("Edge profile", () => {
     ["an invalid profile shape", JSON.stringify({ version: 1, baselines: {} })],
   ])("returns a fresh profile for %s", (_label, stored) => {
     localStorage.setItem(EDGE_PROFILE_KEY, stored);
+
+    expect(loadEdgeProfile("2026-07-13")).toEqual(createEdgeProfile("2026-07-13"));
+  });
+
+  it.each([
+    ["a malformed daily path", {
+      daily: { "2026-07-12": { "pressure/stress/anxiety": 68 } },
+    }],
+    ["a wrong-domain daily path", {
+      daily: { "2026-07-12": { "recovery.stress.anxiety": 68 } },
+    }],
+    ["an invented daily path", {
+      daily: { "2026-07-12": { "pressure.stress.invented-signal": 68 } },
+    }],
+    ["a malformed recommendation path", {
+      recommendations: [{
+        date: "2026-07-12",
+        paths: ["pressure/stress/anxiety"],
+        aim: "Deliver the talk",
+      }],
+    }],
+    ["a wrong-domain recommendation path", {
+      recommendations: [{
+        date: "2026-07-12",
+        paths: ["recovery.stress.anxiety"],
+        aim: "Deliver the talk",
+      }],
+    }],
+    ["an invented recommendation path", {
+      recommendations: [{
+        date: "2026-07-12",
+        paths: ["pressure.stress.invented-signal"],
+        aim: "Deliver the talk",
+      }],
+    }],
+    ["a blank recommendation date", {
+      recommendations: [{
+        date: "   ",
+        paths: ["pressure.stress.anxiety"],
+        aim: "Deliver the talk",
+      }],
+    }],
+    ["a blank recommendation aim", {
+      recommendations: [{
+        date: "2026-07-12",
+        paths: ["pressure.stress.anxiety"],
+        aim: "   ",
+      }],
+    }],
+    ["a blank Weekrun ID", {
+      athletic: { enabled: true, completed: 1, runIds: ["   "] },
+    }],
+  ])("returns a fresh profile for stored state containing %s", (_label, override) => {
+    localStorage.setItem(EDGE_PROFILE_KEY, JSON.stringify({
+      ...createEdgeProfile("2026-07-12"),
+      ...override,
+    }));
 
     expect(loadEdgeProfile("2026-07-13")).toEqual(createEdgeProfile("2026-07-13"));
   });
