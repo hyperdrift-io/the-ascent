@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -94,6 +95,29 @@ function readJsonLines(file) {
   return fs.readFileSync(file, "utf8").trim().split("\n").filter(Boolean).map(JSON.parse);
 }
 
+function sha256(file) {
+  return createHash("sha256").update(fs.readFileSync(file)).digest("hex");
+}
+
+function clearFile(file) {
+  fs.writeFileSync(file, "");
+}
+
+function generateApprovedFamily(assetRoot, env) {
+  const result = runGenerator(["--node", "edge", "--force"], env);
+  expect(result.status, result.stderr).toBe(0);
+  clearFile(env.FAKE_GENERATOR_LOG);
+  clearFile(env.FAKE_MAGICK_LOG);
+  return path.join(assetRoot, "edge");
+}
+
+function singleNodeManifest() {
+  const directory = tempDirectory();
+  const manifestPath = path.join(directory, "edge-only.json");
+  fs.writeFileSync(manifestPath, JSON.stringify({ ...MANIFEST, nodes: [MANIFEST.nodes[0]] }));
+  return manifestPath;
+}
+
 describe("Recraft tree orchestrator dry-run", () => {
   it("plans one master per node and derives every requested state from it", () => {
     const lineage = dryRunEntries("--lineage", "pressure.stress.anxiety");
@@ -132,7 +156,19 @@ describe("Recraft tree orchestrator dry-run", () => {
     expect(normal).toHaveLength(6);
     expect(forced).toHaveLength(6);
     expect(normal.filter((job) => job.type === "derivedOutput").every((job) => job.decision === "skip-existing")).toBe(true);
-    expect(forced.filter((job) => job.type === "derivedOutput").every((job) => job.decision === "generate")).toBe(true);
+    expect(forced.filter((job) => job.type === "derivedOutput").every((job) => job.decision === "generate-family")).toBe(true);
+  });
+
+  it("expands a forced state selector into complete composition families", () => {
+    const entries = dryRunEntries("--state", "quiet", "--force");
+    const masters = entries.filter((job) => job.type === "masterGeneration");
+    const derived = entries.filter((job) => job.type === "derivedOutput");
+
+    expect(masters).toHaveLength(67);
+    expect(derived).toHaveLength(335);
+    expect(derived.filter((job) => job.requested)).toHaveLength(67);
+    expect(derived.filter((job) => job.integrityRequired)).toHaveLength(268);
+    expect(derived.every((job) => job.decision === "generate-family")).toBe(true);
   });
 });
 
@@ -179,18 +215,40 @@ describe("Recraft tree orchestrator safety", () => {
   it("does not overwrite approved files without force", () => {
     const root = tempDirectory();
     const assetRoot = path.join(root, "public/assets/edge");
-    for (const state of STATES) {
-      fs.mkdirSync(path.join(assetRoot, "edge"), { recursive: true });
-      fs.writeFileSync(path.join(assetRoot, "edge", `${state}.webp`), `approved-${state}`);
-    }
     const env = fakeEnvironment(assetRoot);
+    const nodeRoot = generateApprovedFamily(assetRoot, env);
     const result = runGenerator(["--node", "edge"], env);
     expect(result.status, result.stderr).toBe(0);
     expect(readJsonLines(env.FAKE_GENERATOR_LOG)).toHaveLength(0);
     for (const state of STATES) {
-      expect(fs.readFileSync(path.join(assetRoot, "edge", `${state}.webp`), "utf8")).toBe(`approved-${state}`);
+      expect(fs.existsSync(path.join(nodeRoot, `${state}.webp`))).toBe(true);
     }
   });
+
+  it.each(["tampered output", "partial family", "stale provenance"])(
+    "rejects a %s before invoking Recraft unless force is explicit",
+    (failure) => {
+      const root = tempDirectory();
+      const assetRoot = path.join(root, "public/assets/edge");
+      const env = fakeEnvironment(assetRoot);
+      const nodeRoot = generateApprovedFamily(assetRoot, env);
+
+      if (failure === "tampered output") fs.appendFileSync(path.join(nodeRoot, "quiet.webp"), "tampered");
+      if (failure === "partial family") fs.rmSync(path.join(nodeRoot, "available.webp"));
+      if (failure === "stale provenance") {
+        const provenancePath = path.join(nodeRoot, "provenance.json");
+        const provenance = JSON.parse(fs.readFileSync(provenancePath, "utf8"));
+        provenance.manifestVersion = "1.0.0";
+        fs.writeFileSync(provenancePath, JSON.stringify(provenance));
+      }
+
+      const result = runGenerator(["--node", "edge"], env);
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain("asset family integrity");
+      expect(readJsonLines(env.FAKE_GENERATOR_LOG)).toHaveLength(0);
+      expect(fs.readdirSync(path.dirname(assetRoot)).filter((name) => name.includes("staging"))).toEqual([]);
+    },
+  );
 
   it("publishes five derived states from one exact master with complete provenance", () => {
     const root = tempDirectory();
@@ -216,7 +274,35 @@ describe("Recraft tree orchestrator safety", () => {
     expect(provenance.masterSha256).toMatch(/^[a-f0-9]{64}$/);
     expect(Object.keys(provenance.stateMappings)).toEqual(STATES);
     expect(Object.values(provenance.stateMappings).every((mapping) => mapping.masterSha256 === provenance.masterSha256)).toBe(true);
-    expect(Object.values(provenance.stateMappings).every((mapping) => mapping.output.startsWith("public/assets/edge/"))).toBe(true);
-    expect(Object.values(provenance.stateMappings).every((mapping) => !path.isAbsolute(mapping.output))).toBe(true);
+    for (const state of STATES) {
+      const mapping = provenance.stateMappings[state];
+      expect(mapping.output).toBe(`public/assets/edge/edge/${state}.webp`);
+      expect(path.isAbsolute(mapping.output)).toBe(false);
+      expect(mapping.outputSha256).toBe(sha256(path.join(assetRoot, "edge", `${state}.webp`)));
+    }
+  });
+
+  it("regenerates all five companions for a forced state selector", () => {
+    const root = tempDirectory();
+    const assetRoot = path.join(root, "public/assets/edge");
+    const env = { ...fakeEnvironment(assetRoot), EDGE_TREE_MANIFEST_PATH: singleNodeManifest() };
+    const result = runGenerator(["--state", "quiet", "--force"], env);
+
+    expect(result.status, result.stderr).toBe(0);
+    expect(readJsonLines(env.FAKE_GENERATOR_LOG)).toHaveLength(1);
+    expect(readJsonLines(env.FAKE_MAGICK_LOG)).toHaveLength(5);
+    const provenance = JSON.parse(fs.readFileSync(path.join(assetRoot, "edge/provenance.json"), "utf8"));
+    expect(Object.keys(provenance.stateMappings)).toEqual(STATES);
+  });
+
+  it("commits verifiable hashes for every current vertical-slice output", () => {
+    for (const nodeId of ["edge", "pressure", "pressure.stress", "pressure.stress.anxiety"]) {
+      const nodeRoot = path.join(APP_ROOT, "public/assets/edge", nodeId);
+      const provenance = JSON.parse(fs.readFileSync(path.join(nodeRoot, "provenance.json"), "utf8"));
+      for (const state of STATES) {
+        expect(provenance.stateMappings[state].output).toBe(`public/assets/edge/${nodeId}/${state}.webp`);
+        expect(provenance.stateMappings[state].outputSha256).toBe(sha256(path.join(nodeRoot, `${state}.webp`)));
+      }
+    }
   });
 });

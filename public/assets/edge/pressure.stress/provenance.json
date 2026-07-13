@@ -13,6 +13,7 @@
   "stateMappings": {
     "quiet": {
       "output": "public/assets/edge/pressure.stress/quiet.webp",
+      "outputSha256": "96f5eae98572db0af550811adc91f7c4b4e4fa963786414d4e9b4364ab5609f5",
       "treatment": {
         "intent": "cool open equilibrium",
         "magickArgs": [
@@ -25,6 +26,7 @@
     },
     "available": {
       "output": "public/assets/edge/pressure.stress/available.webp",
+      "outputSha256": "1658d8c4f17886418b39a0b46722fa68667b3102c59b1f8af3cae83a756f92fd",
       "treatment": {
         "intent": "natural balanced readiness",
         "magickArgs": [
@@ -37,6 +39,7 @@
     },
     "edge": {
       "output": "public/assets/edge/pressure.stress/edge.webp",
+      "outputSha256": "6eecf0ca4062924085cf3763638e29ff031681bb6c0450508c171a56bc84fc07",
       "treatment": {
         "intent": "luminous high-capacity focus",
         "magickArgs": [
@@ -51,6 +54,7 @@
     },
     "loaded": {
       "output": "public/assets/edge/pressure.stress/loaded.webp",
+      "outputSha256": "0840957f464b3cab1d20938ef67da791d1cb93bf783274185e3c192a0bef931e",
       "treatment": {
         "intent": "compressed demand with amber warning",
         "magickArgs": [
@@ -67,6 +71,7 @@
     },
     "overloaded": {
       "output": "public/assets/edge/pressure.stress/overloaded.webp",
+      "outputSha256": "dd060dffa359468fbb78ac7258e29e23845bfd5a44aec55db41e3040fdcc25ac",
       "treatment": {
         "intent": "controlled crimson demand threshold",
         "magickArgs": [

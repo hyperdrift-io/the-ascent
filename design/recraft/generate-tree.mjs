@@ -5,6 +5,7 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { isDeepStrictEqual } from "node:util";
 import { fileURLToPath } from "node:url";
 
 const scriptPath = fileURLToPath(import.meta.url);
@@ -128,15 +129,83 @@ function selectedNodesAndStates(args, nodes) {
 
   return {
     nodes: args.node ? [nodes.get(args.node)] : args.lineage ? lineage(nodes.get(args.lineage), nodes) : [...nodes.values()],
-    states: args.state ? [args.state] : expectedStates,
+    requestedState: args.state,
   };
+}
+
+function stableOutputPath(nodeId, state) {
+  return `public/assets/edge/${nodeId}/${state}.webp`;
+}
+
+function sameValue(left, right) {
+  return isDeepStrictEqual(left, right);
+}
+
+function assessExistingFamily(node, manifest, assetRoot, prompt) {
+  const provenancePath = resolveContainedPath(assetRoot, node.nodeId, "provenance.json");
+  const outputs = Object.fromEntries(expectedStates.map((state) => [
+    state,
+    resolveContainedPath(assetRoot, node.nodeId, `${state}.webp`),
+  ]));
+  const present = [provenancePath, ...Object.values(outputs)].filter((file) => fs.existsSync(file));
+  if (present.length === 0) return { status: "missing", reason: "no approved family exists" };
+  if (present.length !== expectedStates.length + 1) {
+    return { status: "invalid", reason: "the five outputs and provenance file are not all present" };
+  }
+
+  let provenance;
+  try {
+    provenance = JSON.parse(fs.readFileSync(provenancePath, "utf8"));
+  } catch (error) {
+    return { status: "invalid", reason: `provenance is not valid JSON: ${error.message}` };
+  }
+
+  const identityChecks = [
+    [provenance.schema === manifest.schema, "schema"],
+    [provenance.manifestVersion === manifest.version, "manifest version"],
+    [provenance.generatorPath === manifest.generator.path, "generator path"],
+    [provenance.model === manifest.generator.model, "model"],
+    [provenance.size === manifest.generator.size, "size"],
+    [provenance.masterPrompt === prompt, "master prompt"],
+    [provenance.promptTemplateVersion === manifest.generator.promptTemplateVersion, "prompt template version"],
+    [provenance.promptIntent === node.promptIntent, "prompt intent"],
+    [provenance.accessibilityPurpose === node.accessibilityPurpose, "accessibility purpose"],
+    [provenance.stateStrategy === manifest.generator.masterStrategy, "state strategy"],
+    [/^[a-f0-9]{64}$/.test(provenance.masterSha256 ?? ""), "master SHA-256"],
+    [sameValue(Object.keys(provenance.stateMappings ?? {}), expectedStates), "state mappings"],
+  ];
+  const staleIdentity = identityChecks.find(([matches]) => !matches);
+  if (staleIdentity) return { status: "invalid", reason: `provenance ${staleIdentity[1]} does not match the current manifest` };
+
+  for (const state of expectedStates) {
+    const mapping = provenance.stateMappings[state];
+    if (mapping.output !== stableOutputPath(node.nodeId, state)) {
+      return { status: "invalid", reason: `${state} output path is not portable` };
+    }
+    if (!sameValue(mapping.treatment, manifest.generator.stateTreatment[state])) {
+      return { status: "invalid", reason: `${state} treatment does not match the current manifest` };
+    }
+    if (mapping.masterSha256 !== provenance.masterSha256 || mapping.lineage !== "derived-from-this-master") {
+      return { status: "invalid", reason: `${state} master lineage does not match provenance` };
+    }
+    if (!/^[a-f0-9]{64}$/.test(mapping.outputSha256 ?? "") || mapping.outputSha256 !== sha256(outputs[state])) {
+      return { status: "invalid", reason: `${state} output SHA-256 does not match the approved WebP` };
+    }
+  }
+  return { status: "valid", reason: "all five outputs match current provenance and SHA-256 hashes" };
 }
 
 export function planInvocation(args, manifest, nodes, assetRoot) {
   const selection = selectedNodesAndStates(args, nodes);
   return selection.nodes.map((node) => {
     const provenance = resolveContainedPath(assetRoot, node.nodeId, "provenance.json");
-    const derived = selection.states.map((state) => {
+    const prompt = masterPromptFor(node, nodes, manifest);
+    const familyIntegrity = assessExistingFamily(node, manifest, assetRoot, prompt);
+    if (familyIntegrity.status === "invalid" && !args.force) {
+      throw new Error(`Existing Edge asset family integrity failed for ${node.nodeId}: ${familyIntegrity.reason}. Use --force to regenerate all five states atomically.`);
+    }
+    const decision = args.force || familyIntegrity.status === "missing" ? "generate-family" : "skip-existing";
+    const derived = expectedStates.map((state) => {
       const output = resolveContainedPath(assetRoot, node.nodeId, `${state}.webp`);
       return {
         type: "derivedOutput",
@@ -146,11 +215,13 @@ export function planInvocation(args, manifest, nodes, assetRoot) {
         output,
         provenance,
         stateTreatment: manifest.generator.stateTreatment[state],
-        decision: !args.force && fs.existsSync(output) ? "skip-existing" : "generate",
+        decision,
+        requested: selection.requestedState === null || selection.requestedState === state,
+        integrityRequired: selection.requestedState !== null && selection.requestedState !== state,
+        familyIntegrity,
         force: args.force,
       };
     });
-    const willGenerate = derived.some((job) => job.decision === "generate");
     return {
       node,
       master: {
@@ -158,12 +229,14 @@ export function planInvocation(args, manifest, nodes, assetRoot) {
         nodeId: node.nodeId,
         stagingOutputPattern: path.join(path.dirname(assetRoot), ".edge-tree-staging-<invocation>", "masters", `${node.nodeId}.webp`),
         provenance,
-        prompt: masterPromptFor(node, nodes, manifest),
+        prompt,
         promptIntent: node.promptIntent,
         model: manifest.generator.model,
         size: manifest.generator.size,
         masterStrategy: manifest.generator.masterStrategy,
-        decision: willGenerate ? "generate" : "skip-existing",
+        decision,
+        requestedState: selection.requestedState,
+        familyIntegrity,
         force: args.force,
       },
       derived,
@@ -215,13 +288,14 @@ function sha256(file) {
   return createHash("sha256").update(fs.readFileSync(file)).digest("hex");
 }
 
-function writeProvenance(file, nodePlan, manifest, masterFile, generatedJobs) {
+function writeProvenance(file, nodePlan, manifest, masterFile, stagedTree) {
   const masterSha256 = sha256(masterFile);
   const stateMappings = Object.fromEntries(nodePlan.derived.map((job) => [job.state, {
-    output: `public/assets/edge/${nodePlan.node.id}/${job.state}.webp`,
+    output: stableOutputPath(nodePlan.node.nodeId, job.state),
+    outputSha256: sha256(resolveContainedPath(stagedTree, nodePlan.node.nodeId, `${job.state}.webp`)),
     treatment: job.stateTreatment,
-    masterSha256: generatedJobs.includes(job) ? masterSha256 : null,
-    lineage: generatedJobs.includes(job) ? "derived-from-this-master" : "existing-approved-output",
+    masterSha256,
+    lineage: "derived-from-this-master",
   }]));
   const provenance = {
     schema: manifest.schema,
@@ -255,7 +329,7 @@ function publishStagedTree(stagedTree, assetRoot, stagingRoot) {
 }
 
 export function executeInvocation(plans, manifest, assetRoot) {
-  const generating = plans.filter((plan) => plan.master.decision === "generate");
+  const generating = plans.filter((plan) => plan.master.decision === "generate-family");
   if (generating.length === 0) return;
   invariant(process.env.RECRAFT_API_KEY, "Set RECRAFT_API_KEY in the environment");
 
@@ -280,8 +354,7 @@ export function executeInvocation(plans, manifest, assetRoot) {
       );
       validateImage(masterFile, magick, manifest.generator.size);
 
-      const generatedJobs = plan.derived.filter((job) => job.decision === "generate");
-      for (const job of generatedJobs) {
+      for (const job of plan.derived) {
         const stagedOutput = resolveContainedPath(stagedTree, plan.node.nodeId, `${job.state}.webp`);
         fs.mkdirSync(path.dirname(stagedOutput), { recursive: true });
         runCommand(
@@ -294,7 +367,7 @@ export function executeInvocation(plans, manifest, assetRoot) {
 
       const stagedProvenance = resolveContainedPath(stagedTree, plan.node.nodeId, "provenance.json");
       fs.mkdirSync(path.dirname(stagedProvenance), { recursive: true });
-      writeProvenance(stagedProvenance, plan, manifest, masterFile, generatedJobs);
+      writeProvenance(stagedProvenance, plan, manifest, masterFile, stagedTree);
     }
 
     publishStagedTree(stagedTree, assetRoot, stagingRoot);
