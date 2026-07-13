@@ -5,6 +5,12 @@ import { searchKpis } from "./edge-kpis";
 
 const EXPECTED_STATES = ["quiet", "available", "edge", "loaded", "overloaded"];
 const DOMAIN_IDS = ["body", "recovery", "pressure", "structure", "connection", "renewal"];
+const SUB_KPI_TEMPLATE_PHRASES = [
+  /current within/i,
+  /patterns repeat as finer living geography/i,
+  /resolving into a smaller .* chamber/i,
+  /appears as a natural current around/i,
+];
 
 describe("Edge asset manifest", () => {
   it("inventories exactly the Edge, six domains, fifteen core KPIs, and forty-five sub-KPIs", () => {
@@ -36,11 +42,44 @@ describe("Edge asset manifest", () => {
       expect(node.palette.length).toBeGreaterThanOrEqual(3);
       expect(new Set(node.palette).size).toBe(node.palette.length);
       expect(node.palette.every((colour) => colour.trim().length > 3)).toBe(true);
+      expect(node.palette.join(" ")).not.toMatch(/placeholder|primary|secondary|accent|colou?r\s*\d/i);
       expect(node.transitionAnchor.trim().length).toBeGreaterThan(10);
       expect(node.wikipedia).toMatch(/^https:\/\/en\.wikipedia\.org\/wiki\//);
       expect(node.states).toEqual(EXPECTED_STATES);
       expect(node.alt.trim().length).toBeGreaterThan(20);
       expect(node.alt.toLowerCase()).not.toMatch(/\byou\b/);
+      expect(node.promptIntent.trim().length).toBeGreaterThan(30);
+      expect(node.accessibilityPurpose.trim().length).toBeGreaterThan(30);
+    }
+  });
+
+  it("declares reproducible generator and accessibility provenance", () => {
+    expect(manifest.schema).toBe("https://hyperdrift.io/schemas/edge-recraft-tree/v2");
+    expect(manifest.version).toMatch(/^2\./);
+    expect(manifest.generator.path).toBe("../../../scripts/generate-recraft-asset.mjs");
+    expect(manifest.generator.model).toBe("recraftv4");
+    expect(manifest.generator.size).toBe("1024x1024");
+    expect(manifest.generator.masterStrategy).toContain("one Recraft master composition per node");
+    expect(manifest.generator.promptTemplateVersion).toMatch(/^2\./);
+    expect(manifest.generator.promptTemplateIntent.length).toBeGreaterThan(40);
+    expect(manifest.generator.outputPattern).toBe("public/assets/edge/{nodeId}/{state}.webp");
+    expect(Object.keys(manifest.generator.stateTreatment)).toEqual(EXPECTED_STATES);
+    expect(manifest.generator.accessibilityPurpose.length).toBeGreaterThan(40);
+  });
+
+  it("authors every sub-KPI as a distinct natural process rather than a label template", () => {
+    const subKpis = manifest.nodes.filter((node) => node.nodeId.split(".").length === 3);
+    expect(subKpis).toHaveLength(45);
+
+    for (const node of subKpis) {
+      const authoredFields = [node.force, node.fractalFamily, node.transitionAnchor, node.alt];
+      for (const field of authoredFields) {
+        for (const phrase of SUB_KPI_TEMPLATE_PHRASES) expect(field).not.toMatch(phrase);
+      }
+    }
+
+    for (const field of ["force", "fractalFamily", "transitionAnchor", "alt", "promptIntent"] as const) {
+      expect(new Set(subKpis.map((node) => node[field].trim().toLowerCase())).size).toBe(subKpis.length);
     }
   });
 
@@ -60,15 +99,15 @@ describe("getEdgeAsset", () => {
     expect(getEdgeAsset("pressure.stress.anxiety", "loaded")).toEqual({
       src: "/assets/edge/pressure.stress.anxiety/loaded.webp",
       parentId: "pressure.stress",
-      transitionAnchor: "the central spiral cloud boundary tightening into nested storm bands",
-      alt: "Storm pressure gathers around a nested spiral cloud boundary.",
+      transitionAnchor: "the central spiral cloud boundary extending into three forward-reaching wind arcs",
+      alt: "Fine anticipatory winds reach ahead from a nested spiral storm boundary.",
     });
   });
 
   it("uses useful scene descriptions without diagnosing the person", () => {
     const alt = getEdgeAsset("pressure.stress.anxiety", "overloaded").alt.toLowerCase();
 
-    expect(alt).toContain("storm pressure");
+    expect(alt).toContain("anticipatory winds");
     expect(alt).not.toContain("anxiety");
     expect(alt).not.toContain("diagnosis");
     expect(alt).not.toContain("you");

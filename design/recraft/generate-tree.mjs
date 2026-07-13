@@ -1,94 +1,96 @@
 #!/usr/bin/env node
 
+import { createHash, randomUUID } from "node:crypto";
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
-import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
+const scriptPath = fileURLToPath(import.meta.url);
+const scriptDirectory = path.dirname(scriptPath);
 const appRoot = path.resolve(scriptDirectory, "../..");
-const manifestPath = path.join(scriptDirectory, "edge-tree.json");
-const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+const defaultManifestPath = path.join(scriptDirectory, "edge-tree.json");
 const expectedStates = ["quiet", "available", "edge", "loaded", "overloaded"];
-const stateDirection = {
-  quiet: "low-intensity equilibrium, open space, cool clear air, the force resting without disappearing",
-  available: "balanced readiness, full natural colour, generous light, the force easy to access",
-  edge: "focused high capacity, stronger contrast and movement, luminous detail at the transition anchor",
-  loaded: "compressed demand, denser weather and shadow, amber mineral warning, capacity still visible",
-  overloaded: "danger threshold, controlled crimson atmospheric wash and tightened space, never gore or judgment",
-};
+const safeNodeId = /^[a-z][a-z0-9-]*(?:\.[a-z][a-z0-9-]*)*$/;
 
-function fail(message) {
-  process.stderr.write(`${message}\n`);
-  process.exit(1);
+function invariant(condition, message) {
+  if (!condition) throw new Error(message);
 }
 
-function parseArgs(argv) {
-  const result = { node: null, state: null, lineage: null, all: false, dryRun: false };
-  for (let index = 0; index < argv.length; index += 1) {
-    const token = argv[index];
-    if (token === "--dry-run") result.dryRun = true;
-    else if (token === "--all") result.all = true;
-    else if (["--node", "--state", "--lineage"].includes(token)) {
-      const value = argv[index + 1];
-      if (!value || value.startsWith("--")) fail(`Missing value for ${token}`);
-      result[token.slice(2)] = value;
-      index += 1;
-    } else fail(`Unknown argument: ${token}`);
+export function resolveContainedPath(root, ...segments) {
+  const resolvedRoot = path.resolve(root);
+  const resolved = path.resolve(resolvedRoot, ...segments);
+  invariant(
+    resolved === resolvedRoot || resolved.startsWith(`${resolvedRoot}${path.sep}`),
+    `Unsafe output path outside ${resolvedRoot}: ${resolved}`,
+  );
+  return resolved;
+}
+
+export function validateManifestData(manifest, assetRoot) {
+  invariant(manifest && Array.isArray(manifest.nodes), "Invalid Edge asset manifest");
+  invariant(manifest.schema === "https://hyperdrift.io/schemas/edge-recraft-tree/v2", "Invalid Edge asset manifest schema");
+  invariant(typeof manifest.version === "string" && /^2\./.test(manifest.version), "Invalid Edge asset manifest version");
+  invariant(manifest.generator?.outputPattern === "public/assets/edge/{nodeId}/{state}.webp", "Unsafe output pattern in Edge asset manifest");
+  for (const field of ["path", "model", "size", "masterStrategy", "promptTemplateVersion", "promptTemplateIntent", "accessibilityPurpose"]) {
+    invariant(typeof manifest.generator?.[field] === "string" && manifest.generator[field].trim(), `Missing generator ${field}`);
   }
-  return result;
-}
+  invariant(manifest.generator.size === "1024x1024", "Unsupported Recraft master size");
+  invariant(
+    JSON.stringify(Object.keys(manifest.generator.stateTreatment ?? {})) === JSON.stringify(expectedStates),
+    "Invalid state treatment mapping",
+  );
 
-function validateManifest() {
-  if (!manifest || !Array.isArray(manifest.nodes)) fail("Invalid Edge asset manifest");
   const nodes = new Map();
   for (const node of manifest.nodes) {
-    if (!node || typeof node.nodeId !== "string" || nodes.has(node.nodeId)) {
-      fail("Every Edge asset node must have a unique nodeId");
+    invariant(node && typeof node.nodeId === "string" && safeNodeId.test(node.nodeId), `Unsafe Edge nodeId: ${node?.nodeId}`);
+    invariant(!nodes.has(node.nodeId), `Duplicate Edge nodeId: ${node.nodeId}`);
+    for (const field of ["force", "fractalFamily", "transitionAnchor", "wikipedia", "alt", "promptIntent", "accessibilityPurpose"]) {
+      invariant(typeof node[field] === "string" && node[field].trim(), `Missing ${field} for Edge asset node: ${node.nodeId}`);
     }
-    for (const field of ["force", "fractalFamily", "transitionAnchor", "wikipedia", "alt"]) {
-      if (typeof node[field] !== "string" || node[field].trim().length === 0) {
-        fail(`Missing ${field} for Edge asset node: ${node.nodeId}`);
-      }
-    }
-    if (!Array.isArray(node.palette) || node.palette.length < 3) fail(`Missing palette for Edge asset node: ${node.nodeId}`);
-    if (JSON.stringify(node.states) !== JSON.stringify(expectedStates)) fail(`Invalid states for Edge asset node: ${node.nodeId}`);
+    invariant(Array.isArray(node.palette) && node.palette.length >= 3, `Missing palette for Edge asset node: ${node.nodeId}`);
+    invariant(JSON.stringify(node.states) === JSON.stringify(expectedStates), `Invalid states for Edge asset node: ${node.nodeId}`);
+    for (const state of node.states) resolveContainedPath(assetRoot, node.nodeId, `${state}.webp`);
+    resolveContainedPath(assetRoot, node.nodeId, "provenance.json");
     nodes.set(node.nodeId, node);
   }
+
   for (const node of nodes.values()) {
-    if (node.nodeId === "edge") {
-      if (node.parentId !== null) fail("The Edge root cannot have a parent");
-    } else if (!nodes.has(node.parentId)) fail(`Unknown parent for Edge asset node: ${node.nodeId}`);
+    if (node.nodeId === "edge") invariant(node.parentId === null, "The Edge root cannot have a parent");
+    else invariant(nodes.has(node.parentId), `Unknown parent for Edge asset node: ${node.nodeId}`);
   }
   return nodes;
 }
 
-function findWorkspaceGenerator() {
-  const candidates = [];
-  if (process.env.HYPERDRIFT_ROOT) candidates.push(process.env.HYPERDRIFT_ROOT);
-  let current = appRoot;
-  while (true) {
-    candidates.push(current);
-    const parent = path.dirname(current);
-    if (parent === current) break;
-    current = parent;
+export function parseArgs(argv) {
+  const result = { node: null, state: null, lineage: null, all: false, dryRun: false, force: false };
+  for (let index = 0; index < argv.length; index += 1) {
+    const token = argv[index];
+    if (token === "--dry-run") result.dryRun = true;
+    else if (token === "--force") result.force = true;
+    else if (token === "--all") result.all = true;
+    else if (["--node", "--state", "--lineage"].includes(token)) {
+      const value = argv[index + 1];
+      invariant(value && !value.startsWith("--"), `Missing value for ${token}`);
+      result[token.slice(2)] = value;
+      index += 1;
+    } else throw new Error(`Unknown argument: ${token}`);
   }
-  for (const root of candidates) {
-    const candidate = path.join(root, "scripts/generate-recraft-asset.mjs");
-    if (fs.existsSync(candidate)) return candidate;
-  }
-  fail("Could not locate scripts/generate-recraft-asset.mjs");
+  return result;
 }
 
 function lineage(node, nodes) {
   const result = [];
+  const visited = new Set();
   let current = node;
   while (current) {
+    invariant(!visited.has(current.nodeId), `Cyclic lineage for Edge asset node: ${node.nodeId}`);
+    visited.add(current.nodeId);
     result.unshift(current);
     current = current.parentId === null ? null : nodes.get(current.parentId);
   }
-  if (result[0]?.nodeId !== "edge") fail(`Broken lineage for Edge asset node: ${node.nodeId}`);
+  invariant(result[0]?.nodeId === "edge", `Broken lineage for Edge asset node: ${node.nodeId}`);
   return result;
 }
 
@@ -99,92 +101,231 @@ function inheritedDna(node, nodes) {
     .join(" | ") || "root source: the universal living mountain watershed";
 }
 
-function paletteFor(node, state) {
-  if (state === "overloaded") return node.palette;
-  const calmPalette = node.palette.filter((colour) => !/(crimson|coral|rose|ember|arterial)/i.test(colour));
-  return state === "loaded" ? [...calmPalette, "muted amber warning"] : calmPalette;
-}
-
-function promptFor(node, state, nodes) {
+export function masterPromptFor(node, nodes, manifest) {
+  const palette = node.palette.filter((colour) => !/(crimson|coral|rose|ember|arterial)/i.test(colour));
   return [
     "Mythic Natural Realism, cinematic square environmental artwork with tactile stone, weather, water, roots, and living light.",
+    `Create one master composition for node ${node.nodeId}; all five capacity states will be deterministic treatments of this exact Recraft scene, so do not encode a capacity state or warning tint in the composition itself.`,
+    `Prompt intent: ${node.promptIntent}`,
     `Universal human-capacity force: ${node.force}. This identity is universal and independent of any aim, goal, profession, or sport.`,
     `Fractal family: ${node.fractalFamily}. Parent geometry must visibly become child geography rather than a separate icon or panel.`,
     `Inherited parent visual DNA: ${inheritedDna(node, nodes)}.`,
     `Transition anchor: preserve and clarify ${node.transitionAnchor}.`,
-    `State palette: ${paletteFor(node, state).join(", ")}.`,
-    `Capacity state ${state}: ${stateDirection[state]}. Red is a controlled danger wash only in the overloaded state, never a moral judgment.`,
+    `Neutral master palette: ${palette.join(", ")}, warm natural gold, balanced full tonal range suitable for later cool, clear, amber, and controlled-crimson grading.`,
+    `Accessibility purpose: ${node.accessibilityPurpose}`,
+    `Pipeline intent ${manifest.generator.promptTemplateVersion}: ${manifest.generator.promptTemplateIntent}`,
     "Single immersive natural world, inspectable detail, coherent central landmark, no decorative bokeh, no gradient blobs.",
     "No embedded text, numbers, or logos. No interface, cards, frames, badges, charts, people, faces, medical symbols, diagnoses, or aim-specific objects.",
   ].join(" ");
 }
 
-function stateTreatment(state) {
-  if (state === "quiet") return ["-modulate", "92,62,100"];
-  if (state === "available") return ["-modulate", "100,82,100"];
-  if (state === "edge") return ["-modulate", "106,90,100", "-contrast-stretch", "1%x1%"];
-  if (state === "loaded") return ["-modulate", "90,84,100", "-fill", "#ad782f", "-colorize", "12"];
-  return ["-modulate", "78,105,100", "-fill", "#9b1f2b", "-colorize", "28"];
-}
-
-function optimizeWebp(output, state) {
-  const optimized = `${output}.optimized.webp`;
-  const result = spawnSync("magick", [
-    output,
-    "-colorspace", "sRGB",
-    ...stateTreatment(state),
-    "-strip", "-quality", "84", "-define", "webp:method=6",
-    optimized,
-  ], {
-    cwd: appRoot,
-    encoding: "utf8",
-  });
-  if (result.error) fail(`ImageMagick failed for ${output}: ${result.error.message}`);
-  if (result.status !== 0) fail(`ImageMagick failed for ${output}: ${result.stderr.trim()}`);
-  fs.renameSync(optimized, output);
-}
-
-function selections(args, nodes) {
+function selectedNodesAndStates(args, nodes) {
   const selectorCount = Number(Boolean(args.node)) + Number(Boolean(args.state)) + Number(Boolean(args.lineage)) + Number(args.all);
-  if (selectorCount !== 1) fail("Choose exactly one selector: --node, --state, --lineage, or --all");
-  if (args.state && !expectedStates.includes(args.state)) fail(`Unknown Edge state: ${args.state}`);
-  if (args.node && !nodes.has(args.node)) fail(`Unknown Edge node: ${args.node}`);
-  if (args.lineage && !nodes.has(args.lineage)) fail(`Unknown Edge node: ${args.lineage}`);
+  invariant(selectorCount === 1, "Choose exactly one selector: --node, --state, --lineage, or --all");
+  if (args.state) invariant(expectedStates.includes(args.state), `Unknown Edge state: ${args.state}`);
+  if (args.node) invariant(safeNodeId.test(args.node) && nodes.has(args.node), `Unknown Edge node: ${args.node}`);
+  if (args.lineage) invariant(safeNodeId.test(args.lineage) && nodes.has(args.lineage), `Unknown Edge node: ${args.lineage}`);
 
-  const selectedNodes = args.node ? [nodes.get(args.node)]
-    : args.lineage ? lineage(nodes.get(args.lineage), nodes)
-      : [...nodes.values()];
-  const selectedStates = args.state ? [args.state] : expectedStates;
-  return selectedNodes.flatMap((node) => selectedStates.map((state) => ({ node, state })));
+  return {
+    nodes: args.node ? [nodes.get(args.node)] : args.lineage ? lineage(nodes.get(args.lineage), nodes) : [...nodes.values()],
+    states: args.state ? [args.state] : expectedStates,
+  };
 }
 
-const args = parseArgs(process.argv.slice(2));
-const nodes = validateManifest();
-const jobs = selections(args, nodes).map(({ node, state }) => ({
-  nodeId: node.nodeId,
-  state,
-  output: path.join(appRoot, "public/assets/edge", node.nodeId, `${state}.webp`),
-  prompt: promptFor(node, state, nodes),
-  optimization: `state tint ${state}, WebP quality 84, metadata stripped`,
-}));
-
-if (args.dryRun) {
-  for (const job of jobs) process.stdout.write(`${JSON.stringify(job)}\n`);
-  process.exit(0);
-}
-
-if (!process.env.RECRAFT_API_KEY) fail("Set RECRAFT_API_KEY in the environment");
-const generator = findWorkspaceGenerator();
-for (const job of jobs) {
-  fs.mkdirSync(path.dirname(job.output), { recursive: true });
-  const result = spawnSync(process.execPath, [generator, "--output", job.output, "--prompt", job.prompt, "--model", "recraftv4", "--size", "1024x1024"], {
-    cwd: appRoot,
-    env: process.env,
-    encoding: "utf8",
-    stdio: "inherit",
+export function planInvocation(args, manifest, nodes, assetRoot) {
+  const selection = selectedNodesAndStates(args, nodes);
+  return selection.nodes.map((node) => {
+    const provenance = resolveContainedPath(assetRoot, node.nodeId, "provenance.json");
+    const derived = selection.states.map((state) => {
+      const output = resolveContainedPath(assetRoot, node.nodeId, `${state}.webp`);
+      return {
+        type: "derivedOutput",
+        nodeId: node.nodeId,
+        state,
+        masterGeneration: node.nodeId,
+        output,
+        provenance,
+        stateTreatment: manifest.generator.stateTreatment[state],
+        decision: !args.force && fs.existsSync(output) ? "skip-existing" : "generate",
+        force: args.force,
+      };
+    });
+    const willGenerate = derived.some((job) => job.decision === "generate");
+    return {
+      node,
+      master: {
+        type: "masterGeneration",
+        nodeId: node.nodeId,
+        stagingOutputPattern: path.join(path.dirname(assetRoot), ".edge-tree-staging-<invocation>", "masters", `${node.nodeId}.webp`),
+        provenance,
+        prompt: masterPromptFor(node, nodes, manifest),
+        promptIntent: node.promptIntent,
+        model: manifest.generator.model,
+        size: manifest.generator.size,
+        masterStrategy: manifest.generator.masterStrategy,
+        decision: willGenerate ? "generate" : "skip-existing",
+        force: args.force,
+      },
+      derived,
+    };
   });
-  if (result.error) fail(`Recraft generator failed for ${job.nodeId}/${job.state}: ${result.error.message}`);
-  if (result.status !== 0) fail(`Recraft generator failed for ${job.nodeId}/${job.state} with status ${result.status}`);
-  if (!fs.existsSync(job.output) || fs.statSync(job.output).size === 0) fail(`Missing Recraft output: ${job.output}`);
-  optimizeWebp(job.output, job.state);
+}
+
+function findWorkspaceGenerator(manifest) {
+  if (process.env.EDGE_RECRAFT_GENERATOR_PATH) return path.resolve(process.env.EDGE_RECRAFT_GENERATOR_PATH);
+  const candidates = [];
+  if (process.env.HYPERDRIFT_ROOT) candidates.push(path.resolve(process.env.HYPERDRIFT_ROOT));
+  let current = appRoot;
+  while (true) {
+    candidates.push(current);
+    const parent = path.dirname(current);
+    if (parent === current) break;
+    current = parent;
+  }
+  for (const root of candidates) {
+    const candidate = path.resolve(root, manifest.generator.path.replace(/^\.\.\/\.\.\/\.\.\//, ""));
+    if (fs.existsSync(candidate)) return candidate;
+    const canonical = path.join(root, "scripts/generate-recraft-asset.mjs");
+    if (fs.existsSync(canonical)) return canonical;
+  }
+  throw new Error(`Could not locate ${manifest.generator.path}`);
+}
+
+function runCommand(command, args, label) {
+  const result = spawnSync(command, args, { cwd: appRoot, env: process.env, encoding: "utf8" });
+  if (result.error) throw new Error(`${label}: ${result.error.message}`);
+  if (result.status !== 0) throw new Error(`${label} with status ${result.status}: ${result.stderr.trim()}`);
+  return result.stdout;
+}
+
+function validateImage(file, magick, size) {
+  invariant(fs.existsSync(file) && fs.statSync(file).size > 0, `Missing generated image: ${file}`);
+  const details = runCommand(
+    magick,
+    ["identify", "-format", "%m|%wx%h|%[standard-deviation]", file],
+    `Image validation failed for ${file}`,
+  ).trim();
+  const [codec, dimensions, deviation] = details.split("|");
+  invariant(codec === "WEBP", `Invalid codec for ${file}: ${codec}`);
+  invariant(dimensions === size, `Invalid dimensions for ${file}: ${dimensions}`);
+  invariant(Number.isFinite(Number(deviation)) && Number(deviation) > 0.0001, `Blank generated image: ${file}`);
+}
+
+function sha256(file) {
+  return createHash("sha256").update(fs.readFileSync(file)).digest("hex");
+}
+
+function writeProvenance(file, nodePlan, manifest, masterFile, generatedJobs) {
+  const masterSha256 = sha256(masterFile);
+  const stateMappings = Object.fromEntries(nodePlan.derived.map((job) => [job.state, {
+    output: job.output,
+    treatment: job.stateTreatment,
+    masterSha256: generatedJobs.includes(job) ? masterSha256 : null,
+    lineage: generatedJobs.includes(job) ? "derived-from-this-master" : "existing-approved-output",
+  }]));
+  const provenance = {
+    schema: manifest.schema,
+    manifestVersion: manifest.version,
+    generatorPath: manifest.generator.path,
+    model: manifest.generator.model,
+    size: manifest.generator.size,
+    masterPrompt: nodePlan.master.prompt,
+    promptTemplateVersion: manifest.generator.promptTemplateVersion,
+    promptIntent: nodePlan.node.promptIntent,
+    accessibilityPurpose: nodePlan.node.accessibilityPurpose,
+    stateStrategy: manifest.generator.masterStrategy,
+    masterSha256,
+    stateMappings,
+  };
+  fs.writeFileSync(file, `${JSON.stringify(provenance, null, 2)}\n`);
+}
+
+function publishStagedTree(stagedTree, assetRoot, stagingRoot) {
+  const backup = path.join(path.dirname(assetRoot), `.edge-tree-backup-${process.pid}-${randomUUID()}`);
+  const hadOriginal = fs.existsSync(assetRoot);
+  if (hadOriginal) fs.renameSync(assetRoot, backup);
+  try {
+    fs.renameSync(stagedTree, assetRoot);
+  } catch (error) {
+    if (hadOriginal && !fs.existsSync(assetRoot)) fs.renameSync(backup, assetRoot);
+    throw error;
+  }
+  if (hadOriginal) fs.rmSync(backup, { recursive: true, force: true });
+  fs.rmSync(stagingRoot, { recursive: true, force: true });
+}
+
+export function executeInvocation(plans, manifest, assetRoot) {
+  const generating = plans.filter((plan) => plan.master.decision === "generate");
+  if (generating.length === 0) return;
+  invariant(process.env.RECRAFT_API_KEY, "Set RECRAFT_API_KEY in the environment");
+
+  const generator = findWorkspaceGenerator(manifest);
+  const magick = process.env.EDGE_MAGICK_PATH ? path.resolve(process.env.EDGE_MAGICK_PATH) : "magick";
+  const stagingRoot = path.join(path.dirname(assetRoot), `.edge-tree-staging-${process.pid}-${randomUUID()}`);
+  const stagedTree = path.join(stagingRoot, "edge");
+  const masters = path.join(stagingRoot, "masters");
+
+  try {
+    fs.mkdirSync(stagingRoot, { recursive: true });
+    if (fs.existsSync(assetRoot)) fs.cpSync(assetRoot, stagedTree, { recursive: true, preserveTimestamps: true });
+    else fs.mkdirSync(stagedTree, { recursive: true });
+    fs.mkdirSync(masters, { recursive: true });
+
+    for (const plan of generating) {
+      const masterFile = resolveContainedPath(masters, `${plan.node.nodeId}.webp`);
+      runCommand(
+        process.execPath,
+        [generator, "--output", masterFile, "--prompt", plan.master.prompt, "--model", manifest.generator.model, "--size", manifest.generator.size],
+        `Recraft generator failed for ${plan.node.nodeId}`,
+      );
+      validateImage(masterFile, magick, manifest.generator.size);
+
+      const generatedJobs = plan.derived.filter((job) => job.decision === "generate");
+      for (const job of generatedJobs) {
+        const stagedOutput = resolveContainedPath(stagedTree, plan.node.nodeId, `${job.state}.webp`);
+        fs.mkdirSync(path.dirname(stagedOutput), { recursive: true });
+        runCommand(
+          magick,
+          [masterFile, "-colorspace", "sRGB", ...job.stateTreatment.magickArgs, "-strip", "-quality", "84", "-define", "webp:method=6", stagedOutput],
+          `ImageMagick derivation failed for ${plan.node.nodeId}/${job.state}`,
+        );
+        validateImage(stagedOutput, magick, manifest.generator.size);
+      }
+
+      const stagedProvenance = resolveContainedPath(stagedTree, plan.node.nodeId, "provenance.json");
+      fs.mkdirSync(path.dirname(stagedProvenance), { recursive: true });
+      writeProvenance(stagedProvenance, plan, manifest, masterFile, generatedJobs);
+    }
+
+    publishStagedTree(stagedTree, assetRoot, stagingRoot);
+  } finally {
+    fs.rmSync(stagingRoot, { recursive: true, force: true });
+  }
+}
+
+export function main(argv = process.argv.slice(2)) {
+  const args = parseArgs(argv);
+  const manifestPath = process.env.EDGE_TREE_MANIFEST_PATH ? path.resolve(process.env.EDGE_TREE_MANIFEST_PATH) : defaultManifestPath;
+  const assetRoot = process.env.EDGE_ASSET_ROOT ? path.resolve(process.env.EDGE_ASSET_ROOT) : path.join(appRoot, "public/assets/edge");
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+  const nodes = validateManifestData(manifest, assetRoot);
+  const plans = planInvocation(args, manifest, nodes, assetRoot);
+
+  if (args.dryRun) {
+    for (const plan of plans) {
+      process.stdout.write(`${JSON.stringify(plan.master)}\n`);
+      for (const job of plan.derived) process.stdout.write(`${JSON.stringify(job)}\n`);
+    }
+    return;
+  }
+  executeInvocation(plans, manifest, assetRoot);
+}
+
+if (path.resolve(process.argv[1] ?? "") === scriptPath) {
+  try {
+    main();
+  } catch (error) {
+    process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+    process.exitCode = 1;
+  }
 }

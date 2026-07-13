@@ -4,72 +4,217 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 const APP_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const ORCHESTRATOR = path.join(APP_ROOT, "design/recraft/generate-tree.mjs");
+const MANIFEST = JSON.parse(fs.readFileSync(path.join(APP_ROOT, "design/recraft/edge-tree.json"), "utf8"));
+const STATES = ["quiet", "available", "edge", "loaded", "overloaded"];
+const tempDirectories = [];
 
-function runGenerator(...args) {
+function tempDirectory() {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), "edge-recraft-test-"));
-  const stdoutPath = path.join(directory, "stdout.jsonl");
-  const stdout = fs.openSync(stdoutPath, "w");
-  try {
-    const result = spawnSync(process.execPath, [ORCHESTRATOR, ...args], {
-      cwd: APP_ROOT,
-      encoding: "utf8",
-      env: { ...process.env, RECRAFT_API_KEY: "must-not-be-used-by-dry-runs" },
-      stdio: ["ignore", stdout, "pipe"],
-    });
-    return { ...result, stdout: fs.readFileSync(stdoutPath, "utf8") };
-  } finally {
-    fs.closeSync(stdout);
-    fs.rmSync(directory, { recursive: true, force: true });
-  }
+  tempDirectories.push(directory);
+  return directory;
+}
+
+afterEach(() => {
+  for (const directory of tempDirectories.splice(0)) fs.rmSync(directory, { recursive: true, force: true });
+});
+
+function runGenerator(args, env = {}) {
+  return spawnSync(process.execPath, [ORCHESTRATOR, ...args], {
+    cwd: APP_ROOT,
+    encoding: "utf8",
+    env: { ...process.env, RECRAFT_API_KEY: "test-only", ...env },
+  });
 }
 
 function dryRunEntries(...args) {
-  const result = runGenerator(...args, "--dry-run");
+  const result = runGenerator([...args, "--dry-run"]);
   expect(result.status, result.stderr).toBe(0);
   return result.stdout.trim().split("\n").filter(Boolean).map((line) => JSON.parse(line));
 }
 
-describe("Recraft tree orchestrator", () => {
-  it("selects one node, one state, one lineage, or the complete tree", () => {
-    expect(dryRunEntries("--node", "pressure.stress.anxiety")).toHaveLength(5);
-    expect(dryRunEntries("--state", "quiet")).toHaveLength(67);
-    expect(dryRunEntries("--lineage", "pressure.stress.anxiety")).toHaveLength(20);
-    expect(dryRunEntries("--all")).toHaveLength(335);
+function writeExecutable(file, contents) {
+  fs.writeFileSync(file, contents, { mode: 0o755 });
+}
+
+function createFakeTools(directory) {
+  const generator = path.join(directory, "fake-generator.mjs");
+  const magick = path.join(directory, "fake-magick.mjs");
+  writeExecutable(generator, `#!/usr/bin/env node
+import fs from "node:fs";
+import path from "node:path";
+const args = process.argv.slice(2);
+fs.appendFileSync(process.env.FAKE_GENERATOR_LOG, JSON.stringify(args) + "\\n");
+if (process.env.FAKE_GENERATOR_FAIL === "1") process.exit(23);
+const output = args[args.indexOf("--output") + 1];
+fs.mkdirSync(path.dirname(output), { recursive: true });
+fs.writeFileSync(output, "RIFF-fake-recraft-master-WEBP");
+`);
+  writeExecutable(magick, `#!/usr/bin/env node
+import fs from "node:fs";
+import path from "node:path";
+const args = process.argv.slice(2);
+if (args[0] === "identify") {
+  const image = args.at(-1);
+  if (!fs.existsSync(image) || fs.statSync(image).size === 0) process.exit(9);
+  process.stdout.write(process.env.FAKE_INVALID_IMAGE === "1" ? "PNG|10x10|0" : "WEBP|1024x1024|0.125");
+  process.exit(0);
+}
+const countPath = process.env.FAKE_MAGICK_COUNT;
+const count = fs.existsSync(countPath) ? Number(fs.readFileSync(countPath, "utf8")) + 1 : 1;
+fs.writeFileSync(countPath, String(count));
+fs.appendFileSync(process.env.FAKE_MAGICK_LOG, JSON.stringify(args) + "\\n");
+if (Number(process.env.FAKE_MAGICK_FAIL_AT || 0) === count) process.exit(31);
+const input = args[0];
+const output = args.at(-1);
+fs.mkdirSync(path.dirname(output), { recursive: true });
+fs.writeFileSync(output, fs.readFileSync(input).toString() + "\\n" + args.slice(1, -1).join(" "));
+`);
+  return { generator, magick };
+}
+
+function fakeEnvironment(assetRoot) {
+  const directory = tempDirectory();
+  const tools = createFakeTools(directory);
+  return {
+    EDGE_ASSET_ROOT: assetRoot,
+    EDGE_RECRAFT_GENERATOR_PATH: tools.generator,
+    EDGE_MAGICK_PATH: tools.magick,
+    FAKE_GENERATOR_LOG: path.join(directory, "generator.jsonl"),
+    FAKE_MAGICK_LOG: path.join(directory, "magick.jsonl"),
+    FAKE_MAGICK_COUNT: path.join(directory, "magick-count.txt"),
+  };
+}
+
+function readJsonLines(file) {
+  if (!fs.existsSync(file)) return [];
+  return fs.readFileSync(file, "utf8").trim().split("\n").filter(Boolean).map(JSON.parse);
+}
+
+describe("Recraft tree orchestrator dry-run", () => {
+  it("plans one master per node and derives every requested state from it", () => {
+    const lineage = dryRunEntries("--lineage", "pressure.stress.anxiety");
+    expect(lineage.filter((job) => job.type === "masterGeneration")).toHaveLength(4);
+    expect(lineage.filter((job) => job.type === "derivedOutput")).toHaveLength(20);
+
+    const complete = dryRunEntries("--all");
+    expect(complete.filter((job) => job.type === "masterGeneration")).toHaveLength(67);
+    expect(complete.filter((job) => job.type === "derivedOutput")).toHaveLength(335);
   });
 
-  it("prints absolute app-local outputs and inherited universal visual DNA", () => {
+  it("prints contained absolute outputs, decisions, prompt/model, and provenance mapping", () => {
     const entries = dryRunEntries("--node", "pressure.stress.anxiety");
-    const [entry] = entries;
+    const master = entries.find((job) => job.type === "masterGeneration");
+    const quiet = entries.find((job) => job.type === "derivedOutput" && job.state === "quiet");
 
-    expect(entry.output).toBe(
-      path.join(APP_ROOT, "public/assets/edge/pressure.stress.anxiety/quiet.webp"),
-    );
-    expect(entry.optimization).toBe("state tint quiet, WebP quality 84, metadata stripped");
-    expect(entry.prompt).toContain("Mythic Natural Realism");
-    expect(entry.prompt).toContain("Inherited parent visual DNA");
-    expect(entry.prompt).toContain("pressure.stress");
-    expect(entry.prompt).toContain("universal and independent of any aim");
-    expect(entry.prompt).toContain("No embedded text, numbers, or logos");
-    expect(entries.find((item) => item.state === "available").prompt).not.toContain("controlled crimson");
-    expect(entries.find((item) => item.state === "loaded").prompt).toContain("muted amber warning");
-    expect(entries.find((item) => item.state === "overloaded").prompt).toContain("controlled crimson");
+    expect(master).toMatchObject({
+      nodeId: "pressure.stress.anxiety",
+      model: "recraftv4",
+      size: "1024x1024",
+      promptIntent: MANIFEST.nodes.find((node) => node.nodeId === "pressure.stress.anxiety").promptIntent,
+    });
+    expect(master.prompt).toContain("Mythic Natural Realism");
+    expect(master.prompt).toContain("one master composition");
+    expect(master.provenance).toBe(path.join(APP_ROOT, "public/assets/edge/pressure.stress.anxiety/provenance.json"));
+    expect(path.isAbsolute(master.provenance)).toBe(true);
+    expect(quiet.output).toBe(path.join(APP_ROOT, "public/assets/edge/pressure.stress.anxiety/quiet.webp"));
+    expect(quiet.masterGeneration).toBe("pressure.stress.anxiety");
+    expect(quiet.stateTreatment).toEqual(MANIFEST.generator.stateTreatment.quiet);
+    expect(["generate", "skip-existing"]).toContain(quiet.decision);
   });
 
-  it("fails on invalid input before invoking the workspace generator", () => {
-    const unknownNode = runGenerator("--node", "../outside");
-    const unknownState = runGenerator("--state", "unknown");
-    const conflicting = runGenerator("--node", "edge", "--all", "--dry-run");
+  it("shows force decisions without changing the selected job topology", () => {
+    const normal = dryRunEntries("--node", "edge");
+    const forced = dryRunEntries("--node", "edge", "--force");
+    expect(normal).toHaveLength(6);
+    expect(forced).toHaveLength(6);
+    expect(normal.filter((job) => job.type === "derivedOutput").every((job) => job.decision === "skip-existing")).toBe(true);
+    expect(forced.filter((job) => job.type === "derivedOutput").every((job) => job.decision === "generate")).toBe(true);
+  });
+});
 
-    expect(unknownNode.status).toBe(1);
-    expect(unknownNode.stderr).toContain("Unknown Edge node");
-    expect(unknownNode.stdout).toBe("");
-    expect(unknownState.status).toBe(1);
-    expect(unknownState.stderr).toContain("Unknown Edge state");
-    expect(conflicting.status).toBe(1);
-    expect(conflicting.stderr).toContain("Choose exactly one selector");
+describe("Recraft tree orchestrator safety", () => {
+  it("rejects traversal-bearing node IDs and output patterns before generation", () => {
+    const directory = tempDirectory();
+    const traversalNode = structuredClone(MANIFEST);
+    traversalNode.nodes[0].nodeId = "edge/../../outside";
+    const traversalNodePath = path.join(directory, "traversal-node.json");
+    fs.writeFileSync(traversalNodePath, JSON.stringify(traversalNode));
+    const badNode = runGenerator(["--all", "--dry-run"], { EDGE_TREE_MANIFEST_PATH: traversalNodePath });
+    expect(badNode.status).toBe(1);
+    expect(badNode.stderr).toContain("Unsafe Edge nodeId");
+
+    const traversalOutput = structuredClone(MANIFEST);
+    traversalOutput.generator.outputPattern = "../outside/{nodeId}/{state}.webp";
+    const traversalOutputPath = path.join(directory, "traversal-output.json");
+    fs.writeFileSync(traversalOutputPath, JSON.stringify(traversalOutput));
+    const badOutput = runGenerator(["--all", "--dry-run"], { EDGE_TREE_MANIFEST_PATH: traversalOutputPath });
+    expect(badOutput.status).toBe(1);
+    expect(badOutput.stderr).toContain("Unsafe output pattern");
+  });
+
+  it.each([
+    ["Recraft generation", { FAKE_GENERATOR_FAIL: "1" }],
+    ["ImageMagick derivation", { FAKE_MAGICK_FAIL_AT: "2" }],
+    ["codec, dimension, or blank-image validation", { FAKE_INVALID_IMAGE: "1" }],
+  ])("leaves every approved output untouched after a %s failure", (_label, failureEnvironment) => {
+    const root = tempDirectory();
+    const assetRoot = path.join(root, "public/assets/edge");
+    for (const state of STATES) {
+      fs.mkdirSync(path.join(assetRoot, "edge"), { recursive: true });
+      fs.writeFileSync(path.join(assetRoot, "edge", `${state}.webp`), `approved-${state}`);
+    }
+    const env = { ...fakeEnvironment(assetRoot), ...failureEnvironment };
+    const result = runGenerator(["--node", "edge", "--force"], env);
+    expect(result.status).toBe(1);
+    for (const state of STATES) {
+      expect(fs.readFileSync(path.join(assetRoot, "edge", `${state}.webp`), "utf8")).toBe(`approved-${state}`);
+    }
+    expect(fs.readdirSync(path.dirname(assetRoot)).filter((name) => name.includes("staging"))).toEqual([]);
+  });
+
+  it("does not overwrite approved files without force", () => {
+    const root = tempDirectory();
+    const assetRoot = path.join(root, "public/assets/edge");
+    for (const state of STATES) {
+      fs.mkdirSync(path.join(assetRoot, "edge"), { recursive: true });
+      fs.writeFileSync(path.join(assetRoot, "edge", `${state}.webp`), `approved-${state}`);
+    }
+    const env = fakeEnvironment(assetRoot);
+    const result = runGenerator(["--node", "edge"], env);
+    expect(result.status, result.stderr).toBe(0);
+    expect(readJsonLines(env.FAKE_GENERATOR_LOG)).toHaveLength(0);
+    for (const state of STATES) {
+      expect(fs.readFileSync(path.join(assetRoot, "edge", `${state}.webp`), "utf8")).toBe(`approved-${state}`);
+    }
+  });
+
+  it("publishes five derived states from one exact master with complete provenance", () => {
+    const root = tempDirectory();
+    const assetRoot = path.join(root, "public/assets/edge");
+    const env = fakeEnvironment(assetRoot);
+    const result = runGenerator(["--node", "edge"], env);
+    expect(result.status, result.stderr).toBe(0);
+    expect(readJsonLines(env.FAKE_GENERATOR_LOG)).toHaveLength(1);
+    const derivations = readJsonLines(env.FAKE_MAGICK_LOG);
+    expect(derivations).toHaveLength(5);
+    expect(new Set(derivations.map((args) => args[0])).size).toBe(1);
+    expect(new Set(STATES.map((state) => fs.readFileSync(path.join(assetRoot, "edge", `${state}.webp`), "utf8"))).size).toBe(5);
+
+    const provenance = JSON.parse(fs.readFileSync(path.join(assetRoot, "edge/provenance.json"), "utf8"));
+    expect(provenance).toMatchObject({
+      manifestVersion: MANIFEST.version,
+      model: "recraftv4",
+      size: "1024x1024",
+      promptIntent: MANIFEST.nodes[0].promptIntent,
+      stateStrategy: MANIFEST.generator.masterStrategy,
+    });
+    expect(provenance.masterPrompt).toContain("one master composition");
+    expect(provenance.masterSha256).toMatch(/^[a-f0-9]{64}$/);
+    expect(Object.keys(provenance.stateMappings)).toEqual(STATES);
+    expect(Object.values(provenance.stateMappings).every((mapping) => mapping.masterSha256 === provenance.masterSha256)).toBe(true);
   });
 });
