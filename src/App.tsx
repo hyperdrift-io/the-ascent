@@ -44,10 +44,12 @@ import { EdgeOverlay } from "./components/edge/EdgeOverlay";
 import { EdgeSummary } from "./components/edge/EdgeSummary";
 import { KpiReading } from "./components/edge/KpiReading";
 import { KpiSearch } from "./components/edge/KpiSearch";
+import { AthleticMode } from "./components/edge/AthleticMode";
 import { getEdgeLinePoint } from "./edge-line";
-import { loadEdgeProfile, saveDailyReading, type EdgeProfile } from "./edge-profile";
+import { completeAthleticWeekrun, loadEdgeProfile, saveDailyReading, type EdgeProfile } from "./edge-profile";
 import type { KpiSearchResult } from "./edge-kpis";
 import { adaptMorningScanToEdge, buildWeekrunHeader, deriveTodayEdgeSnapshot, type TodayEdgeSnapshot } from "./weekrun-edge";
+import { getCoachLine, type CoachCall, type CoachCapacity } from "./edge-voice";
 
 // ------------------------------------------------------------------ constants
 
@@ -315,6 +317,7 @@ export default function EdgeGame() {
       const synced = syncRunToToday(current, todayISO);
       if (isWeekOver(synced, todayISO)) {
         const nextProfile = completeMissionRun(synced, "complete", loadProfile());
+        const nextEdgeProfile = completeAthleticWeekrun(loadEdgeProfile(todayISO), synced.runId);
         const nextSummary: RunSummary = {
           ending: "complete",
           aim: synced.aim,
@@ -329,6 +332,7 @@ export default function EdgeGame() {
         setSummary(nextSummary);
         setAwayComplete(true);
         setProfile(nextProfile);
+        setEdgeProfile(nextEdgeProfile);
         return;
       }
       if (synced !== current) persist(synced);
@@ -383,6 +387,7 @@ export default function EdgeGame() {
   function endRun(ending: RunEnding) {
     if (!run) return;
     const nextProfile = completeMissionRun(run, ending, profile);
+    const nextEdgeProfile = completeAthleticWeekrun(edgeProfile, run.runId);
     const nextSummary: RunSummary = {
       ending,
       aim: run.aim,
@@ -396,6 +401,7 @@ export default function EdgeGame() {
     clearRun();
     setRun(null);
     setProfile(nextProfile);
+    setEdgeProfile(nextEdgeProfile);
     setRitual(null);
     setAwayComplete(false);
   }
@@ -475,6 +481,7 @@ export default function EdgeGame() {
                 onSave={(value) => setEdgeProfile(saveDailyReading(edgeProfile, { date: today, path: rootPath, value }))}
               />
             )}
+            <AthleticMode profile={edgeProfile} onChange={setEdgeProfile} />
           </div>
         }
         aimEntry={
@@ -497,6 +504,7 @@ export default function EdgeGame() {
           run={run}
           profile={profile}
           edgeSnapshot={edgeSnapshot}
+          athleticMode={edgeProfile.athletic.enabled}
           onOpenEdge={openEdge}
           signalsOn={signalsOn}
           settingStone={settingStone}
@@ -655,6 +663,7 @@ function Mountain({
   run,
   profile,
   edgeSnapshot,
+  athleticMode,
   onOpenEdge,
   signalsOn,
   settingStone,
@@ -673,6 +682,7 @@ function Mountain({
   run: MissionRunState;
   profile: PlayerProfile;
   edgeSnapshot: TodayEdgeSnapshot;
+  athleticMode: boolean;
   onOpenEdge: () => void;
   signalsOn: boolean;
   settingStone: boolean;
@@ -699,6 +709,15 @@ function Mountain({
     edgeValue: edgeSnapshot.orientationValue,
     readiness: run.readiness,
   });
+  const coachCapacity: CoachCapacity = edgeSnapshot.state === "overextended"
+    ? "overloaded"
+    : edgeSnapshot.state;
+  const coachCall: CoachCall = coachCapacity === "overloaded" || coachCapacity === "restoring"
+    ? "restore"
+    : coachCapacity === "loaded"
+      ? "narrow"
+      : "act";
+  const coachLine = athleticMode ? getCoachLine("athletic", { capacity: coachCapacity, call: coachCall }) : null;
 
   return (
     <main className="mountain" data-state={world} data-scene={scene}>
@@ -721,7 +740,7 @@ function Mountain({
       <p className="run-aim">&ldquo;{run.aim}&rdquo;</p>
 
       <EdgeLine edgeLoad={run.edgeLoad} edgeControl={run.edgeControl} zone={run.zone} />
-      <EdgeSummary snapshot={edgeSnapshot} onOpen={onOpenEdge} />
+      <EdgeSummary snapshot={edgeSnapshot} onOpen={onOpenEdge} coachLine={coachLine} />
 
       {world === "dawn" && (
         <>

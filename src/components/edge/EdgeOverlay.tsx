@@ -7,6 +7,7 @@ import { EdgeWorld } from "./EdgeWorld";
 import { KpiReading } from "./KpiReading";
 import { KpiSearch, formatKpiPath } from "./KpiSearch";
 import { StudyResource } from "./StudyResource";
+import { AthleticMode } from "./AthleticMode";
 
 export function reconcileRecommendationPaths(
   current: readonly string[],
@@ -135,6 +136,7 @@ export function EdgeOverlay({
               <button type="button" onClick={confirm} disabled={pending.length === 0}>Confirm Edge aim</button>
             </section>
             <StudyResource resource={studyPath ? getStudyResource(studyPath) : null} />
+            <AthleticMode profile={profile} onChange={onProfile} />
           </div>
         }
       />

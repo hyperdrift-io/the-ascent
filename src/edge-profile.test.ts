@@ -202,6 +202,18 @@ describe("Edge profile", () => {
     expect(completeAthleticWeekrun(once, "run-1").athletic).toEqual(once.athletic);
   });
 
+  it.each(["summit-attempt", "complete", "recon"])(
+    "counts the stable ID from a %s ending exactly once",
+    (ending) => {
+      const athletic = setAthleticMode(createEdgeProfile("2026-07-12"), true);
+      const runId = `run-${ending}`;
+      const once = completeAthleticWeekrun(athletic, runId);
+      const twice = completeAthleticWeekrun(once, runId);
+
+      expect(twice.athletic).toEqual({ enabled: true, completed: 1, runIds: [runId] });
+    },
+  );
+
   it.each(["", "   "])("rejects the blank Weekrun ID %j without changing persisted history", (runId) => {
     const athletic = setAthleticMode(createEdgeProfile("2026-07-12"), true);
 

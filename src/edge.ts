@@ -63,6 +63,7 @@ export interface AimPack {
   cards: MoveCard[];
 }
 export interface MissionRunState {
+  runId: string;
   aim: string;
   packId: AimPack["id"];
   bossName: string;
@@ -573,6 +574,7 @@ export function createMissionRun(
   previousProfile?: PlayerProfile,
   packId?: AimPack["id"],
   todayISO: string = todayLocalISO(),
+  runId: string = createRunId(todayISO),
 ): MissionRunState {
   const pack = packId ? AIM_PACKS.find((candidate) => candidate.id === packId) ?? pickPack(aim) : pickPack(aim);
   const resources = previousProfile ? { ...previousProfile.baselines } : defaultResources(60);
@@ -581,6 +583,7 @@ export function createMissionRun(
   const { edgeLoad, edgeControl, zone } = computeEdge(resources, coreMetrics);
 
   return {
+    runId,
     aim,
     packId: pack.id,
     bossName: pack.bossName,
@@ -605,6 +608,25 @@ export function createMissionRun(
     lastSyncedOn: todayISO,
     syncNote: null,
   };
+}
+
+let runIdSequence = 0;
+
+function createRunId(todayISO: string): string {
+  const uuid = globalThis.crypto?.randomUUID?.();
+  if (uuid) return `weekrun-${uuid}`;
+  runIdSequence += 1;
+  return `weekrun-${todayISO}-${Date.now().toString(36)}-${runIdSequence.toString(36)}`;
+}
+
+function legacyRunId(state: MissionRunState): string {
+  const identity = `${state.startedOn}|${state.packId}|${state.aim}`;
+  let hash = 2166136261;
+  for (let index = 0; index < identity.length; index += 1) {
+    hash ^= identity.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `legacy-${state.startedOn}-${(hash >>> 0).toString(36)}`;
 }
 
 export function resolveMove(state: MissionRunState, input: ResolveInput): MissionRunState {
@@ -1032,6 +1054,9 @@ export function loadRun(todayISO: string = todayLocalISO()): MissionRunState | n
     }
     if (state.syncNote === undefined) {
       state.syncNote = null;
+    }
+    if (typeof state.runId !== "string" || state.runId.trim().length === 0) {
+      state.runId = legacyRunId(state);
     }
     return state;
   } catch {

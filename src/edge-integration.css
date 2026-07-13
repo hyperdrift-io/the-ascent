@@ -79,6 +79,17 @@
   grid-column: 1 / -1;
 }
 
+.edge-coach-preview {
+  padding-top: 7px;
+  border-top: 1px solid rgba(184, 200, 192, 0.25);
+}
+
+.edge-coach-preview b {
+  display: block;
+  margin-bottom: 3px;
+  color: #f1d79a;
+}
+
 .edge-overlay {
   position: fixed;
   z-index: 30;
@@ -124,7 +135,7 @@ button.edge-overlay-close {
 
 .edge-world[data-depth="0"] .edge-world-tools:has(.edge-root-tools) {
   top: 124px;
-  bottom: auto;
+  bottom: 82px;
 }
 
 .edge-tools {
@@ -140,7 +151,8 @@ button.edge-overlay-close {
 .kpi-search,
 .kpi-reading,
 .edge-recommendations,
-.study-resource {
+.study-resource,
+.athletic-mode {
   display: flex;
   flex-direction: column;
   gap: 9px;
@@ -162,6 +174,53 @@ button.edge-overlay-close {
 .study-resource > span {
   color: #f1d79a;
   font-size: 10px;
+  letter-spacing: 0;
+}
+
+.athletic-mode header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.athletic-mode header p {
+  color: #f1d79a;
+  font-size: 10px;
+}
+
+.athletic-mode h2 {
+  color: #ffffff;
+  font-size: 15px;
+}
+
+.athletic-mode header strong {
+  color: #f1d79a;
+  font-size: 18px;
+}
+
+.athletic-mode progress {
+  width: 100%;
+  accent-color: #f1d79a;
+}
+
+.athletic-mode > p,
+.athletic-mode li {
+  color: #b8c8c0;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.athletic-mode ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.athletic-mode button {
+  align-self: flex-start;
+  border-radius: 4px;
   letter-spacing: 0;
 }
 
@@ -267,8 +326,8 @@ button.edge-overlay-close {
 
   .edge-world[data-depth="0"] .edge-world-tools:has(.edge-root-tools) {
     top: 180px;
-    bottom: auto;
-    max-height: 210px;
+    bottom: 120px;
+    max-height: none;
   }
 
   .edge-world:has(.edge-root-tools) .edge-aim-layer {

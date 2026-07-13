@@ -6,7 +6,15 @@ const RESOURCE_LABELS: Record<string, string> = {
   recovery: "Recovery", connection: "Connection", time: "Time",
 };
 
-export function EdgeSummary({ snapshot, onOpen }: { snapshot: TodayEdgeSnapshot; onOpen: () => void }) {
+export function EdgeSummary({
+  snapshot,
+  onOpen,
+  coachLine,
+}: {
+  snapshot: TodayEdgeSnapshot;
+  onOpen: () => void;
+  coachLine?: string | null;
+}) {
   return (
     <button className="edge-summary" type="button" data-state={snapshot.state} onClick={onOpen}>
       <span><b>{snapshot.state}</b><strong>{snapshot.orientationValue}<small>orientation</small></strong></span>
@@ -15,6 +23,7 @@ export function EdgeSummary({ snapshot, onOpen }: { snapshot: TodayEdgeSnapshot;
           <i key={resource}>{RESOURCE_LABELS[resource]} {value}</i>
         ))}
         <em>{snapshot.domains.map((domain) => `${domain.label} ${domain.value}`).join(" · ")}</em>
+        {coachLine && <em className="edge-coach-preview"><b>Push Coach</b>{coachLine}</em>}
       </span>
     </button>
   );
