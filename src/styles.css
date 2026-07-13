@@ -1163,6 +1163,26 @@ button.quiet:hover {
 }
 
 @media (max-width: 700px) {
+  .mountain {
+    min-height: 100svh;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .mountain > .bottom {
+    position: relative;
+    bottom: auto;
+    padding: 310px 20px 58px;
+  }
+
+  .lock-chip.anchor-one { top: 140px; }
+  .lock-chip.anchor-two { top: 190px; }
+  .lock-chip.anchor-three { top: 245px; }
+
+  .mountain .player-light {
+    top: 286px;
+  }
+
   .hand-region.locked .hand {
     display: none;
   }
