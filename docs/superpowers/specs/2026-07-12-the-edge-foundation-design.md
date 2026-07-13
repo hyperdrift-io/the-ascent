@@ -1,7 +1,7 @@
 # The Edge Foundation Design
 
 **Date:** 2026-07-12  
-**Status:** Draft for user review  
+**Status:** Approved
 **Scope:** The Edge foundation, its relationship to Weekrun, and its permanent artistic direction
 
 ## Purpose

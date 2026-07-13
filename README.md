@@ -1,4 +1,4 @@
-# Edge
+# The Edge
 
 The Edge is a lifelong, zoomable human-capacity matrix that helps a person see what today can carry and make the right call. Weekrun is a seven-day application of that foundation toward one chosen aim.
 
