@@ -312,9 +312,17 @@ describe("Recraft tree orchestrator safety", () => {
     }
   });
 
-  it("commits an availability index for exactly the generated vertical slice", () => {
+  it("commits an availability index for every complete generated family", () => {
     const availability = JSON.parse(fs.readFileSync(path.join(APP_ROOT, "public/assets/edge/availability.json"), "utf8"));
-    expect(availability.nodes).toEqual(["edge", "pressure", "pressure.stress", "pressure.stress.anxiety"]);
+    const generated = MANIFEST.nodes
+      .map((node) => node.nodeId)
+      .filter((nodeId) => fs.existsSync(path.join(
+        APP_ROOT,
+        "public/assets/edge",
+        nodeId,
+        "provenance.json",
+      )));
+    expect(availability.nodes).toEqual(generated);
     expect(availability.manifestVersion).toBe(MANIFEST.version);
   });
 });
