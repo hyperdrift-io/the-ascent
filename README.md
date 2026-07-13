@@ -1,6 +1,10 @@
 # Edge
 
-Edge is a weekly mission game. Each week is an Ascent toward a player-chosen aim: daily real-world moves, resolved as cairns on the path, carry you toward the summit gate — the week's meaningful attempt.
+The Edge is a lifelong, zoomable human-capacity matrix that helps a person see what today can carry and make the right call. Weekrun is a seven-day application of that foundation toward one chosen aim.
+
+The [canonical foundation design](docs/superpowers/specs/2026-07-12-the-edge-foundation-design.md) defines the permanent product hierarchy, human-capacity model, and artistic direction. The current shipped experience is the Weekrun layer being integrated with The Edge; it retains the existing Ascent presentation while that foundation is added.
+
+Each Weekrun is an Ascent toward a player-chosen aim: daily real-world moves, resolved as cairns on the path, carry you toward the summit gate — the week's meaningful attempt.
 
 Play it at [theascent.hyperdrift.io](https://theascent.hyperdrift.io). The source is published at [hyperdrift-io/the-ascent](https://github.com/hyperdrift-io/the-ascent), and the design argument is in [Software That Rests With You](https://hyperdrift.io/blog/the-ascent-software-that-rests-with-you).
 
