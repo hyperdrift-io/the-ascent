@@ -41,6 +41,13 @@ describe("Edge scene composition", () => {
     expect(composition.parent?.assetId).toBe("pressure");
   });
 
+  it("surfaces a scene path that is not rooted at the Edge", () => {
+    expect(() => buildSceneComposition({
+      ...createViewport(),
+      path: ["pressure"],
+    })).toThrow("must start at the Edge root");
+  });
+
   it("provides a truthful ancestor fallback chain for assets not generated yet", () => {
     expect(getAssetFallbackIds("pressure.stress.anxiety")).toEqual([
       "pressure.stress.anxiety",
@@ -91,6 +98,8 @@ describe("Edge scene composition", () => {
     expect(getEdgeNodeLabel("pressure")).toBe("Pressure");
     expect(getEdgeNodeLabel("stress")).toBe("Stress");
     expect(getEdgeNodeLabel("pressure.stress.anxiety")).toBe("Anxiety");
+    expect(getEdgeNodeLabel("recovery.sleep.duration")).toBe("Duration");
+    expect(getEdgeNodeLabel("pressure.sleep.duration")).toBe("pressure.sleep.duration");
   });
 
   it("exposes only a currently visible canvas node as a truthful preview", () => {

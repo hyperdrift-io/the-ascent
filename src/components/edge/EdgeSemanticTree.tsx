@@ -46,6 +46,7 @@ export function EdgeSemanticTree({
               aria-label={`Enter ${node.label}`}
               aria-pressed={viewport.selectedNodeId === node.id}
               onFocus={() => select(node.id)}
+              onBlur={() => select(null)}
               onPointerEnter={() => select(node.id)}
               onPointerLeave={() => select(null)}
               onClick={() => enter(node.id)}

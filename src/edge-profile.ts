@@ -104,6 +104,7 @@ function isRecommendation(value: unknown): value is ConfirmedRecommendation {
     isNonBlankString(value.date) &&
     isNonBlankString(value.aim) &&
     Array.isArray(value.paths) &&
+    value.paths.length > 0 &&
     value.paths.every(isCanonicalKpiPath)
   );
 }

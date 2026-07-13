@@ -14,6 +14,7 @@ const appRoot = path.resolve(scriptDirectory, "../..");
 const defaultManifestPath = path.join(scriptDirectory, "edge-tree.json");
 const expectedStates = ["quiet", "available", "edge", "loaded", "overloaded"];
 const safeNodeId = /^[a-z][a-z0-9-]*(?:\.[a-z][a-z0-9-]*)*$/;
+const provenanceGeneratorPath = "../../../../scripts/generate-recraft-asset.mjs";
 
 function invariant(condition, message) {
   if (!condition) throw new Error(message);
@@ -163,7 +164,7 @@ function assessExistingFamily(node, manifest, assetRoot, prompt) {
   const identityChecks = [
     [provenance.schema === manifest.schema, "schema"],
     [provenance.manifestVersion === manifest.version, "manifest version"],
-    [provenance.generatorPath === manifest.generator.path, "generator path"],
+    [provenance.generatorPath === provenanceGeneratorPath, "generator path"],
     [provenance.model === manifest.generator.model, "model"],
     [provenance.size === manifest.generator.size, "size"],
     [provenance.masterPrompt === prompt, "master prompt"],
@@ -300,7 +301,7 @@ function writeProvenance(file, nodePlan, manifest, masterFile, stagedTree) {
   const provenance = {
     schema: manifest.schema,
     manifestVersion: manifest.version,
-    generatorPath: manifest.generator.path,
+    generatorPath: provenanceGeneratorPath,
     model: manifest.generator.model,
     size: manifest.generator.size,
     masterPrompt: nodePlan.master.prompt,
@@ -347,6 +348,11 @@ function publishStagedTree(stagedTree, assetRoot, stagingRoot) {
 export function executeInvocation(plans, manifest, assetRoot) {
   const generating = plans.filter((plan) => plan.master.decision === "generate-family");
   if (generating.length === 0) return;
+  const rootWillExist = generating.some((plan) => plan.node.nodeId === "edge") || [
+    resolveContainedPath(assetRoot, "edge", "provenance.json"),
+    ...expectedStates.map((state) => resolveContainedPath(assetRoot, "edge", `${state}.webp`)),
+  ].every((file) => fs.existsSync(file) && fs.statSync(file).size > 0);
+  invariant(rootWillExist, "The generated availability index requires the Edge root family");
   invariant(process.env.RECRAFT_API_KEY, "Set RECRAFT_API_KEY in the environment");
 
   const generator = findWorkspaceGenerator(manifest);

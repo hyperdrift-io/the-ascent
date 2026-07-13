@@ -225,6 +225,19 @@ describe("Recraft tree orchestrator safety", () => {
     }
   });
 
+  it("rejects a fresh non-root family before invoking paid generation tools", () => {
+    const root = tempDirectory();
+    const assetRoot = path.join(root, "public/assets/edge");
+    const env = fakeEnvironment(assetRoot);
+
+    const result = runGenerator(["--node", "pressure", "--force"], env);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain("requires the Edge root family");
+    expect(readJsonLines(env.FAKE_GENERATOR_LOG)).toHaveLength(0);
+    expect(readJsonLines(env.FAKE_MAGICK_LOG)).toHaveLength(0);
+  });
+
   it.each(["tampered output", "partial family", "stale provenance"])(
     "rejects a %s before invoking Recraft unless force is explicit",
     (failure) => {
@@ -265,6 +278,7 @@ describe("Recraft tree orchestrator safety", () => {
     const provenance = JSON.parse(fs.readFileSync(path.join(assetRoot, "edge/provenance.json"), "utf8"));
     expect(provenance).toMatchObject({
       manifestVersion: MANIFEST.version,
+      generatorPath: "../../../../scripts/generate-recraft-asset.mjs",
       model: "recraftv4",
       size: "1024x1024",
       promptIntent: MANIFEST.nodes[0].promptIntent,

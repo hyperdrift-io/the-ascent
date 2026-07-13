@@ -161,6 +161,7 @@ describe("Edge profile", () => {
     ["malformed path", { date: "2026-07-13", paths: ["pressure/stress/anxiety"], aim: "Deliver the talk" }],
     ["wrong-domain path", { date: "2026-07-13", paths: ["recovery.stress.anxiety"], aim: "Deliver the talk" }],
     ["invented path", { date: "2026-07-13", paths: ["pressure.stress.invented-signal"], aim: "Deliver the talk" }],
+    ["empty paths", { date: "2026-07-13", paths: [], aim: "Deliver the talk" }],
     ["blank date", { date: "   ", paths: ["pressure.stress.anxiety"], aim: "Deliver the talk" }],
     ["blank aim", { date: "2026-07-13", paths: ["pressure.stress.anxiety"], aim: "   " }],
   ])("rejects an invalid recommendation write without persisting it: %s", (_label, recommendation) => {
@@ -316,6 +317,13 @@ describe("Edge profile", () => {
       recommendations: [{
         date: "2026-07-12",
         paths: ["pressure.stress.invented-signal"],
+        aim: "Deliver the talk",
+      }],
+    }],
+    ["an empty recommendation path list", {
+      recommendations: [{
+        date: "2026-07-13",
+        paths: [],
         aim: "Deliver the talk",
       }],
     }],

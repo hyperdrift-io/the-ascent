@@ -30,7 +30,6 @@ export function EdgeOverlay({
 }) {
   const dialogRef = useRef<HTMLElement>(null);
   const closeRef = useRef(onClose);
-  closeRef.current = onClose;
   const recommendations = useMemo(() => buildEdgeRecommendations(aim, resources), [aim, resources]);
   const [pending, setPending] = useState<string[]>(() => recommendations.map((item) => item.path));
   const [active, setActive] = useState<KpiSearchResult | null>(() => recommendations[0] ?? null);
@@ -38,6 +37,10 @@ export function EdgeOverlay({
   const value = path ? profile.daily[today]?.[path] ?? null : null;
   const todayRecommendations = profile.recommendations.filter((item) => item.date === today);
   const studyPath = path ?? todayRecommendations[todayRecommendations.length - 1]?.paths[0] ?? null;
+
+  useEffect(() => {
+    closeRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     const available = recommendations.map((item) => item.path);

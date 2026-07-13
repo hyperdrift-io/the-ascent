@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import * as EdgeNavigation from "./edge-navigation";
 import {
   createViewport,
   edgeNavigationReducer,
   getVisibleNodeIds,
+  navigateEdgeLineage,
   type CameraPose,
 } from "./edge-navigation";
 import { KPI_TREE } from "./edge-kpis";
@@ -28,22 +28,10 @@ function expectFrozenViewport(state: ReturnType<typeof createViewport>) {
 
 describe("fractal navigation", () => {
   it("waits for an active transition before traversing a requested lineage", async () => {
-    const navigateLineage = (EdgeNavigation as unknown as {
-      navigateEdgeLineage?: (options: {
-        lineage: readonly string[];
-        waitForIdle: () => Promise<void>;
-        home: () => Promise<void>;
-        enter: (nodeId: string) => Promise<void>;
-        isCurrent: () => boolean;
-      }) => Promise<void>;
-    }).navigateEdgeLineage;
-    expect(navigateLineage).toBeTypeOf("function");
-    if (!navigateLineage) return;
-
     let release = () => {};
     const activeTransition = new Promise<void>((resolve) => { release = resolve; });
     const calls: string[] = [];
-    const navigation = navigateLineage({
+    const navigation = navigateEdgeLineage({
       lineage: ["pressure", "stress", "anxiety"],
       waitForIdle: () => activeTransition,
       home: async () => { calls.push("home"); },

@@ -2,10 +2,10 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import type { HumanResource } from "./edge";
 import { createEdgeProfile } from "./edge-profile";
-import * as EdgeOverlayModule from "./components/edge/EdgeOverlay";
-import { EdgeOverlay } from "./components/edge/EdgeOverlay";
+import { EdgeOverlay, reconcileRecommendationPaths } from "./components/edge/EdgeOverlay";
 import { KpiReading } from "./components/edge/KpiReading";
-import * as KpiSearchModule from "./components/edge/KpiSearch";
+import { StudyResource } from "./components/edge/StudyResource";
+import { getVisibleKpiResults } from "./components/edge/KpiSearch";
 import { deriveTodayEdgeSnapshot } from "./weekrun-edge";
 
 const RESOURCES: Record<HumanResource, number> = {
@@ -27,29 +27,31 @@ describe("Edge integration UI contracts", () => {
     expect(markup).toContain("Not set");
     expect(markup).toContain('value="50"');
     expect(markup).toContain("Set 50");
+    expect(markup).toContain("<b>Lower:</b>");
+    expect(markup).toContain("<b>Higher:</b>");
+  });
+
+  it("announces the Wikipedia link's new browsing context", () => {
+    const markup = renderToStaticMarkup(<StudyResource resource={{
+      path: "pressure.stress.anxiety",
+      label: "Anxiety",
+      title: "Arousal",
+      href: "https://en.wikipedia.org/wiki/Arousal",
+      source: "Wikipedia",
+    }} />);
+
+    expect(markup).toContain("opens in a new tab");
   });
 
   it("reconciles recommendation choices when their identity changes", () => {
-    const reconcile = (EdgeOverlayModule as unknown as {
-      reconcileRecommendationPaths?: (current: readonly string[], available: readonly string[]) => string[];
-    }).reconcileRecommendationPaths;
-    expect(reconcile).toBeTypeOf("function");
-    if (!reconcile) return;
-
-    expect(reconcile(["pressure.stress.anxiety", "recovery.sleep.quality"], [
+    expect(reconcileRecommendationPaths(["pressure.stress.anxiety", "recovery.sleep.quality"], [
       "recovery.sleep.quality",
       "structure.work.workload",
     ])).toEqual(["recovery.sleep.quality", "structure.work.workload"]);
   });
 
   it("lets a new query take precedence over an open core drilldown", () => {
-    const visibleResults = (KpiSearchModule as unknown as {
-      getVisibleKpiResults?: (query: string, openCore: string | null) => readonly { path: string }[];
-    }).getVisibleKpiResults;
-    expect(visibleResults).toBeTypeOf("function");
-    if (!visibleResults) return;
-
-    expect(visibleResults("motivation", "pressure.stress").map((result) => result.path)).toEqual([
+    expect(getVisibleKpiResults("motivation", "pressure.stress").map((result) => result.path)).toEqual([
       "body.sport.motivation",
       "structure.work.motivation",
     ]);

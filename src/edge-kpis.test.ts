@@ -5,6 +5,7 @@ import {
   KPI_TREE,
   SUB_KPI_IDS,
   getStudyResource,
+  matchKpiRecommendations,
   recommendKpiSubset,
   searchKpis,
 } from "./edge-kpis";
@@ -107,6 +108,24 @@ describe("The Edge KPI tree", () => {
     const known = new Set(searchKpis("").map((item) => item.path));
     expect(results.every((item) => known.has(item.path))).toBe(true);
     expect(recommendKpiSubset(context)).toEqual(results);
+  });
+
+  it("prioritizes aim matches without losing their resource evidence", () => {
+    const matches = matchKpiRecommendations({
+      aim: "Deliver the talk",
+      lowResources: ["energy", "focus", "composure", "confidence", "recovery", "connection", "time"],
+    });
+
+    expect(matches).toHaveLength(5);
+    expect(matches.slice(0, 3).map((match) => match.result.path)).toEqual([
+      "pressure.stress.anxiety",
+      "structure.work.motivation",
+      "connection.social.support",
+    ]);
+    expect(matches.slice(0, 3).every((match) => match.aimMatched)).toBe(true);
+    expect(matches[0].resources).toContain("composure");
+    expect(matches[1].resources).toContain("confidence");
+    expect(matches[2].resources).toEqual(expect.arrayContaining(["confidence", "connection"]));
   });
 
   it("maps study links to Wikipedia without creating progression state", () => {

@@ -17,24 +17,28 @@ const DOMAIN_BY_ID = new Map<string, (typeof KPI_TREE)[number]>(KPI_TREE.map((do
 const KPI_BY_ID = new Map<string, (typeof KPI_TREE)[number]["kpis"][number]>(
   KPI_TREE.flatMap((domain) => domain.kpis.map((kpi) => [kpi.id, kpi] as const)),
 );
-const SUB_KPI_BY_ID = new Map<string, (typeof KPI_TREE)[number]["kpis"][number]["children"][number]>(
-  KPI_TREE.flatMap((domain) => domain.kpis.flatMap((kpi) => kpi.children.map((child) => [child.id, child] as const))),
+const SUB_KPI_BY_PATH = new Map<string, (typeof KPI_TREE)[number]["kpis"][number]["children"][number]>(
+  KPI_TREE.flatMap((domain) => domain.kpis.flatMap((kpi) => (
+    kpi.children.map((child) => [`${domain.id}.${kpi.id}.${child.id}`, child] as const)
+  ))),
 );
 
 export function getEdgeNodeLabel(nodeId: string): string {
   if (nodeId === "edge") return "The Edge";
   const parts = nodeId.split(".");
   const localId = parts[parts.length - 1] ?? nodeId;
-  return DOMAIN_BY_ID.get(localId)?.label ?? KPI_BY_ID.get(localId)?.label ?? SUB_KPI_BY_ID.get(localId)?.label ?? nodeId;
+  return DOMAIN_BY_ID.get(localId)?.label ?? KPI_BY_ID.get(localId)?.label ?? SUB_KPI_BY_PATH.get(nodeId)?.label ?? nodeId;
 }
 
 function toAssetId(path: readonly string[], nodeId: string): string {
+  if (path[0] !== "edge") throw new Error(`Edge scene paths must start at the Edge root: ${path.join(".")}`);
   if (nodeId === "edge" || nodeId.includes(".")) return nodeId;
-  return path[0] === "edge" && path.length > 1 ? path.slice(1).join(".") : nodeId;
+  return path.length > 1 ? path.slice(1).join(".") : nodeId;
 }
 
 function describeNode(path: readonly string[], nodeId: string): EdgeSceneNode {
-  return { id: nodeId, assetId: toAssetId(path, nodeId), label: getEdgeNodeLabel(nodeId) };
+  const assetId = toAssetId(path, nodeId);
+  return { id: nodeId, assetId, label: getEdgeNodeLabel(assetId) };
 }
 
 export function buildSceneComposition(viewport: EdgeViewportState): EdgeSceneComposition {

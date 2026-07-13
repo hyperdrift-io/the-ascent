@@ -70,4 +70,27 @@ describe("Weekrun Edge integration", () => {
       ["recovery.rest.relaxation", expect.stringContaining("Composure is 20")],
     ]);
   });
+
+  it("keeps aim-selected recommendations within the three-item evidence cap", () => {
+    const recommendations = buildEdgeRecommendations("Deliver the talk", {
+      energy: 45,
+      focus: 40,
+      composure: 10,
+      confidence: 20,
+      recovery: 35,
+      connection: 30,
+      time: 25,
+    });
+
+    expect(recommendations.map((item) => item.path)).toEqual([
+      "pressure.stress.anxiety",
+      "structure.work.motivation",
+      "connection.social.support",
+    ]);
+    expect(recommendations.map((item) => item.evidence)).toEqual([
+      expect.stringContaining("Composure is 10"),
+      expect.stringContaining("Confidence is 20"),
+      expect.stringContaining("Confidence is 20"),
+    ]);
+  });
 });

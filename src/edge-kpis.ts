@@ -72,24 +72,6 @@ export const DOMAIN_KPIS: Record<DomainId, readonly CoreMetric[]> = freezeRegist
   renewal: ["entertainment"],
 });
 
-export const SUB_KPI_IDS: Record<CoreMetric, readonly string[]> = freezeRegistry({
-  health: ["general-wellbeing", "physical-comfort", "illness-load"],
-  stamina: ["sustained-effort", "physical-endurance", "mental-endurance"],
-  sleep: ["duration", "quality", "regularity"],
-  stress: ["anxiety", "tension", "overwhelm"],
-  nutrition: ["nourishment", "hydration", "regularity"],
-  cardio: ["breath", "aerobic-capacity", "exertion-response"],
-  work: ["workload", "motivation", "autonomy"],
-  commute: ["duration", "friction", "predictability"],
-  routine: ["consistency", "adaptability", "activation"],
-  sport: ["movement", "motivation", "enjoyment"],
-  rest: ["detachment", "relaxation", "quiet"],
-  travel: ["disruption", "novelty", "recovery-cost"],
-  social: ["support", "belonging", "relational-energy"],
-  entertainment: ["enjoyment", "restoration", "stimulation"],
-  family: ["support", "closeness", "responsibility-load"],
-});
-
 const DOMAIN_LABELS: Record<DomainId, string> = {
   body: "Body",
   recovery: "Recovery",
@@ -242,7 +224,13 @@ const KPI_DEFINITIONS: Record<CoreMetric, { label: string; children: readonly Su
   },
 };
 
-const DOMAIN_ORDER = ["body", "recovery", "pressure", "structure", "connection", "renewal"] as const;
+const derivedSubKpiIds = {} as Record<CoreMetric, readonly string[]>;
+for (const id of CORE_KPI_IDS) {
+  derivedSubKpiIds[id] = KPI_DEFINITIONS[id].children.map((item) => item.id);
+}
+export const SUB_KPI_IDS = freezeRegistry(derivedSubKpiIds);
+
+const DOMAIN_ORDER = Object.freeze(Object.keys(DOMAIN_KPIS) as DomainId[]);
 
 export const KPI_TREE: readonly DomainNode[] = Object.freeze(
   DOMAIN_ORDER.map((domainId) => Object.freeze({
@@ -338,13 +326,13 @@ export function matchKpiRecommendations(context: RecommendationContext): KpiReco
   const aim = context.aim.trim().toLowerCase();
   const candidates: { path: KpiSearchResult["path"]; resource: RecommendationResource | null }[] = [];
 
-  for (const resource of context.lowResources) {
-    for (const path of RESOURCE_PATHS[resource]) candidates.push({ path, resource });
-  }
   for (const rule of AIM_RULES) {
     if (rule.terms.some((term) => aim.includes(term))) {
       for (const path of rule.paths) candidates.push({ path, resource: null });
     }
+  }
+  for (const resource of context.lowResources) {
+    for (const path of RESOURCE_PATHS[resource]) candidates.push({ path, resource });
   }
   if (candidates.length === 0) candidates.push({ path: "body.health.general-wellbeing", resource: null });
 
@@ -356,7 +344,9 @@ export function matchKpiRecommendations(context: RecommendationContext): KpiReco
   for (const candidate of candidates) {
     const item = RESULT_BY_PATH.get(candidate.path);
     if (!item) continue;
-    const match = selected.get(candidate.path) ?? {
+    const existing = selected.get(candidate.path);
+    if (!existing && selected.size === 5) continue;
+    const match = existing ?? {
       item,
       resources: new Set<RecommendationResource>(),
       aimMatched: false,
@@ -364,7 +354,6 @@ export function matchKpiRecommendations(context: RecommendationContext): KpiReco
     if (candidate.resource) match.resources.add(candidate.resource);
     else match.aimMatched = true;
     selected.set(candidate.path, match);
-    if (selected.size === 5) break;
   }
   return [...selected.values()].map((match) => ({
     result: publicResult(match.item),

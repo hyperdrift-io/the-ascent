@@ -43,7 +43,6 @@ export function EdgeWorld({
   const navigationRequestRef = useRef(0);
   const navigationQueueRef = useRef(Promise.resolve());
 
-  viewportRef.current = viewport;
   const composition = useMemo(() => buildSceneComposition(viewport), [viewport]);
   const atRoot = viewport.path.length === 1;
 
@@ -98,6 +97,10 @@ export function EdgeWorld({
   }, [applyNavigation]);
 
   useEffect(() => {
+    viewportRef.current = viewport;
+  }, [viewport]);
+
+  useEffect(() => {
     if (!targetPath) return;
     const request = ++navigationRequestRef.current;
     const lineage = targetPath.split(".");
@@ -115,6 +118,7 @@ export function EdgeWorld({
     const canvas = canvasRef.current;
     if (!canvas) return;
     let cancelled = false;
+    const availabilityController = new AbortController();
     let controller: EdgeSceneController | null = null;
     let observer: ResizeObserver | null = null;
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -125,7 +129,10 @@ export function EdgeWorld({
       return;
     }
 
-    void Promise.all([import("../../edge-scene"), loadEdgeAssetAvailability()])
+    void Promise.all([
+      import("../../edge-scene"),
+      loadEdgeAssetAvailability(globalThis.fetch, { signal: availabilityController.signal }),
+    ])
       .then(([{ createEdgeScene }, availableAssetIds]) => {
         if (cancelled) return;
         try {
@@ -157,6 +164,7 @@ export function EdgeWorld({
 
     return () => {
       cancelled = true;
+      availabilityController.abort();
       motion.removeEventListener("change", syncMotion);
       observer?.disconnect();
       controller?.dispose();

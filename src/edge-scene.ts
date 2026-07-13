@@ -277,6 +277,7 @@ export function createEdgeScene(
     if (next === viewport) return;
     viewport = next;
     selectedNodeId = null;
+    previewNodeId = null;
     targetCamera(next.camera);
     renderComposition(next);
     await wait(reducedMotion ? REDUCED_CROSSFADE_MS : CAMERA_TRAVEL_MS);

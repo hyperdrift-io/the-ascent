@@ -939,7 +939,7 @@ function EdgeLine({ edgeLoad, edgeControl, zone }: { edgeLoad: number; edgeContr
       <svg className="crest" viewBox="0 0 100 12" preserveAspectRatio="none" aria-hidden="true">
         <path d="M1 10.5 C 20 10.2 34 9.4 50 7 C 66 4.6 82 2.4 99 0.5" />
       </svg>
-      <svg className="edge-indicator" aria-hidden="true">
+      <svg className="edge-indicator" viewBox="0 0 100 31" preserveAspectRatio="none" aria-hidden="true">
         <circle className="edge-marker" cx={`${point.x}%`} cy={markerY} r="4.5" />
         <text className="edge-zone" x={`${point.x}%`} y={Math.min(31, markerY + 15)} textAnchor="middle">
           {ZONE_LABEL[zone]}
@@ -999,8 +999,13 @@ function MorningScan({ onBegin }: { onBegin: (input: MorningScanInput) => void }
 }
 
 function CairnRow({ cairns, day, settingStone }: { cairns: MissionRunState["cairns"]; day: number; settingStone: boolean }) {
+  const setCairns = cairns.filter((cairn) => cairn.day >= 1 && cairn.day <= 7);
+  const progress = setCairns.length === 0
+    ? "No cairn days set yet"
+    : `${setCairns.length} of 7 cairn days set: ${setCairns.map((cairn) => `day ${cairn.day} ${cairn.tier}`).join(", ")}`;
+  const label = settingStone ? `${progress}. Setting day ${day}` : progress;
   return (
-    <div className="cairns" role="img" aria-label="Cairns — one stone per day">
+    <div className="cairns" role="img" aria-label={label}>
       {Array.from({ length: 7 }, (_, index) => {
         const dayNumber = index + 1;
         const cairn = cairns.find((entry) => entry.day === dayNumber);

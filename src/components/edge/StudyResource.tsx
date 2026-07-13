@@ -8,7 +8,9 @@ export function StudyResource({ resource }: { resource: StudyResourceModel | nul
       <span>Wikipedia</span>
       <h2>{resource.title}</h2>
       <p>{formatKpiPath(resource.path)} may help clarify today's call.</p>
-      <a href={resource.href} target="_blank" rel="noreferrer noopener">Read on Wikipedia</a>
+      <a href={resource.href} target="_blank" rel="noreferrer noopener">
+        Read on Wikipedia <span className="visually-hidden">(opens in a new tab)</span>
+      </a>
     </aside>
   );
 }
