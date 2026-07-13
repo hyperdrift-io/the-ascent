@@ -39,6 +39,7 @@ import {
   type ScanReading,
   type Zone,
 } from "./edge";
+import { EdgeWorld } from "./components/edge/EdgeWorld";
 
 // ------------------------------------------------------------------ constants
 
@@ -135,11 +136,7 @@ const FELT_OPTIONS: { value: FeltState; label: string }[] = [
 ];
 
 // lock chips pinned to the summit gate (percentage anchors, matching the mock)
-const LOCK_ANCHORS = [
-  { x: "26%", y: "16%" },
-  { x: "62%", y: "21%" },
-  { x: "56%", y: "29%" },
-];
+const LOCK_ANCHORS = ["anchor-one", "anchor-two", "anchor-three"] as const;
 
 const REST_LINE =
   "The camp is set. Recovery is converting yesterday's work into mastery — the path behind you is hardening into stone. Nothing is asked of you tonight.";
@@ -180,12 +177,8 @@ function bandLabel(readiness: number): string {
   return "First Spark";
 }
 
-// interpolate the player light between a low anchor and the gate anchor
-function playerPos(readiness: number): { px: string; py: string } {
-  const t = Math.max(0, Math.min(100, readiness)) / 100;
-  const left = 44 + (51 - 44) * t;
-  const top = 78 - (78 - 33) * t;
-  return { px: `${left.toFixed(1)}%`, py: `${top.toFixed(1)}%` };
+function percentageClass(value: number): string {
+  return `at-${Math.round(clamp(value, 0, 100) / 10) * 10}`;
 }
 
 function formatEffects(effects: Partial<Record<HumanResource, number>>): string {
@@ -204,18 +197,12 @@ function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
-// Living Light: map the two 0-100 kernel readings onto CSS custom properties (data, not
-// presentation). Warmth rotates the tint hue; low clarity raises a pale veil. Strain always
-// reads cooler and quieter — never darker (the veil lightens, it never blacks out).
-function tintVars(tint: { warmth: number; clarity: number }): Record<string, string> {
-  const hue = ((tint.warmth - 50) * 0.8).toFixed(1);
-  const veil = (((100 - tint.clarity) / 100) * 0.4).toFixed(3);
-  const warmth = (0.55 + (tint.warmth / 100) * 0.6).toFixed(2);
-  return {
-    "--tint-hue": `${hue}deg`,
-    "--tint-veil": veil,
-    "--tint-warmth": warmth,
-  };
+// Living Light maps kernel readings onto named CSS states. The values stay in the kernel;
+// presentation remains in the stylesheet with no per-render style injection.
+function tintClass(tint: { warmth: number; clarity: number }): string {
+  const warmth = tint.warmth >= 67 ? "warm" : tint.warmth <= 33 ? "cool" : "temperate";
+  const clarity = tint.clarity >= 67 ? "clear" : tint.clarity <= 33 ? "veiled" : "open";
+  return `living-light ${warmth} ${clarity}`;
 }
 
 function loadSignals(): boolean {
@@ -436,12 +423,16 @@ export default function EdgeGame() {
 
   if (!run) {
     return (
-      <AimEntry
-        aim={aim}
-        setAim={updateAim}
-        onSelectSuggestion={selectSuggestion}
-        onStart={startAscent}
-        profile={profile}
+      <EdgeWorld
+        aimEntry={
+          <AimEntry
+            aim={aim}
+            setAim={updateAim}
+            onSelectSuggestion={selectSuggestion}
+            onStart={startAscent}
+            profile={profile}
+          />
+        }
       />
     );
   }
@@ -546,19 +537,15 @@ function AimEntry({
     () => createMissionRun("preview", profile.completedRuns > 0 ? profile : undefined),
     [profile],
   );
-  const tint = getWorldTint(preview);
   return (
-    <main className="aim-entry">
-      <div className="living-light" style={tintVars(tint)} aria-hidden="true" />
-      <div className="aim-panel">
+    <section className="aim-panel edge-aim-form">
         <p className="brand">EDGE</p>
         <div className="instrument">
           <EdgeLine edgeLoad={preview.edgeLoad} edgeControl={preview.edgeControl} zone={preview.zone} />
           <ResourceStrip resources={preview.resources} />
           <p className="baseline-caption">{BASELINE_CAPTION}</p>
         </div>
-        <h1>Start this week's Ascent</h1>
-        <p className="lede">Name the aim in your own words. The mountain shapes itself around it.</p>
+        <h2>Set this Weekrun's aim</h2>
         <input
           aria-label="Your aim for this week"
           placeholder="e.g. land a surface backroll"
@@ -587,8 +574,7 @@ function AimEntry({
         <button className="primary" type="button" onClick={onStart}>
           Begin the Ascent
         </button>
-      </div>
-    </main>
+    </section>
   );
 }
 
@@ -631,7 +617,6 @@ function Mountain({
   const scene = getWorldScene(run);
   const conditions = useMemo(() => getConditions(run), [run]);
   const trailNote = getTrailNote(run);
-  const pos = playerPos(run.readiness);
   const tint = getWorldTint(run);
   const bossLabel = getBossWindowLabel(run);
 
@@ -643,7 +628,7 @@ function Mountain({
       <div className="bg dawn-fog" />
       <div className="bg dawn-wind" />
       <div className="bg dawn-golden" />
-      <div className="living-light" style={tintVars(tint)} aria-hidden="true" />
+      <div className={tintClass(tint)} aria-hidden="true" />
       <div className="scrim" />
 
       <div className="topline">
@@ -662,11 +647,7 @@ function Mountain({
           {run.locks.map((lock, index) => (
             <LockChip key={lock.id} lock={lock} anchor={LOCK_ANCHORS[index] ?? LOCK_ANCHORS[0]} />
           ))}
-          <span
-            className="player-light"
-            style={{ ["--px" as string]: pos.px, ["--py" as string]: pos.py }}
-            aria-hidden="true"
-          />
+          <span className={`player-light ${percentageClass(run.readiness)}`} aria-hidden="true" />
         </>
       )}
 
@@ -676,9 +657,7 @@ function Mountain({
             <span>
               READINESS {run.readiness}% · {bandLabel(run.readiness).toUpperCase()}
             </span>
-            <span className="bar">
-              <i style={{ ["--w" as string]: `${run.readiness}%` }} />
-            </span>
+            <progress className="readiness-progress" max={100} value={run.readiness} aria-label="Route readiness" />
             <span className={`run-status ${run.status}`}>{STATUS_LABEL[run.status]}</span>
             <span className="boss-name">{run.bossName.toUpperCase()}</span>
           </div>
@@ -773,12 +752,9 @@ function Mountain({
 
 // ------------------------------------------------------------------ pieces
 
-function LockChip({ lock, anchor }: { lock: Lock; anchor: { x: string; y: string } }) {
+function LockChip({ lock, anchor }: { lock: Lock; anchor: (typeof LOCK_ANCHORS)[number] }) {
   return (
-    <span
-      className={lock.cracked ? "lock-chip" : "lock-chip dim"}
-      style={{ ["--x" as string]: anchor.x, ["--y" as string]: anchor.y }}
-    >
+    <span className={`${lock.cracked ? "lock-chip" : "lock-chip dim"} ${anchor}`}>
       <span className="dot" />
       {lock.label}
     </span>
@@ -823,10 +799,10 @@ function ResourceStrip({ resources }: { resources: Record<HumanResource, number>
           title={`${RESOURCE_LABEL[key]} ${resources[key]}`}
         >
           <span className="meter-label">{RESOURCE_LABEL[key]}</span>
-          <span className="meter-bar" aria-hidden="true">
-            <i style={{ ["--w" as string]: `${resources[key]}%` }} />
+          <span className="meter-bar">
+            <progress max={100} value={resources[key]} aria-label={`${RESOURCE_LABEL[key]} ${resources[key]}`} />
             {(METER_TICKS[key] ?? []).map((tick) => (
-              <b key={tick.at} className="tick" style={{ ["--at" as string]: `${tick.at}%` }} title={tick.title} />
+              <b key={tick.at} className={`tick tick-${tick.at}`} title={tick.title} aria-label={tick.title} />
             ))}
           </span>
           <span className="meter-value">{resources[key]}</span>
@@ -842,18 +818,13 @@ function ResourceStrip({ resources }: { resources: Record<HumanResource, number>
 // drives the peak-luminosity styling — beauty crests in the `edge` zone, strain quiets it.
 function EdgeLine({ edgeLoad, edgeControl, zone }: { edgeLoad: number; edgeControl: number; zone: Zone }) {
   const marker = clamp(50 + (edgeControl - edgeLoad), 5, 95);
-  // Ride the marker along the crest: valley (left) sits low, the face (right) rides high.
-  // Pure render geometry that matches the SVG path — no game rule lives here.
-  const fraction = marker / 100;
-  const markerTop = (3 + ((10.5 - 10 * fraction) / 12) * 14).toFixed(1);
-  const markerStyle = { ["--m" as string]: `${marker}%`, ["--my" as string]: `${markerTop}px` };
   return (
     <div className="edge-line" data-zone={zone} aria-label={`Edge state: ${ZONE_LABEL[zone]}`}>
       <svg className="crest" viewBox="0 0 100 12" preserveAspectRatio="none" aria-hidden="true">
         <path d="M1 10.5 C 20 10.2 34 9.4 50 7 C 66 4.6 82 2.4 99 0.5" />
       </svg>
-      <span className="edge-marker" style={markerStyle} aria-hidden="true" />
-      <span className="edge-zone" style={{ ["--m" as string]: `${marker}%` }}>
+      <input className="edge-marker" type="range" min={5} max={95} value={marker} readOnly tabIndex={-1} aria-hidden="true" />
+      <span className="edge-zone">
         {ZONE_LABEL[zone]}
       </span>
     </div>
