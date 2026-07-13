@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from "react";
 import type { EdgeSceneController } from "../../edge-scene";
+import { loadEdgeAssetAvailability } from "../../edge-asset-availability";
+import { supportsWebGL } from "../../edge-capabilities";
 import { buildSceneComposition, getCameraPoseForEntry } from "../../edge-scene-model";
 import {
   createViewport,
@@ -81,12 +83,18 @@ export function EdgeWorld({ aimEntry }: { aimEntry: ReactNode }) {
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const syncMotion = () => controller?.setReducedMotion(motion.matches);
 
-    void import("../../edge-scene")
-      .then(({ createEdgeScene }) => {
+    if (!supportsWebGL()) {
+      setRendererState("fallback");
+      return;
+    }
+
+    void Promise.all([import("../../edge-scene"), loadEdgeAssetAvailability()])
+      .then(([{ createEdgeScene }, availableAssetIds]) => {
         if (cancelled) return;
         try {
           controller = createEdgeScene(canvas, viewportRef.current, enter, {
             reducedMotion: motion.matches,
+            availableAssetIds,
             onPreview: (nodeId) => dispatch({ type: "select", nodeId }),
           });
         } catch {

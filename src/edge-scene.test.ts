@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createViewport, edgeNavigationReducer } from "./edge-navigation";
-import { resolveEdgeAssetId } from "./edge-asset-availability";
+import availability from "../public/assets/edge/availability.json";
 import {
   buildSceneComposition,
   getAssetFallbackIds,
@@ -66,7 +66,8 @@ describe("Edge scene composition", () => {
 
   it("uses the committed vertical-slice index for every current root request", () => {
     const root = buildSceneComposition(createViewport());
-    expect(root.children.map((node) => resolveEdgeAssetId(node.assetId))).toEqual([
+    const available = new Set(availability.nodes);
+    expect(root.children.map((node) => resolveAvailableAssetId(node.assetId, available))).toEqual([
       "edge",
       "edge",
       "pressure",

@@ -3,10 +3,10 @@
 // @ts-expect-error Runtime package intentionally has no bundled declaration file.
 import * as THREE from "three";
 import { getEdgeAsset, type EdgeAssetState } from "./edge-assets";
-import { resolveEdgeAssetId } from "./edge-asset-availability";
 import {
   buildSceneComposition,
   getCameraPoseForEntry,
+  resolveAvailableAssetId,
   resolvePreviewNodeId,
   type EdgeSceneNode,
 } from "./edge-scene-model";
@@ -25,6 +25,7 @@ export type EdgeSceneController = {
 export type EdgeSceneOptions = {
   reducedMotion?: boolean;
   onPreview?: (nodeId: string | null) => void;
+  availableAssetIds?: ReadonlySet<string>;
 };
 
 const ASSET_STATE: EdgeAssetState = "available";
@@ -72,6 +73,7 @@ export function createEdgeScene(
   let interactiveMeshes: any[] = [];
   let selectedNodeId: string | null = initial.selectedNodeId;
   let previewNodeId: string | null = null;
+  const availableAssetIds = options.availableAssetIds ?? new Set<string>(["edge"]);
   const pointerOrigins = new Map<number, { x: number; y: number }>();
   const texturePromises = new Map<string, Promise<any | null>>();
   const loadedTextures = new Set<any>();
@@ -93,7 +95,7 @@ export function createEdgeScene(
   }
 
   function textureFor(assetId: string): Promise<any | null> {
-    const resolvedId = resolveEdgeAssetId(assetId);
+    const resolvedId = resolveAvailableAssetId(assetId, availableAssetIds);
     const src = getEdgeAsset(resolvedId, ASSET_STATE).src;
     const cached = texturePromises.get(src);
     if (cached) return cached;
