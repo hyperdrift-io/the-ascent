@@ -1162,6 +1162,12 @@ button.quiet:hover {
   border-color: var(--glass-border);
 }
 
+@media (max-width: 700px) {
+  .hand-region.locked .hand {
+    display: none;
+  }
+}
+
 /* the scan becomes a focused panel layered over the resting hand, not a full replacement */
 .morning-scan.compact {
   gap: 10px;

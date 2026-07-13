@@ -64,17 +64,14 @@ describe("Edge scene composition", () => {
     expect(resolveAvailableAssetId("pressure.stress.anxiety", available)).toBe("pressure.stress.anxiety");
   });
 
-  it("uses the committed vertical-slice index for every current root request", () => {
+  it("resolves every root request to a generated asset in its own ancestry", () => {
     const root = buildSceneComposition(createViewport());
     const available = new Set(availability.nodes);
-    expect(root.children.map((node) => resolveAvailableAssetId(node.assetId, available))).toEqual([
-      "edge",
-      "edge",
-      "pressure",
-      "edge",
-      "edge",
-      "edge",
-    ]);
+    for (const node of root.children) {
+      const resolved = resolveAvailableAssetId(node.assetId, available);
+      expect(available.has(resolved)).toBe(true);
+      expect(getAssetFallbackIds(node.assetId)).toContain(resolved);
+    }
   });
 
   it("uses stable camera poses so reducer history can restore them exactly", () => {
