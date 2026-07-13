@@ -1,0 +1,90 @@
+{
+  "schema": "https://hyperdrift.io/schemas/edge-recraft-tree/v2",
+  "manifestVersion": "2.0.0",
+  "generatorPath": "../../../scripts/generate-recraft-asset.mjs",
+  "model": "recraftv4",
+  "size": "1024x1024",
+  "masterPrompt": "Mythic Natural Realism, cinematic square environmental artwork with tactile stone, weather, water, roots, and living light. Create one master composition for node body; all five capacity states will be deterministic treatments of this exact Recraft scene, so do not encode a capacity state or warning tint in the composition itself. Prompt intent: Render tectonic vitality as the canonical body environment, preserving a forked river vein crossing a basalt ridge as the spatial landmark shared with its children. Universal human-capacity force: tectonic vitality. This identity is universal and independent of any aim, goal, profession, or sport. Fractal family: self-similar living mountain watershed; root ridges resolving into vascular river deltas. Parent geometry must visibly become child geography rather than a separate icon or panel. Inherited parent visual DNA: edge: living convergence of breath, tide, stone, canopy, weather, and relationship; self-similar living mountain watershed; anchor a luminous watershed spiral held at the living mountain heart. Transition anchor: preserve and clarify a forked river vein crossing a basalt ridge. Neutral master palette: basalt black, lichen green, glacial white, warm natural gold, balanced full tonal range suitable for later cool, clear, amber, and controlled-crimson grading. Accessibility purpose: Describe the body environment as a non-diagnostic natural process whose identity and capacity state remain understandable without relying on colour. Pipeline intent 2.0.0: Generate one universal, text-free Mythic Natural Realism composition whose inherited landmark remains spatially stable across all deterministic capacity-state treatments. Single immersive natural world, inspectable detail, coherent central landmark, no decorative bokeh, no gradient blobs. No embedded text, numbers, or logos. No interface, cards, frames, badges, charts, people, faces, medical symbols, diagnoses, or aim-specific objects.",
+  "promptTemplateVersion": "2.0.0",
+  "promptIntent": "Render tectonic vitality as the canonical body environment, preserving a forked river vein crossing a basalt ridge as the spatial landmark shared with its children.",
+  "accessibilityPurpose": "Describe the body environment as a non-diagnostic natural process whose identity and capacity state remain understandable without relying on colour.",
+  "stateStrategy": "one Recraft master composition per node, with every requested capacity state derived deterministically from that exact master",
+  "masterSha256": "a2e0a292b2ffe392692fdafd9e9ac457c6cbb21b0e3d483b493826161f0ffba9",
+  "stateMappings": {
+    "quiet": {
+      "output": "public/assets/edge/body/quiet.webp",
+      "outputSha256": "7589c8444be7b7fb8f59d4bca0bf80ae536026f7645c087d240194a8a3026bbe",
+      "treatment": {
+        "intent": "cool open equilibrium",
+        "magickArgs": [
+          "-modulate",
+          "92,62,100"
+        ]
+      },
+      "masterSha256": "a2e0a292b2ffe392692fdafd9e9ac457c6cbb21b0e3d483b493826161f0ffba9",
+      "lineage": "derived-from-this-master"
+    },
+    "available": {
+      "output": "public/assets/edge/body/available.webp",
+      "outputSha256": "fc0fa27a4a39b362859d1942703434ddf5ffbb633288c28cfe71002711ca94d3",
+      "treatment": {
+        "intent": "natural balanced readiness",
+        "magickArgs": [
+          "-modulate",
+          "100,82,100"
+        ]
+      },
+      "masterSha256": "a2e0a292b2ffe392692fdafd9e9ac457c6cbb21b0e3d483b493826161f0ffba9",
+      "lineage": "derived-from-this-master"
+    },
+    "edge": {
+      "output": "public/assets/edge/body/edge.webp",
+      "outputSha256": "9a4f1ea23b152083eb32acd1aa0d6c84e2780ab8bb858d3a50cfa073b2ccd622",
+      "treatment": {
+        "intent": "luminous high-capacity focus",
+        "magickArgs": [
+          "-modulate",
+          "106,90,100",
+          "-contrast-stretch",
+          "1%x1%"
+        ]
+      },
+      "masterSha256": "a2e0a292b2ffe392692fdafd9e9ac457c6cbb21b0e3d483b493826161f0ffba9",
+      "lineage": "derived-from-this-master"
+    },
+    "loaded": {
+      "output": "public/assets/edge/body/loaded.webp",
+      "outputSha256": "88e599023298068476eb29148b194c45c21fc0ed4519a27283acc0fe7df45154",
+      "treatment": {
+        "intent": "compressed demand with amber warning",
+        "magickArgs": [
+          "-modulate",
+          "90,84,100",
+          "-fill",
+          "#ad782f",
+          "-colorize",
+          "12"
+        ]
+      },
+      "masterSha256": "a2e0a292b2ffe392692fdafd9e9ac457c6cbb21b0e3d483b493826161f0ffba9",
+      "lineage": "derived-from-this-master"
+    },
+    "overloaded": {
+      "output": "public/assets/edge/body/overloaded.webp",
+      "outputSha256": "bfb3dcdd11bbdfcb0b312c221218e3472be6f172544d9556a3854b4bce877b27",
+      "treatment": {
+        "intent": "controlled crimson demand threshold",
+        "magickArgs": [
+          "-modulate",
+          "78,105,100",
+          "-fill",
+          "#9b1f2b",
+          "-colorize",
+          "28"
+        ]
+      },
+      "masterSha256": "a2e0a292b2ffe392692fdafd9e9ac457c6cbb21b0e3d483b493826161f0ffba9",
+      "lineage": "derived-from-this-master"
+    }
+  }
+}

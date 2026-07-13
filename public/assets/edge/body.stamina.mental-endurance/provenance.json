@@ -1,0 +1,90 @@
+{
+  "schema": "https://hyperdrift.io/schemas/edge-recraft-tree/v2",
+  "manifestVersion": "2.0.0",
+  "generatorPath": "../../../scripts/generate-recraft-asset.mjs",
+  "model": "recraftv4",
+  "size": "1024x1024",
+  "masterPrompt": "Mythic Natural Realism, cinematic square environmental artwork with tactile stone, weather, water, roots, and living light. Create one master composition for node body.stamina.mental-endurance; all five capacity states will be deterministic treatments of this exact Recraft scene, so do not encode a capacity state or warning tint in the composition itself. Prompt intent: Convey mental endurance as renewed orientation across obscuring cycles, without using brains, heads, text, or productivity imagery. Universal human-capacity force: patient lighthouse beam returning through successive banks of mountain mist. This identity is universal and independent of any aim, goal, profession, or sport. Fractal family: self-similar living mountain watershed; root ridges resolving into vascular river deltas; long contour lines flowing through resilient root fibres; concentric light paths holding direction through layered fog. Parent geometry must visibly become child geography rather than a separate icon or panel. Inherited parent visual DNA: edge: living convergence of breath, tide, stone, canopy, weather, and relationship; self-similar living mountain watershed; anchor a luminous watershed spiral held at the living mountain heart | body: tectonic vitality; self-similar living mountain watershed; root ridges resolving into vascular river deltas; anchor a forked river vein crossing a basalt ridge | body.stamina: sustained mountain current; self-similar living mountain watershed; root ridges resolving into vascular river deltas; long contour lines flowing through resilient root fibres; anchor a continuous root line climbing the ridge without breaking. Transition anchor: preserve and clarify the ridge root terminating at a small stone lens that repeatedly clears the mist. Neutral master palette: basalt black, lichen green, lichen chartreuse, glacial white, warm natural gold, balanced full tonal range suitable for later cool, clear, amber, and controlled-crimson grading. Accessibility purpose: Describe the body.stamina.mental-endurance environment as a non-diagnostic natural process whose identity and capacity state remain understandable without relying on colour. Pipeline intent 2.0.0: Generate one universal, text-free Mythic Natural Realism composition whose inherited landmark remains spatially stable across all deterministic capacity-state treatments. Single immersive natural world, inspectable detail, coherent central landmark, no decorative bokeh, no gradient blobs. No embedded text, numbers, or logos. No interface, cards, frames, badges, charts, people, faces, medical symbols, diagnoses, or aim-specific objects.",
+  "promptTemplateVersion": "2.0.0",
+  "promptIntent": "Convey mental endurance as renewed orientation across obscuring cycles, without using brains, heads, text, or productivity imagery.",
+  "accessibilityPurpose": "Describe the body.stamina.mental-endurance environment as a non-diagnostic natural process whose identity and capacity state remain understandable without relying on colour.",
+  "stateStrategy": "one Recraft master composition per node, with every requested capacity state derived deterministically from that exact master",
+  "masterSha256": "e5e685ba486c1a2bf2d5dc16b84b394d9b1b5adfcf92e515b267d5bed4a81e11",
+  "stateMappings": {
+    "quiet": {
+      "output": "public/assets/edge/body.stamina.mental-endurance/quiet.webp",
+      "outputSha256": "bd073eff3980ddd57422926f9b37da5ba63e225f68b943c3a42d6f6b0916e4b6",
+      "treatment": {
+        "intent": "cool open equilibrium",
+        "magickArgs": [
+          "-modulate",
+          "92,62,100"
+        ]
+      },
+      "masterSha256": "e5e685ba486c1a2bf2d5dc16b84b394d9b1b5adfcf92e515b267d5bed4a81e11",
+      "lineage": "derived-from-this-master"
+    },
+    "available": {
+      "output": "public/assets/edge/body.stamina.mental-endurance/available.webp",
+      "outputSha256": "b15f7d1514f12e23b0dbe916b3052cf6fc4077896cb498a36b0ca16cfc856ff8",
+      "treatment": {
+        "intent": "natural balanced readiness",
+        "magickArgs": [
+          "-modulate",
+          "100,82,100"
+        ]
+      },
+      "masterSha256": "e5e685ba486c1a2bf2d5dc16b84b394d9b1b5adfcf92e515b267d5bed4a81e11",
+      "lineage": "derived-from-this-master"
+    },
+    "edge": {
+      "output": "public/assets/edge/body.stamina.mental-endurance/edge.webp",
+      "outputSha256": "6c5c44b473be53f5b91c38d772ab5fc5703bac9a2a0237363caca6571f4c8a75",
+      "treatment": {
+        "intent": "luminous high-capacity focus",
+        "magickArgs": [
+          "-modulate",
+          "106,90,100",
+          "-contrast-stretch",
+          "1%x1%"
+        ]
+      },
+      "masterSha256": "e5e685ba486c1a2bf2d5dc16b84b394d9b1b5adfcf92e515b267d5bed4a81e11",
+      "lineage": "derived-from-this-master"
+    },
+    "loaded": {
+      "output": "public/assets/edge/body.stamina.mental-endurance/loaded.webp",
+      "outputSha256": "9653be68fca7fc440e538bffbc1ecea52b9ff8d03d415eb72c5b22534c55827f",
+      "treatment": {
+        "intent": "compressed demand with amber warning",
+        "magickArgs": [
+          "-modulate",
+          "90,84,100",
+          "-fill",
+          "#ad782f",
+          "-colorize",
+          "12"
+        ]
+      },
+      "masterSha256": "e5e685ba486c1a2bf2d5dc16b84b394d9b1b5adfcf92e515b267d5bed4a81e11",
+      "lineage": "derived-from-this-master"
+    },
+    "overloaded": {
+      "output": "public/assets/edge/body.stamina.mental-endurance/overloaded.webp",
+      "outputSha256": "1de16f164b7800a20d79a9edb496e5629e84886e5227194e4acaffa43f9b5c8e",
+      "treatment": {
+        "intent": "controlled crimson demand threshold",
+        "magickArgs": [
+          "-modulate",
+          "78,105,100",
+          "-fill",
+          "#9b1f2b",
+          "-colorize",
+          "28"
+        ]
+      },
+      "masterSha256": "e5e685ba486c1a2bf2d5dc16b84b394d9b1b5adfcf92e515b267d5bed4a81e11",
+      "lineage": "derived-from-this-master"
+    }
+  }
+}

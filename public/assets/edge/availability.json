@@ -3,6 +3,18 @@
   "manifestVersion": "2.0.0",
   "nodes": [
     "edge",
+    "body",
+    "body.health",
+    "body.health.general-wellbeing",
+    "body.health.physical-comfort",
+    "body.health.illness-load",
+    "body.stamina",
+    "body.stamina.sustained-effort",
+    "body.stamina.physical-endurance",
+    "body.stamina.mental-endurance",
+    "body.nutrition",
+    "body.nutrition.nourishment",
+    "body.nutrition.hydration",
     "pressure",
     "pressure.stress",
     "pressure.stress.anxiety"

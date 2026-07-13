@@ -1,0 +1,90 @@
+{
+  "schema": "https://hyperdrift.io/schemas/edge-recraft-tree/v2",
+  "manifestVersion": "2.0.0",
+  "generatorPath": "../../../scripts/generate-recraft-asset.mjs",
+  "model": "recraftv4",
+  "size": "1024x1024",
+  "masterPrompt": "Mythic Natural Realism, cinematic square environmental artwork with tactile stone, weather, water, roots, and living light. Create one master composition for node body.nutrition.hydration; all five capacity states will be deterministic treatments of this exact Recraft scene, so do not encode a capacity state or warning tint in the composition itself. Prompt intent: Make hydration visible as reach and permeability through the parent soil system, without bottles, measurements, or bodily diagrams. Universal human-capacity force: clear aquifer rising through porous stone into every root channel. This identity is universal and independent of any aim, goal, profession, or sport. Fractal family: self-similar living mountain watershed; root ridges resolving into vascular river deltas; mineral capillaries feeding seed-like chambers; capillary water threads branching evenly through mineral pores. Parent geometry must visibly become child geography rather than a separate icon or panel. Inherited parent visual DNA: edge: living convergence of breath, tide, stone, canopy, weather, and relationship; self-similar living mountain watershed; anchor a luminous watershed spiral held at the living mountain heart | body: tectonic vitality; self-similar living mountain watershed; root ridges resolving into vascular river deltas; anchor a forked river vein crossing a basalt ridge | body.nutrition: nourishing soil exchange; self-similar living mountain watershed; root ridges resolving into vascular river deltas; mineral capillaries feeding seed-like chambers; anchor a seed chamber fed by three mineral capillaries. Transition anchor: preserve and clarify the seed chamber crossed by a bright vertical spring feeding its lowest roots. Neutral master palette: basalt black, lichen green, aurora violet, glacial white, warm natural gold, balanced full tonal range suitable for later cool, clear, amber, and controlled-crimson grading. Accessibility purpose: Describe the body.nutrition.hydration environment as a non-diagnostic natural process whose identity and capacity state remain understandable without relying on colour. Pipeline intent 2.0.0: Generate one universal, text-free Mythic Natural Realism composition whose inherited landmark remains spatially stable across all deterministic capacity-state treatments. Single immersive natural world, inspectable detail, coherent central landmark, no decorative bokeh, no gradient blobs. No embedded text, numbers, or logos. No interface, cards, frames, badges, charts, people, faces, medical symbols, diagnoses, or aim-specific objects.",
+  "promptTemplateVersion": "2.0.0",
+  "promptIntent": "Make hydration visible as reach and permeability through the parent soil system, without bottles, measurements, or bodily diagrams.",
+  "accessibilityPurpose": "Describe the body.nutrition.hydration environment as a non-diagnostic natural process whose identity and capacity state remain understandable without relying on colour.",
+  "stateStrategy": "one Recraft master composition per node, with every requested capacity state derived deterministically from that exact master",
+  "masterSha256": "4b73b8f2690cf25a49a5f3a29d3015dc785d821096449ce3c4717494cc424b55",
+  "stateMappings": {
+    "quiet": {
+      "output": "public/assets/edge/body.nutrition.hydration/quiet.webp",
+      "outputSha256": "8e826ad20ea725608f80fc05349b064575b69cbbbc7d8d241dfe5a0d8fe101a7",
+      "treatment": {
+        "intent": "cool open equilibrium",
+        "magickArgs": [
+          "-modulate",
+          "92,62,100"
+        ]
+      },
+      "masterSha256": "4b73b8f2690cf25a49a5f3a29d3015dc785d821096449ce3c4717494cc424b55",
+      "lineage": "derived-from-this-master"
+    },
+    "available": {
+      "output": "public/assets/edge/body.nutrition.hydration/available.webp",
+      "outputSha256": "b56733c5103f3fd8a94e642fdd97539a563e1519bdb24116e45aa2c8635296eb",
+      "treatment": {
+        "intent": "natural balanced readiness",
+        "magickArgs": [
+          "-modulate",
+          "100,82,100"
+        ]
+      },
+      "masterSha256": "4b73b8f2690cf25a49a5f3a29d3015dc785d821096449ce3c4717494cc424b55",
+      "lineage": "derived-from-this-master"
+    },
+    "edge": {
+      "output": "public/assets/edge/body.nutrition.hydration/edge.webp",
+      "outputSha256": "db4b159736b052535f043a2e3d7cce31eb65bab8feed7796303ec047feb5c59b",
+      "treatment": {
+        "intent": "luminous high-capacity focus",
+        "magickArgs": [
+          "-modulate",
+          "106,90,100",
+          "-contrast-stretch",
+          "1%x1%"
+        ]
+      },
+      "masterSha256": "4b73b8f2690cf25a49a5f3a29d3015dc785d821096449ce3c4717494cc424b55",
+      "lineage": "derived-from-this-master"
+    },
+    "loaded": {
+      "output": "public/assets/edge/body.nutrition.hydration/loaded.webp",
+      "outputSha256": "d33fdff2f46dcacde8fa91397cbdcd62358d061beebaa3107cebce9b39d90ee6",
+      "treatment": {
+        "intent": "compressed demand with amber warning",
+        "magickArgs": [
+          "-modulate",
+          "90,84,100",
+          "-fill",
+          "#ad782f",
+          "-colorize",
+          "12"
+        ]
+      },
+      "masterSha256": "4b73b8f2690cf25a49a5f3a29d3015dc785d821096449ce3c4717494cc424b55",
+      "lineage": "derived-from-this-master"
+    },
+    "overloaded": {
+      "output": "public/assets/edge/body.nutrition.hydration/overloaded.webp",
+      "outputSha256": "0fbfe02b86726f3366698e7f26a17541c08de78c9e5575084f918d9d263e0ced",
+      "treatment": {
+        "intent": "controlled crimson demand threshold",
+        "magickArgs": [
+          "-modulate",
+          "78,105,100",
+          "-fill",
+          "#9b1f2b",
+          "-colorize",
+          "28"
+        ]
+      },
+      "masterSha256": "4b73b8f2690cf25a49a5f3a29d3015dc785d821096449ce3c4717494cc424b55",
+      "lineage": "derived-from-this-master"
+    }
+  }
+}

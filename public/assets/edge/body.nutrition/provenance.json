@@ -1,0 +1,90 @@
+{
+  "schema": "https://hyperdrift.io/schemas/edge-recraft-tree/v2",
+  "manifestVersion": "2.0.0",
+  "generatorPath": "../../../scripts/generate-recraft-asset.mjs",
+  "model": "recraftv4",
+  "size": "1024x1024",
+  "masterPrompt": "Mythic Natural Realism, cinematic square environmental artwork with tactile stone, weather, water, roots, and living light. Create one master composition for node body.nutrition; all five capacity states will be deterministic treatments of this exact Recraft scene, so do not encode a capacity state or warning tint in the composition itself. Prompt intent: Render nourishing soil exchange as the canonical body.nutrition environment, preserving a seed chamber fed by three mineral capillaries as the spatial landmark shared with its children. Universal human-capacity force: nourishing soil exchange. This identity is universal and independent of any aim, goal, profession, or sport. Fractal family: self-similar living mountain watershed; root ridges resolving into vascular river deltas; mineral capillaries feeding seed-like chambers. Parent geometry must visibly become child geography rather than a separate icon or panel. Inherited parent visual DNA: edge: living convergence of breath, tide, stone, canopy, weather, and relationship; self-similar living mountain watershed; anchor a luminous watershed spiral held at the living mountain heart | body: tectonic vitality; self-similar living mountain watershed; root ridges resolving into vascular river deltas; anchor a forked river vein crossing a basalt ridge. Transition anchor: preserve and clarify a seed chamber fed by three mineral capillaries. Neutral master palette: basalt black, lichen green, mineral amber, warm natural gold, balanced full tonal range suitable for later cool, clear, amber, and controlled-crimson grading. Accessibility purpose: Describe the body.nutrition environment as a non-diagnostic natural process whose identity and capacity state remain understandable without relying on colour. Pipeline intent 2.0.0: Generate one universal, text-free Mythic Natural Realism composition whose inherited landmark remains spatially stable across all deterministic capacity-state treatments. Single immersive natural world, inspectable detail, coherent central landmark, no decorative bokeh, no gradient blobs. No embedded text, numbers, or logos. No interface, cards, frames, badges, charts, people, faces, medical symbols, diagnoses, or aim-specific objects.",
+  "promptTemplateVersion": "2.0.0",
+  "promptIntent": "Render nourishing soil exchange as the canonical body.nutrition environment, preserving a seed chamber fed by three mineral capillaries as the spatial landmark shared with its children.",
+  "accessibilityPurpose": "Describe the body.nutrition environment as a non-diagnostic natural process whose identity and capacity state remain understandable without relying on colour.",
+  "stateStrategy": "one Recraft master composition per node, with every requested capacity state derived deterministically from that exact master",
+  "masterSha256": "14020c5212827ca412fd6a7ba5b44c9be318e7d048292d3c1f94e0c708db717d",
+  "stateMappings": {
+    "quiet": {
+      "output": "public/assets/edge/body.nutrition/quiet.webp",
+      "outputSha256": "4ff04b201d52f1713ed3e936455d20d0575703a2ec7c3048c0da49e303f37ad3",
+      "treatment": {
+        "intent": "cool open equilibrium",
+        "magickArgs": [
+          "-modulate",
+          "92,62,100"
+        ]
+      },
+      "masterSha256": "14020c5212827ca412fd6a7ba5b44c9be318e7d048292d3c1f94e0c708db717d",
+      "lineage": "derived-from-this-master"
+    },
+    "available": {
+      "output": "public/assets/edge/body.nutrition/available.webp",
+      "outputSha256": "b85e1207a02fdc04da30104b91f976b6c6d711e1e3dab366207e22abbc26b6e4",
+      "treatment": {
+        "intent": "natural balanced readiness",
+        "magickArgs": [
+          "-modulate",
+          "100,82,100"
+        ]
+      },
+      "masterSha256": "14020c5212827ca412fd6a7ba5b44c9be318e7d048292d3c1f94e0c708db717d",
+      "lineage": "derived-from-this-master"
+    },
+    "edge": {
+      "output": "public/assets/edge/body.nutrition/edge.webp",
+      "outputSha256": "88bb1993387ab660cac90953e3a18813712c04cbd1ce7ece6656fc7155f403c9",
+      "treatment": {
+        "intent": "luminous high-capacity focus",
+        "magickArgs": [
+          "-modulate",
+          "106,90,100",
+          "-contrast-stretch",
+          "1%x1%"
+        ]
+      },
+      "masterSha256": "14020c5212827ca412fd6a7ba5b44c9be318e7d048292d3c1f94e0c708db717d",
+      "lineage": "derived-from-this-master"
+    },
+    "loaded": {
+      "output": "public/assets/edge/body.nutrition/loaded.webp",
+      "outputSha256": "79f2a54c77032a10cb92134d341a566e559be8dc8ebe5cce00cad8f27cccfe10",
+      "treatment": {
+        "intent": "compressed demand with amber warning",
+        "magickArgs": [
+          "-modulate",
+          "90,84,100",
+          "-fill",
+          "#ad782f",
+          "-colorize",
+          "12"
+        ]
+      },
+      "masterSha256": "14020c5212827ca412fd6a7ba5b44c9be318e7d048292d3c1f94e0c708db717d",
+      "lineage": "derived-from-this-master"
+    },
+    "overloaded": {
+      "output": "public/assets/edge/body.nutrition/overloaded.webp",
+      "outputSha256": "d8317b20ae1f2b48d77f287b6b1a035714ef0d7442d2367f3b9eb43b85fdadce",
+      "treatment": {
+        "intent": "controlled crimson demand threshold",
+        "magickArgs": [
+          "-modulate",
+          "78,105,100",
+          "-fill",
+          "#9b1f2b",
+          "-colorize",
+          "28"
+        ]
+      },
+      "masterSha256": "14020c5212827ca412fd6a7ba5b44c9be318e7d048292d3c1f94e0c708db717d",
+      "lineage": "derived-from-this-master"
+    }
+  }
+}

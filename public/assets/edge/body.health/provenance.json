@@ -1,0 +1,90 @@
+{
+  "schema": "https://hyperdrift.io/schemas/edge-recraft-tree/v2",
+  "manifestVersion": "2.0.0",
+  "generatorPath": "../../../scripts/generate-recraft-asset.mjs",
+  "model": "recraftv4",
+  "size": "1024x1024",
+  "masterPrompt": "Mythic Natural Realism, cinematic square environmental artwork with tactile stone, weather, water, roots, and living light. Create one master composition for node body.health; all five capacity states will be deterministic treatments of this exact Recraft scene, so do not encode a capacity state or warning tint in the composition itself. Prompt intent: Render whole-body equilibrium as the canonical body.health environment, preserving a translucent membrane encircling a warm mineral core as the spatial landmark shared with its children. Universal human-capacity force: whole-body equilibrium. This identity is universal and independent of any aim, goal, profession, or sport. Fractal family: self-similar living mountain watershed; root ridges resolving into vascular river deltas; interlocking leaf, stone, and water membranes. Parent geometry must visibly become child geography rather than a separate icon or panel. Inherited parent visual DNA: edge: living convergence of breath, tide, stone, canopy, weather, and relationship; self-similar living mountain watershed; anchor a luminous watershed spiral held at the living mountain heart | body: tectonic vitality; self-similar living mountain watershed; root ridges resolving into vascular river deltas; anchor a forked river vein crossing a basalt ridge. Transition anchor: preserve and clarify a translucent membrane encircling a warm mineral core. Neutral master palette: basalt black, lichen green, alpine teal, warm natural gold, balanced full tonal range suitable for later cool, clear, amber, and controlled-crimson grading. Accessibility purpose: Describe the body.health environment as a non-diagnostic natural process whose identity and capacity state remain understandable without relying on colour. Pipeline intent 2.0.0: Generate one universal, text-free Mythic Natural Realism composition whose inherited landmark remains spatially stable across all deterministic capacity-state treatments. Single immersive natural world, inspectable detail, coherent central landmark, no decorative bokeh, no gradient blobs. No embedded text, numbers, or logos. No interface, cards, frames, badges, charts, people, faces, medical symbols, diagnoses, or aim-specific objects.",
+  "promptTemplateVersion": "2.0.0",
+  "promptIntent": "Render whole-body equilibrium as the canonical body.health environment, preserving a translucent membrane encircling a warm mineral core as the spatial landmark shared with its children.",
+  "accessibilityPurpose": "Describe the body.health environment as a non-diagnostic natural process whose identity and capacity state remain understandable without relying on colour.",
+  "stateStrategy": "one Recraft master composition per node, with every requested capacity state derived deterministically from that exact master",
+  "masterSha256": "c1195e0fe3f9e07606fec157097a718874d31670704092d2deb194589fa40645",
+  "stateMappings": {
+    "quiet": {
+      "output": "public/assets/edge/body.health/quiet.webp",
+      "outputSha256": "4db14fed35f384fc5519a00178079607b173c0ec72499eb4b5c0833e4bf48900",
+      "treatment": {
+        "intent": "cool open equilibrium",
+        "magickArgs": [
+          "-modulate",
+          "92,62,100"
+        ]
+      },
+      "masterSha256": "c1195e0fe3f9e07606fec157097a718874d31670704092d2deb194589fa40645",
+      "lineage": "derived-from-this-master"
+    },
+    "available": {
+      "output": "public/assets/edge/body.health/available.webp",
+      "outputSha256": "5fbe6a99a246e30e243b77380bcc6fcc5ba4b20fb2ba13243050c5e5a31448d7",
+      "treatment": {
+        "intent": "natural balanced readiness",
+        "magickArgs": [
+          "-modulate",
+          "100,82,100"
+        ]
+      },
+      "masterSha256": "c1195e0fe3f9e07606fec157097a718874d31670704092d2deb194589fa40645",
+      "lineage": "derived-from-this-master"
+    },
+    "edge": {
+      "output": "public/assets/edge/body.health/edge.webp",
+      "outputSha256": "331dfd748f9062f73f373e7735f9f4f9d0aa60372cfebb21d3b64d0fc376f544",
+      "treatment": {
+        "intent": "luminous high-capacity focus",
+        "magickArgs": [
+          "-modulate",
+          "106,90,100",
+          "-contrast-stretch",
+          "1%x1%"
+        ]
+      },
+      "masterSha256": "c1195e0fe3f9e07606fec157097a718874d31670704092d2deb194589fa40645",
+      "lineage": "derived-from-this-master"
+    },
+    "loaded": {
+      "output": "public/assets/edge/body.health/loaded.webp",
+      "outputSha256": "3d95e665ae3b459b68f25da9a9551af8c906ef3f356dc7b13c199c493757d311",
+      "treatment": {
+        "intent": "compressed demand with amber warning",
+        "magickArgs": [
+          "-modulate",
+          "90,84,100",
+          "-fill",
+          "#ad782f",
+          "-colorize",
+          "12"
+        ]
+      },
+      "masterSha256": "c1195e0fe3f9e07606fec157097a718874d31670704092d2deb194589fa40645",
+      "lineage": "derived-from-this-master"
+    },
+    "overloaded": {
+      "output": "public/assets/edge/body.health/overloaded.webp",
+      "outputSha256": "514234b5d938ed30043c6fd89327574acff00ed107f22cb696e48cb40194c200",
+      "treatment": {
+        "intent": "controlled crimson demand threshold",
+        "magickArgs": [
+          "-modulate",
+          "78,105,100",
+          "-fill",
+          "#9b1f2b",
+          "-colorize",
+          "28"
+        ]
+      },
+      "masterSha256": "c1195e0fe3f9e07606fec157097a718874d31670704092d2deb194589fa40645",
+      "lineage": "derived-from-this-master"
+    }
+  }
+}
