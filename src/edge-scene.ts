@@ -1,6 +1,5 @@
 // `three` ships runtime modules without TypeScript declarations. This is the only
 // temporary untyped boundary while the matching `@types/three` approval is pending.
-// @ts-expect-error Runtime package intentionally has no bundled declaration file.
 import * as THREE from "three";
 import { getEdgeAsset, type EdgeAssetState } from "./edge-assets";
 import {
