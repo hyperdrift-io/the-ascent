@@ -1,19 +1,20 @@
 import { KPI_TREE } from "./edge-kpis";
 
 export type CameraPose = {
-  x: number;
-  y: number;
-  z: number;
-  targetX: number;
-  targetY: number;
-  targetZ: number;
+  readonly x: number;
+  readonly y: number;
+  readonly z: number;
+  readonly targetX: number;
+  readonly targetY: number;
+  readonly targetZ: number;
 };
 
 export type EdgeViewportState = {
-  path: readonly string[];
-  camera: CameraPose;
-  history: readonly CameraPose[];
-  selectedNodeId: string | null;
+  readonly path: readonly string[];
+  readonly camera: CameraPose;
+  readonly history: readonly CameraPose[];
+  readonly rootCamera: CameraPose;
+  readonly selectedNodeId: string | null;
 };
 
 export type EdgeNavigationAction =
@@ -23,26 +24,40 @@ export type EdgeNavigationAction =
   | { type: "select"; nodeId: string | null }
   | { type: "camera"; camera: CameraPose };
 
-const DEFAULT_CAMERA: CameraPose = {
+const DEFAULT_CAMERA: CameraPose = Object.freeze({
   x: 0,
   y: 0,
   z: 8,
   targetX: 0,
   targetY: 0,
   targetZ: 0,
-};
+});
 
 function copyCamera(camera: CameraPose): CameraPose {
-  return { ...camera };
+  return Object.freeze({ ...camera });
+}
+
+function freezePath(path: readonly string[]): readonly string[] {
+  return Object.freeze([...path]);
+}
+
+function freezeHistory(history: readonly CameraPose[]): readonly CameraPose[] {
+  return Object.freeze([...history]);
+}
+
+function freezeViewport(state: EdgeViewportState): EdgeViewportState {
+  return Object.freeze(state);
 }
 
 export function createViewport(camera: CameraPose = DEFAULT_CAMERA): EdgeViewportState {
-  return {
-    path: ["edge"],
-    camera: copyCamera(camera),
-    history: [],
+  const rootCamera = copyCamera(camera);
+  return freezeViewport({
+    path: freezePath(["edge"]),
+    camera: rootCamera,
+    history: freezeHistory([]),
+    rootCamera,
     selectedNodeId: null,
-  };
+  });
 }
 
 export function getVisibleNodeIds(state: EdgeViewportState): string[] {
@@ -68,34 +83,35 @@ export function edgeNavigationReducer(
   switch (action.type) {
     case "enter":
       if (!getVisibleNodeIds(state).includes(action.nodeId)) return state;
-      return {
-        path: [...state.path, action.nodeId],
+      return freezeViewport({
+        path: freezePath([...state.path, action.nodeId]),
         camera: copyCamera(action.camera ?? state.camera),
-        history: [...state.history, copyCamera(state.camera)],
+        history: freezeHistory([...state.history, state.camera]),
+        rootCamera: state.rootCamera,
         selectedNodeId: null,
-      };
+      });
     case "back": {
       const parentCamera = state.history[state.history.length - 1];
       if (state.path.length === 1 || !parentCamera) return state;
-      return {
-        path: state.path.slice(0, -1),
-        camera: copyCamera(parentCamera),
-        history: state.history.slice(0, -1),
+      return freezeViewport({
+        path: freezePath(state.path.slice(0, -1)),
+        camera: parentCamera,
+        history: freezeHistory(state.history.slice(0, -1)),
+        rootCamera: state.rootCamera,
         selectedNodeId: null,
-      };
+      });
     }
-    case "home": {
-      const rootCamera = state.history[0] ?? state.camera;
-      return {
-        path: ["edge"],
-        camera: copyCamera(rootCamera),
-        history: [],
+    case "home":
+      return freezeViewport({
+        path: freezePath(["edge"]),
+        camera: state.rootCamera,
+        history: freezeHistory([]),
+        rootCamera: state.rootCamera,
         selectedNodeId: null,
-      };
-    }
+      });
     case "select":
-      return { ...state, selectedNodeId: action.nodeId };
+      return freezeViewport({ ...state, selectedNodeId: action.nodeId });
     case "camera":
-      return { ...state, camera: copyCamera(action.camera) };
+      return freezeViewport({ ...state, camera: copyCamera(action.camera) });
   }
 }

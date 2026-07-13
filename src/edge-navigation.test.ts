@@ -16,6 +16,15 @@ const ROOT_CAMERA: CameraPose = {
   targetZ: 0,
 };
 
+function expectFrozenViewport(state: ReturnType<typeof createViewport>) {
+  expect(Object.isFrozen(state)).toBe(true);
+  expect(Object.isFrozen(state.path)).toBe(true);
+  expect(Object.isFrozen(state.camera)).toBe(true);
+  expect(Object.isFrozen(state.history)).toBe(true);
+  expect(Object.isFrozen(state.rootCamera)).toBe(true);
+  state.history.forEach((camera) => expect(Object.isFrozen(camera)).toBe(true));
+}
+
 describe("fractal navigation", () => {
   it("zooms through a stable KPI lineage", () => {
     let state = createViewport();
@@ -146,7 +155,83 @@ describe("fractal navigation", () => {
       path: ["edge"],
       camera: ROOT_CAMERA,
       history: [],
+      rootCamera: ROOT_CAMERA,
       selectedNodeId: null,
     });
+  });
+
+  it("restores the createViewport camera after a root camera change", () => {
+    const adjustedRootCamera: CameraPose = {
+      x: 4, y: 3, z: 7, targetX: 1, targetY: 1, targetZ: 0,
+    };
+    const secondAdjustedRootCamera: CameraPose = {
+      x: 2, y: 4, z: 6, targetX: 0, targetY: 2, targetZ: 1,
+    };
+    let state = createViewport(ROOT_CAMERA);
+
+    state = edgeNavigationReducer(state, { type: "camera", camera: adjustedRootCamera });
+    state = edgeNavigationReducer(state, { type: "camera", camera: secondAdjustedRootCamera });
+    state = edgeNavigationReducer(state, { type: "home" });
+
+    expect(state.camera).toEqual(ROOT_CAMERA);
+  });
+
+  it("restores the createViewport camera when the root camera changed before first enter", () => {
+    const adjustedRootCamera: CameraPose = {
+      x: 4, y: 3, z: 7, targetX: 1, targetY: 1, targetZ: 0,
+    };
+    const pressureCamera: CameraPose = {
+      x: 3, y: 2, z: 5, targetX: 1, targetY: 0, targetZ: 0,
+    };
+    let state = createViewport(ROOT_CAMERA);
+
+    state = edgeNavigationReducer(state, { type: "camera", camera: adjustedRootCamera });
+    state = edgeNavigationReducer(state, { type: "enter", nodeId: "pressure", camera: pressureCamera });
+    state = edgeNavigationReducer(state, { type: "home" });
+
+    expect(state.camera).toEqual(ROOT_CAMERA);
+  });
+
+  it("freezes viewport state through every navigation transition", () => {
+    const adjustedCamera: CameraPose = {
+      x: 4, y: 3, z: 7, targetX: 1, targetY: 1, targetZ: 0,
+    };
+    let state = createViewport(ROOT_CAMERA);
+    expectFrozenViewport(state);
+
+    state = edgeNavigationReducer(state, { type: "select", nodeId: "pressure" });
+    expectFrozenViewport(state);
+
+    state = edgeNavigationReducer(state, { type: "camera", camera: adjustedCamera });
+    expectFrozenViewport(state);
+
+    state = edgeNavigationReducer(state, { type: "enter", nodeId: "pressure" });
+    expectFrozenViewport(state);
+
+    state = edgeNavigationReducer(state, { type: "back" });
+    expectFrozenViewport(state);
+
+    state = edgeNavigationReducer(state, { type: "enter", nodeId: "pressure" });
+    state = edgeNavigationReducer(state, { type: "home" });
+    expectFrozenViewport(state);
+  });
+
+  it("isolates viewport state from every caller-supplied camera", () => {
+    const initialCamera = { ...ROOT_CAMERA };
+    const enteredCamera = { x: 3, y: 2, z: 5, targetX: 1, targetY: 0, targetZ: 0 };
+    const adjustedCamera = { x: 2, y: 1, z: 4, targetX: 0, targetY: 1, targetZ: 0 };
+    let state = createViewport(initialCamera);
+
+    initialCamera.z = 99;
+    expect(state.camera).toEqual(ROOT_CAMERA);
+    expect(state.rootCamera).toEqual(ROOT_CAMERA);
+
+    state = edgeNavigationReducer(state, { type: "enter", nodeId: "pressure", camera: enteredCamera });
+    enteredCamera.z = 99;
+    expect(state.camera.z).toBe(5);
+
+    state = edgeNavigationReducer(state, { type: "camera", camera: adjustedCamera });
+    adjustedCamera.z = 99;
+    expect(state.camera.z).toBe(4);
   });
 });
