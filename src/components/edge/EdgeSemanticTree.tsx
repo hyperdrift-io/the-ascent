@@ -18,7 +18,7 @@ export function EdgeSemanticTree({
 
   return (
     <nav className="edge-semantic-tree" aria-label="The Edge depth">
-      <div className="edge-lineage" aria-label="Current lineage">
+      <div className="edge-lineage" role="group" aria-label="Current lineage">
         {viewport.path.map((nodeId, index) => (
           <span key={`${nodeId}-${index}`} aria-current={index === viewport.path.length - 1 ? "location" : undefined}>
             {index > 0 && <i aria-hidden="true">/</i>}
@@ -37,7 +37,7 @@ export function EdgeSemanticTree({
       </div>
 
       {composition.children.length > 0 && (
-        <div className="edge-visible-branches" aria-label={`Branches within ${composition.current.label}`}>
+        <div className="edge-visible-branches" role="group" aria-label={`Branches within ${composition.current.label}`}>
           {composition.children.map((node) => (
             <button
               type="button"

@@ -56,4 +56,18 @@ describe("Weekrun Edge integration", () => {
     expect(recommendations.length).toBeLessThanOrEqual(3);
     expect(recommendations.every((item) => item.path.includes(".") && item.evidence.length > 30)).toBe(true);
   });
+
+  it("explains each recommendation with the resource that selected that path", () => {
+    const recommendations = buildEdgeRecommendations("Prepare", {
+      ...RESOURCES,
+      composure: 20,
+      recovery: 30,
+    });
+
+    expect(recommendations.map((item) => [item.path, item.evidence])).toEqual([
+      ["pressure.stress.anxiety", expect.stringContaining("Composure is 20")],
+      ["pressure.stress.tension", expect.stringContaining("Composure is 20")],
+      ["recovery.rest.relaxation", expect.stringContaining("Composure is 20")],
+    ]);
+  });
 });

@@ -24,6 +24,22 @@ export type EdgeNavigationAction =
   | { type: "select"; nodeId: string | null }
   | { type: "camera"; camera: CameraPose };
 
+export async function navigateEdgeLineage(options: {
+  lineage: readonly string[];
+  waitForIdle: () => Promise<void>;
+  home: () => Promise<void>;
+  enter: (nodeId: string) => Promise<void>;
+  isCurrent: () => boolean;
+}): Promise<void> {
+  await options.waitForIdle();
+  if (!options.isCurrent()) return;
+  await options.home();
+  for (const nodeId of options.lineage) {
+    if (!options.isCurrent()) return;
+    await options.enter(nodeId);
+  }
+}
+
 const DEFAULT_CAMERA: CameraPose = Object.freeze({
   x: 0,
   y: 0,

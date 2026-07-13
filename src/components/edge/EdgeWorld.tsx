@@ -7,6 +7,7 @@ import {
   createViewport,
   edgeNavigationReducer,
   getVisibleNodeIds,
+  navigateEdgeLineage,
   type EdgeNavigationAction,
   type EdgeViewportState,
 } from "../../edge-navigation";
@@ -36,7 +37,7 @@ export function EdgeWorld({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const controllerRef = useRef<EdgeSceneController | null>(null);
   const viewportRef = useRef<EdgeViewportState>(viewport);
-  const transitionRef = useRef(false);
+  const transitionQueueRef = useRef(Promise.resolve());
   const touchPoints = useRef(new Map<number, { x: number; y: number }>());
   const touchOrigin = useRef<{ x: number; y: number; distance: number | null } | null>(null);
   const navigationRequestRef = useRef(0);
@@ -53,45 +54,38 @@ export function EdgeWorld({
     return next;
   }, []);
 
+  const queueTransition = useCallback((transition: () => Promise<void>): Promise<void> => {
+    const queued = transitionQueueRef.current.then(transition, transition);
+    transitionQueueRef.current = queued.catch(() => undefined);
+    return queued;
+  }, []);
+
   const enter = useCallback(async (nodeId: string): Promise<void> => {
-    const current = viewportRef.current;
-    const index = getVisibleNodeIds(current).indexOf(nodeId);
-    if (index < 0 || transitionRef.current) return;
-    transitionRef.current = true;
-    setAimOpen(false);
-    applyNavigation({ type: "enter", nodeId, camera: getCameraPoseForEntry(current.path.length, index) });
-    const transition = controllerRef.current?.enter(nodeId);
-    try {
-      if (transition) await transition;
-    } finally {
-      transitionRef.current = false;
-    }
-  }, [applyNavigation]);
+    return queueTransition(async () => {
+      const current = viewportRef.current;
+      const index = getVisibleNodeIds(current).indexOf(nodeId);
+      if (index < 0) return;
+      setAimOpen(false);
+      applyNavigation({ type: "enter", nodeId, camera: getCameraPoseForEntry(current.path.length, index) });
+      await controllerRef.current?.enter(nodeId);
+    });
+  }, [applyNavigation, queueTransition]);
 
   const back = useCallback(async (): Promise<void> => {
-    if (viewportRef.current.path.length === 1 || transitionRef.current) return;
-    transitionRef.current = true;
-    applyNavigation({ type: "back" });
-    const transition = controllerRef.current?.back();
-    try {
-      if (transition) await transition;
-    } finally {
-      transitionRef.current = false;
-    }
-  }, [applyNavigation]);
+    return queueTransition(async () => {
+      if (viewportRef.current.path.length === 1) return;
+      applyNavigation({ type: "back" });
+      await controllerRef.current?.back();
+    });
+  }, [applyNavigation, queueTransition]);
 
   const home = useCallback(async (): Promise<void> => {
-    if (transitionRef.current) return;
-    setAimOpen(false);
-    transitionRef.current = true;
-    applyNavigation({ type: "home" });
-    const transition = controllerRef.current?.home();
-    try {
-      if (transition) await transition;
-    } finally {
-      transitionRef.current = false;
-    }
-  }, [applyNavigation]);
+    return queueTransition(async () => {
+      setAimOpen(false);
+      applyNavigation({ type: "home" });
+      await controllerRef.current?.home();
+    });
+  }, [applyNavigation, queueTransition]);
 
   const enterFirstBranch = useCallback(() => {
     const [first] = getVisibleNodeIds(viewportRef.current);
@@ -107,13 +101,13 @@ export function EdgeWorld({
     if (!targetPath) return;
     const request = ++navigationRequestRef.current;
     const lineage = targetPath.split(".");
-    navigationQueueRef.current = navigationQueueRef.current.then(async () => {
-      await home();
-      for (const nodeId of lineage) {
-        if (request !== navigationRequestRef.current) return;
-        await enter(nodeId);
-      }
-    });
+    navigationQueueRef.current = navigationQueueRef.current.then(() => navigateEdgeLineage({
+      lineage,
+      waitForIdle: () => transitionQueueRef.current,
+      home,
+      enter,
+      isCurrent: () => request === navigationRequestRef.current,
+    }));
     return () => { navigationRequestRef.current += 1; };
   }, [enter, home, targetPath]);
 

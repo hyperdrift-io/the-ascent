@@ -276,6 +276,16 @@ export default function EdgeGame() {
   // View-only flag (not persisted): the week closed while the player was away, so the
   // summary greets them with the away-completion line rather than the standard one.
   const [awayComplete, setAwayComplete] = useState(false);
+  const weekrunSurfaceRef = useRef<HTMLDivElement>(null);
+  const edgeTriggerRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const surface = weekrunSurfaceRef.current;
+    if (!surface) return;
+    if (edgeOpen) surface.setAttribute("inert", "");
+    else surface.removeAttribute("inert");
+    return () => surface.removeAttribute("inert");
+  }, [edgeOpen]);
 
   // Preload every backdrop once so scene-to-scene cross-fades never flash a blank layer.
   useEffect(() => {
@@ -419,6 +429,16 @@ export default function EdgeGame() {
     });
   }
 
+  function openEdge() {
+    edgeTriggerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    setEdgeOpen(true);
+  }
+
+  function closeEdge() {
+    setEdgeOpen(false);
+    window.requestAnimationFrame(() => edgeTriggerRef.current?.focus());
+  }
+
   // Escape cancels the ritual at any step
   useEffect(() => {
     if (!ritual) return;
@@ -451,7 +471,7 @@ export default function EdgeGame() {
             {rootPath && (
               <KpiReading
                 path={rootPath}
-                value={edgeProfile.daily[today]?.[rootPath] ?? 50}
+                value={edgeProfile.daily[today]?.[rootPath] ?? null}
                 onSave={(value) => setEdgeProfile(saveDailyReading(edgeProfile, { date: today, path: rootPath, value }))}
               />
             )}
@@ -472,25 +492,27 @@ export default function EdgeGame() {
 
   return (
     <>
-      <Mountain
-        run={run}
-        profile={profile}
-        edgeSnapshot={edgeSnapshot}
-        onOpenEdge={() => setEdgeOpen(true)}
-        signalsOn={signalsOn}
-        settingStone={settingStone}
-        onChooseCard={chooseCard}
-        onScan={scanMorning}
-        onOpenRitual={() => setRitual({ step: 1, tier: null, proof: null, felt: null, note: "" })}
-        onBreakCamp={breakCamp}
-        onAttempt={() => endRun("summit-attempt")}
-        onComplete={() => endRun("complete")}
-        onRecon={() => endRun("recon")}
-        onToggleSignals={toggleSignals}
-        ritual={ritual}
-        setRitual={setRitual}
-        onCommitRitual={commitRitual}
-      />
+      <div ref={weekrunSurfaceRef} className="weekrun-surface" aria-hidden={edgeOpen || undefined}>
+        <Mountain
+          run={run}
+          profile={profile}
+          edgeSnapshot={edgeSnapshot}
+          onOpenEdge={openEdge}
+          signalsOn={signalsOn}
+          settingStone={settingStone}
+          onChooseCard={chooseCard}
+          onScan={scanMorning}
+          onOpenRitual={() => setRitual({ step: 1, tier: null, proof: null, felt: null, note: "" })}
+          onBreakCamp={breakCamp}
+          onAttempt={() => endRun("summit-attempt")}
+          onComplete={() => endRun("complete")}
+          onRecon={() => endRun("recon")}
+          onToggleSignals={toggleSignals}
+          ritual={ritual}
+          setRitual={setRitual}
+          onCommitRitual={commitRitual}
+        />
+      </div>
       {edgeOpen && (
         <EdgeOverlay
           aim={run.aim}
@@ -499,7 +521,7 @@ export default function EdgeGame() {
           profile={edgeProfile}
           today={today}
           onProfile={setEdgeProfile}
-          onClose={() => setEdgeOpen(false)}
+          onClose={closeEdge}
         />
       )}
     </>
@@ -595,6 +617,7 @@ function AimEntry({
         </div>
         <h2>Set this Weekrun's aim</h2>
         <input
+          name="weekrun-aim"
           aria-label="Your aim for this week"
           placeholder="e.g. land a surface backroll"
           value={aim}
@@ -698,6 +721,7 @@ function Mountain({
       <p className="run-aim">&ldquo;{run.aim}&rdquo;</p>
 
       <EdgeLine edgeLoad={run.edgeLoad} edgeControl={run.edgeControl} zone={run.zone} />
+      <EdgeSummary snapshot={edgeSnapshot} onOpen={onOpenEdge} />
 
       {world === "dawn" && (
         <>
@@ -709,7 +733,6 @@ function Mountain({
       )}
 
       <div className="bottom">
-        <EdgeSummary snapshot={edgeSnapshot} onOpen={onOpenEdge} />
         {world !== "night" && (
           <div className="readiness">
             <span>
@@ -849,7 +872,7 @@ function MoveCardView({
 
 function ResourceStrip({ resources }: { resources: Record<HumanResource, number> }) {
   return (
-    <div className="resource-strip" aria-label="Human resources">
+    <div className="resource-strip" role="group" aria-label="Human resources">
       {RESOURCE_ORDER.map((key) => (
         <span
           key={key}
@@ -860,7 +883,7 @@ function ResourceStrip({ resources }: { resources: Record<HumanResource, number>
           <span className="meter-bar">
             <progress max={100} value={resources[key]} aria-label={`${RESOURCE_LABEL[key]} ${resources[key]}`} />
             {(METER_TICKS[key] ?? []).map((tick) => (
-              <b key={tick.at} className={`tick tick-${tick.at}`} title={tick.title} aria-label={tick.title} />
+              <b key={tick.at} className={`tick tick-${tick.at}`} title={tick.title} />
             ))}
           </span>
           <span className="meter-value">{resources[key]}</span>
@@ -879,7 +902,7 @@ function EdgeLine({ edgeLoad, edgeControl, zone }: { edgeLoad: number; edgeContr
   const point = getEdgeLinePoint(marker);
   const markerY = 3 + (point.y / 12) * 14;
   return (
-    <div className="edge-line" data-zone={zone} aria-label={`Edge state: ${ZONE_LABEL[zone]}`}>
+    <div className="edge-line" data-zone={zone} role="img" aria-label={`Edge state: ${ZONE_LABEL[zone]}`}>
       <svg className="crest" viewBox="0 0 100 12" preserveAspectRatio="none" aria-hidden="true">
         <path d="M1 10.5 C 20 10.2 34 9.4 50 7 C 66 4.6 82 2.4 99 0.5" />
       </svg>
@@ -944,7 +967,7 @@ function MorningScan({ onBegin }: { onBegin: (input: MorningScanInput) => void }
 
 function CairnRow({ cairns, day, settingStone }: { cairns: MissionRunState["cairns"]; day: number; settingStone: boolean }) {
   return (
-    <div className="cairns" aria-label="Cairns — one stone per day">
+    <div className="cairns" role="img" aria-label="Cairns — one stone per day">
       {Array.from({ length: 7 }, (_, index) => {
         const dayNumber = index + 1;
         const cairn = cairns.find((entry) => entry.day === dayNumber);
@@ -1001,7 +1024,7 @@ function Footer({
         )}
 
         <label className="signals">
-          <input type="checkbox" checked={signalsOn} onChange={onToggleSignals} />
+          <input name="run-signals" type="checkbox" checked={signalsOn} onChange={onToggleSignals} />
           <span>{SIGNALS_COPY}</span>
         </label>
 

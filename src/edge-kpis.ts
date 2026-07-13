@@ -35,9 +35,17 @@ export type KpiSearchResult = {
   source: "core" | "sub";
 };
 
+export type RecommendationResource = "energy" | "focus" | "composure" | "confidence" | "recovery" | "connection" | "time";
+
 export type RecommendationContext = {
   aim: string;
-  lowResources: readonly ("energy" | "focus" | "composure" | "confidence" | "recovery" | "connection" | "time")[];
+  lowResources: readonly RecommendationResource[];
+};
+
+export type KpiRecommendationMatch = {
+  result: KpiSearchResult;
+  resources: readonly RecommendationResource[];
+  aimMatched: boolean;
 };
 
 export type StudyResource = {
@@ -326,23 +334,47 @@ const AIM_RULES: readonly { terms: readonly string[]; paths: readonly KpiSearchR
   },
 ];
 
-export function recommendKpiSubset(context: RecommendationContext): KpiSearchResult[] {
+export function matchKpiRecommendations(context: RecommendationContext): KpiRecommendationMatch[] {
   const aim = context.aim.trim().toLowerCase();
-  const candidatePaths: KpiSearchResult["path"][] = [];
+  const candidates: { path: KpiSearchResult["path"]; resource: RecommendationResource | null }[] = [];
 
-  for (const resource of context.lowResources) candidatePaths.push(...RESOURCE_PATHS[resource]);
-  for (const rule of AIM_RULES) {
-    if (rule.terms.some((term) => aim.includes(term))) candidatePaths.push(...rule.paths);
+  for (const resource of context.lowResources) {
+    for (const path of RESOURCE_PATHS[resource]) candidates.push({ path, resource });
   }
-  if (candidatePaths.length === 0) candidatePaths.push("body.health.general-wellbeing");
+  for (const rule of AIM_RULES) {
+    if (rule.terms.some((term) => aim.includes(term))) {
+      for (const path of rule.paths) candidates.push({ path, resource: null });
+    }
+  }
+  if (candidates.length === 0) candidates.push({ path: "body.health.general-wellbeing", resource: null });
 
-  const selected = new Map<KpiSearchResult["path"], IndexedResult>();
-  for (const path of candidatePaths) {
-    const item = RESULT_BY_PATH.get(path);
-    if (item) selected.set(path, item);
+  const selected = new Map<KpiSearchResult["path"], {
+    item: IndexedResult;
+    resources: Set<RecommendationResource>;
+    aimMatched: boolean;
+  }>();
+  for (const candidate of candidates) {
+    const item = RESULT_BY_PATH.get(candidate.path);
+    if (!item) continue;
+    const match = selected.get(candidate.path) ?? {
+      item,
+      resources: new Set<RecommendationResource>(),
+      aimMatched: false,
+    };
+    if (candidate.resource) match.resources.add(candidate.resource);
+    else match.aimMatched = true;
+    selected.set(candidate.path, match);
     if (selected.size === 5) break;
   }
-  return [...selected.values()].map(publicResult);
+  return [...selected.values()].map((match) => ({
+    result: publicResult(match.item),
+    resources: Object.freeze([...match.resources]),
+    aimMatched: match.aimMatched,
+  }));
+}
+
+export function recommendKpiSubset(context: RecommendationContext): KpiSearchResult[] {
+  return matchKpiRecommendations(context).map((match) => match.result);
 }
 
 export function getStudyResource(path: string): StudyResource | null {

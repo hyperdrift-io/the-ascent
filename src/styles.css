@@ -226,6 +226,10 @@ textarea:focus {
   background: var(--night);
 }
 
+.weekrun-surface {
+  min-height: 100vh;
+}
+
 .bg {
   position: absolute;
   inset: 0;

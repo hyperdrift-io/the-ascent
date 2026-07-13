@@ -10,6 +10,14 @@
   letter-spacing: 0;
 }
 
+.mountain > .edge-summary {
+  position: absolute;
+  z-index: 4;
+  top: 104px;
+  right: 20px;
+  width: auto;
+}
+
 .edge-summary > span:first-child {
   display: flex;
   align-items: baseline;
@@ -114,6 +122,11 @@ button.edge-overlay-close {
   pointer-events: auto;
 }
 
+.edge-world[data-depth="0"] .edge-world-tools:has(.edge-root-tools) {
+  top: 124px;
+  bottom: auto;
+}
+
 .edge-tools {
   display: flex;
   flex-direction: column;
@@ -181,12 +194,16 @@ button.edge-overlay-close {
   gap: 12px;
 }
 
-.kpi-reading h2,
+.kpi-reading header label,
 .edge-recommendations h2,
 .study-resource h2 {
   color: #ffffff;
   font-size: 13px;
   letter-spacing: 0;
+}
+
+.kpi-reading > button.quiet {
+  align-self: flex-start;
 }
 
 .kpi-reading output {
@@ -232,6 +249,11 @@ button.edge-overlay-close {
 }
 
 @media (max-width: 700px) {
+  .mountain > .edge-summary {
+    top: 108px;
+    right: 12px;
+  }
+
   .edge-world-tools {
     top: 150px;
     bottom: 170px;
@@ -243,7 +265,7 @@ button.edge-overlay-close {
     padding: 10px;
   }
 
-  .edge-world-tools:has(.edge-root-tools) {
+  .edge-world[data-depth="0"] .edge-world-tools:has(.edge-root-tools) {
     top: 180px;
     bottom: auto;
     max-height: 210px;

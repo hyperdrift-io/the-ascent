@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import * as EdgeNavigation from "./edge-navigation";
 import {
   createViewport,
   edgeNavigationReducer,
@@ -26,6 +27,37 @@ function expectFrozenViewport(state: ReturnType<typeof createViewport>) {
 }
 
 describe("fractal navigation", () => {
+  it("waits for an active transition before traversing a requested lineage", async () => {
+    const navigateLineage = (EdgeNavigation as unknown as {
+      navigateEdgeLineage?: (options: {
+        lineage: readonly string[];
+        waitForIdle: () => Promise<void>;
+        home: () => Promise<void>;
+        enter: (nodeId: string) => Promise<void>;
+        isCurrent: () => boolean;
+      }) => Promise<void>;
+    }).navigateEdgeLineage;
+    expect(navigateLineage).toBeTypeOf("function");
+    if (!navigateLineage) return;
+
+    let release = () => {};
+    const activeTransition = new Promise<void>((resolve) => { release = resolve; });
+    const calls: string[] = [];
+    const navigation = navigateLineage({
+      lineage: ["pressure", "stress", "anxiety"],
+      waitForIdle: () => activeTransition,
+      home: async () => { calls.push("home"); },
+      enter: async (nodeId) => { calls.push(nodeId); },
+      isCurrent: () => true,
+    });
+
+    await Promise.resolve();
+    expect(calls).toEqual([]);
+    release();
+    await navigation;
+    expect(calls).toEqual(["home", "pressure", "stress", "anxiety"]);
+  });
+
   it("zooms through a stable KPI lineage", () => {
     let state = createViewport();
     state = edgeNavigationReducer(state, { type: "enter", nodeId: "pressure" });

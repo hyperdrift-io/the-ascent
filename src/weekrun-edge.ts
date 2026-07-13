@@ -1,6 +1,6 @@
 import type { HumanResource } from "./edge";
 import { getKpiGuidance } from "./edge-kpi-guidance";
-import { recommendKpiSubset, type KpiSearchResult, type RecommendationContext } from "./edge-kpis";
+import { matchKpiRecommendations, type KpiSearchResult, type RecommendationContext } from "./edge-kpis";
 
 export type EdgeCapacityState = "balanced" | "available" | "loaded" | "restoring" | "overextended";
 
@@ -114,11 +114,11 @@ export function buildEdgeRecommendations(
   const lowResources = RESOURCE_ORDER
     .filter((resource) => resources[resource] < 55)
     .sort((left, right) => resources[left] - resources[right]) as RecommendationContext["lowResources"][number][];
-  return recommendKpiSubset({ aim, lowResources }).slice(0, 3).map((result, index) => {
-    const resource = lowResources[index % Math.max(1, lowResources.length)];
+  return matchKpiRecommendations({ aim, lowResources }).slice(0, 3).map((match) => {
+    const resource = match.resources[0];
     const evidence = resource
       ? `${resource[0].toUpperCase()}${resource.slice(1)} is ${resources[resource]} today; this signal may help fit the next call.`
       : `This fixed signal is relevant to the declared aim; confirm it only if it fits today.`;
-    return { ...result, evidence };
+    return { ...match.result, evidence };
   });
 }
