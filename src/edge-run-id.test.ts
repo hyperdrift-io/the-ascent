@@ -26,15 +26,20 @@ describe("Weekrun identity", () => {
     expect((run as unknown as { runId?: string }).runId).toBe("run-stable-1");
   });
 
-  it("hydrates a deterministic ID into a legacy save without one", () => {
+  it("persists a deterministic ID and calendar fields into a legacy save across dates", () => {
     const run = createMissionRun("Deliver the talk", undefined, undefined, "2026-07-13", "discarded");
     const legacy = { ...run } as Record<string, unknown>;
     delete legacy.runId;
+    delete legacy.startedOn;
+    delete legacy.lastSyncedOn;
+    delete legacy.syncNote;
     localStorage.setItem("edge.run.v1", JSON.stringify(legacy));
 
     const first = loadRun("2026-07-14");
-    const second = loadRun("2026-07-14");
+    const second = loadRun("2026-07-15");
     expect(first?.runId).toMatch(/^legacy-/);
     expect(second?.runId).toBe(first?.runId);
+    expect(second?.startedOn).toBe(first?.startedOn);
+    expect(second?.lastSyncedOn).toBe(first?.lastSyncedOn);
   });
 });

@@ -8,6 +8,7 @@ export function AthleticMode({
   onChange: (profile: EdgeProfile) => void;
 }) {
   const { athletic } = profile;
+  const completed = Math.min(52, athletic.completed);
   return (
     <section className="athletic-mode" aria-labelledby="athletic-mode-title">
       <header>
@@ -15,12 +16,12 @@ export function AthleticMode({
           <p>Optional practice</p>
           <h2 id="athletic-mode-title">Athletic Mode</h2>
         </div>
-        <strong>{athletic.completed} / 52</strong>
+        <strong>{completed} / 52</strong>
       </header>
       <progress
         max={52}
-        value={Math.min(52, athletic.completed)}
-        aria-label={`${athletic.completed} of 52 completed Weekruns`}
+        value={completed}
+        aria-label={`${completed} of 52 completed Weekruns`}
       />
       <p>A practice of 52 completed Weekruns, not 52 calendar weeks.</p>
       <ul>

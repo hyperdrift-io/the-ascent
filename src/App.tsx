@@ -46,7 +46,13 @@ import { KpiReading } from "./components/edge/KpiReading";
 import { KpiSearch } from "./components/edge/KpiSearch";
 import { AthleticMode } from "./components/edge/AthleticMode";
 import { getEdgeLinePoint } from "./edge-line";
-import { completeAthleticWeekrun, loadEdgeProfile, saveDailyReading, type EdgeProfile } from "./edge-profile";
+import {
+  EDGE_PROFILE_KEY,
+  completeAthleticWeekrun,
+  loadEdgeProfile,
+  saveDailyReading,
+  type EdgeProfile,
+} from "./edge-profile";
 import type { KpiSearchResult } from "./edge-kpis";
 import { adaptMorningScanToEdge, buildWeekrunHeader, deriveTodayEdgeSnapshot, type TodayEdgeSnapshot } from "./weekrun-edge";
 import { getCoachLine, type CoachCall, type CoachCapacity } from "./edge-voice";
@@ -288,6 +294,14 @@ export default function EdgeGame() {
     else surface.removeAttribute("inert");
     return () => surface.removeAttribute("inert");
   }, [edgeOpen]);
+
+  useEffect(() => {
+    function refreshEdgeProfile(event: StorageEvent) {
+      if (event.key === EDGE_PROFILE_KEY) setEdgeProfile(loadEdgeProfile(today));
+    }
+    window.addEventListener("storage", refreshEdgeProfile);
+    return () => window.removeEventListener("storage", refreshEdgeProfile);
+  }, [today]);
 
   // Preload every backdrop once so scene-to-scene cross-fades never flash a blank layer.
   useEffect(() => {

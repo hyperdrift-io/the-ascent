@@ -136,15 +136,60 @@ function isEdgeProfile(value: unknown): value is EdgeProfile {
   return uniqueRunIds.size === athletic.runIds.length && athletic.completed === athletic.runIds.length;
 }
 
-export function loadEdgeProfile(today: string = todayLocalISO()): EdgeProfile {
+function readStoredEdgeProfile(): EdgeProfile | null {
   try {
     const raw = globalThis.localStorage.getItem(EDGE_PROFILE_KEY);
-    if (!raw) return createEdgeProfile(today);
+    if (!raw) return null;
     const parsed: unknown = JSON.parse(raw);
-    return isEdgeProfile(parsed) ? parsed : createEdgeProfile(today);
+    return isEdgeProfile(parsed) ? parsed : null;
   } catch {
-    return createEdgeProfile(today);
+    return null;
   }
+}
+
+export function loadEdgeProfile(today: string = todayLocalISO()): EdgeProfile {
+  return readStoredEdgeProfile() ?? createEdgeProfile(today);
+}
+
+function mergeRecommendations(
+  left: readonly ConfirmedRecommendation[],
+  right: readonly ConfirmedRecommendation[],
+): readonly ConfirmedRecommendation[] {
+  const merged = new Map<string, ConfirmedRecommendation>();
+  for (const recommendation of [...left, ...right]) {
+    merged.set(recommendationKey(recommendation), recommendation);
+  }
+  return [...merged.values()];
+}
+
+function mergeReadingHistory(
+  left: EdgeProfile["daily"],
+  right: EdgeProfile["daily"],
+): EdgeProfile["daily"] {
+  const dates = new Set([...Object.keys(left), ...Object.keys(right)]);
+  return Object.fromEntries([...dates].map((date) => [date, {
+    ...left[date],
+    ...right[date],
+  }]));
+}
+
+function mergeWithStoredProfile(profile: EdgeProfile): EdgeProfile {
+  const stored = readStoredEdgeProfile();
+  const runIds = [...new Set([
+    ...(stored?.athletic.runIds ?? []),
+    ...profile.athletic.runIds,
+  ])].slice(0, 52);
+  return {
+    ...profile,
+    baselines: { ...profile.baselines, ...stored?.baselines },
+    daily: mergeReadingHistory(profile.daily, stored?.daily ?? {}),
+    recommendations: mergeRecommendations(profile.recommendations, stored?.recommendations ?? []),
+    athletic: {
+      enabled: stored?.athletic.enabled ?? profile.athletic.enabled,
+      completed: runIds.length,
+      runIds,
+    },
+  };
 }
 
 function clampReading(value: number): number {
@@ -153,13 +198,14 @@ function clampReading(value: number): number {
 
 export function saveDailyReading(profile: EdgeProfile, reading: DailyReading): EdgeProfile {
   if (!isCanonicalKpiPath(reading.path) || !Number.isFinite(reading.value)) return profile;
+  const current = mergeWithStoredProfile(profile);
 
   const next: EdgeProfile = {
-    ...profile,
+    ...current,
     daily: {
-      ...profile.daily,
+      ...current.daily,
       [reading.date]: {
-        ...profile.daily[reading.date],
+        ...current.daily[reading.date],
         [reading.path]: clampReading(reading.value),
       },
     },
@@ -181,34 +227,36 @@ export function confirmRecommendation(
   recommendation: ConfirmedRecommendation,
 ): EdgeProfile {
   if (!isRecommendation(recommendation)) return profile;
+  const current = mergeWithStoredProfile(profile);
 
   const normalized: ConfirmedRecommendation = {
     ...recommendation,
     paths: [...new Set(recommendation.paths)],
   };
   const key = recommendationKey(normalized);
-  if (profile.recommendations.some((item) => recommendationKey(item) === key)) {
-    persistEdgeProfile(profile);
-    return profile;
+  if (current.recommendations.some((item) => recommendationKey(item) === key)) {
+    persistEdgeProfile(current);
+    return current;
   }
 
   const next: EdgeProfile = {
-    ...profile,
-    recommendations: [...profile.recommendations, normalized],
+    ...current,
+    recommendations: [...current.recommendations, normalized],
   };
   persistEdgeProfile(next);
   return next;
 }
 
 export function setAthleticMode(profile: EdgeProfile, enabled: boolean): EdgeProfile {
-  if (profile.athletic.enabled === enabled) {
-    persistEdgeProfile(profile);
-    return profile;
+  const current = mergeWithStoredProfile(profile);
+  if (current.athletic.enabled === enabled) {
+    persistEdgeProfile(current);
+    return current;
   }
 
   const next: EdgeProfile = {
-    ...profile,
-    athletic: { ...profile.athletic, enabled },
+    ...current,
+    athletic: { ...current.athletic, enabled },
   };
   persistEdgeProfile(next);
   return next;
@@ -216,17 +264,22 @@ export function setAthleticMode(profile: EdgeProfile, enabled: boolean): EdgePro
 
 export function completeAthleticWeekrun(profile: EdgeProfile, runId: string): EdgeProfile {
   if (!isNonBlankString(runId)) return profile;
+  const current = mergeWithStoredProfile(profile);
 
-  if (!profile.athletic.enabled || profile.athletic.runIds.includes(runId)) {
-    persistEdgeProfile(profile);
-    return profile;
+  if (
+    !current.athletic.enabled ||
+    current.athletic.runIds.includes(runId) ||
+    current.athletic.runIds.length >= 52
+  ) {
+    persistEdgeProfile(current);
+    return current;
   }
 
-  const runIds = [...profile.athletic.runIds, runId];
+  const runIds = [...current.athletic.runIds, runId];
   const next: EdgeProfile = {
-    ...profile,
+    ...current,
     athletic: {
-      ...profile.athletic,
+      ...current.athletic,
       completed: runIds.length,
       runIds,
     },

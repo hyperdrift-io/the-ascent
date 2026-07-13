@@ -202,6 +202,31 @@ describe("Edge profile", () => {
     expect(completeAthleticWeekrun(once, "run-1").athletic).toEqual(once.athletic);
   });
 
+  it("merges distinct completions from stale profile snapshots", () => {
+    const enabled = setAthleticMode(createEdgeProfile("2026-07-12"), true);
+    const stale = structuredClone(enabled);
+    completeAthleticWeekrun(enabled, "run-1");
+
+    const merged = completeAthleticWeekrun(stale, "run-2");
+
+    expect(merged.athletic).toEqual({
+      enabled: true,
+      completed: 2,
+      runIds: ["run-1", "run-2"],
+    });
+  });
+
+  it("caps a single Athletic season at 52 completed Weekruns", () => {
+    let profile = setAthleticMode(createEdgeProfile("2026-07-12"), true);
+    for (let index = 1; index <= 53; index += 1) {
+      profile = completeAthleticWeekrun(profile, `run-${index}`);
+    }
+
+    expect(profile.athletic.completed).toBe(52);
+    expect(profile.athletic.runIds).toHaveLength(52);
+    expect(profile.athletic.runIds).not.toContain("run-53");
+  });
+
   it.each(["summit-attempt", "complete", "recon"])(
     "counts the stable ID from a %s ending exactly once",
     (ending) => {

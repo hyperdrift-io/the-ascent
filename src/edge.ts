@@ -1038,26 +1038,33 @@ export function loadRun(todayISO: string = todayLocalISO()): MissionRunState | n
       return null;
     }
     const state = parsed as MissionRunState;
+    let migrated = false;
     // Old saves (`edge.run.v1` from before Morning Scan) never wrote `scannedToday` —
     // missing means the player hasn't scanned yet today.
     if (typeof state.scannedToday !== "boolean") {
       state.scannedToday = false;
+      migrated = true;
     }
     // Old saves (from before calendar binding) never wrote `startedOn`/`lastSyncedOn`/
     // `syncNote` — back-fill a plausible start date from the in-run day counter so
     // `isWeekOver`/`getBossWindowLabel` have something timezone-safe to work with.
     if (typeof state.startedOn !== "string") {
       state.startedOn = addDaysISO(todayISO, -(state.day - 1));
+      migrated = true;
     }
     if (typeof state.lastSyncedOn !== "string") {
       state.lastSyncedOn = todayISO;
+      migrated = true;
     }
     if (state.syncNote === undefined) {
       state.syncNote = null;
+      migrated = true;
     }
     if (typeof state.runId !== "string" || state.runId.trim().length === 0) {
       state.runId = legacyRunId(state);
+      migrated = true;
     }
+    if (migrated) saveRun(state);
     return state;
   } catch {
     return null;
