@@ -2,13 +2,13 @@
 
 The Edge is a lifelong, zoomable human-capacity matrix that helps a person see what today can carry and make the right call. Weekrun is a seven-day application of that foundation toward one chosen aim.
 
-The [canonical foundation design](docs/superpowers/specs/2026-07-12-the-edge-foundation-design.md) defines the permanent product hierarchy, human-capacity model, and artistic direction. The current shipped experience is the Weekrun layer being integrated with The Edge; it retains the existing Ascent presentation while that foundation is added.
+The [canonical foundation design](docs/superpowers/specs/2026-07-12-the-edge-foundation-design.md) defines the permanent product hierarchy, human-capacity model, and artistic direction.
 
-Each Weekrun is an Ascent toward a player-chosen aim: daily real-world moves, resolved as cairns on the path, carry you toward the summit gate — the week's meaningful attempt.
+The foundation is stable and independent of any goal: fifteen human KPIs remain complete, searchable, and rooted in a literal spatial tree. Enter the matrix to move from The Edge, to a domain, to a core KPI, to related daily signals. Recommendations reveal relevant branches; they never add, remove, or redefine the human model.
 
-Play it at [theascent.hyperdrift.io](https://theascent.hyperdrift.io). The source is published at [hyperdrift-io/the-ascent](https://github.com/hyperdrift-io/the-ascent), and the design argument is in [Software That Rests With You](https://hyperdrift.io/blog/the-ascent-software-that-rests-with-you).
+Weekrun is one seven-day application of current capacity toward a player-chosen aim. Daily readings refine what today can carry without overwriting the person's foundation. Morning Scan, real-world moves, cairns, route readiness, and the summit gate remain the practical loop. Athletic Mode is an explicit optional practice of 52 completed Weekruns; breaks are neutral and the next run never starts automatically.
 
-The Ascent follows your real week: each visit picks up wherever the calendar left off. Miss a day and the mountain rests with you — recovery converts while you're away, and the run is waiting when you return. The Edge Line, the run's signature instrument, always shows where you're living relative to the edge; your seven resources (Energy, Focus, Composure, Confidence, Recovery, Connection, Time) stay on screen throughout. Each dawn opens with a Morning Scan — a quick, skippable read that's how the mountain reads you. Every answer is just information, not a verdict; it sets the day's conditions and feeds the mountain, which lives and breathes with you: fog when recovery runs low, headwind when time or composure is thin, and a golden dawn the morning after a strong day. Performance only ever brightens the world — a hard day is earlier light, never darkness.
+Play it at [theascent.hyperdrift.io](https://theascent.hyperdrift.io). The source is public at [hyperdrift-io/the-ascent](https://github.com/hyperdrift-io/the-ascent), and the human argument is in [Self-Fulfilment Starts With the Right Call](https://hyperdrift.io/blog/the-ascent-software-that-rests-with-you).
 
 ```bash
 pnpm install
